@@ -6,7 +6,10 @@ plugins {
 android {
     namespace = "com.example.paintapp"
     compileSdk = 34
-    
+    buildFeatures{
+        viewBinding = true
+        dataBinding = true
+    }
     defaultConfig {
         applicationId = "com.example.paintapp"
         minSdk = 34
