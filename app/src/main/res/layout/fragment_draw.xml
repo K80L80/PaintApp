@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DrawFragment">
+
+    <com.example.paintapp.CustomDrawView
+        android:id="@+id/customDrawView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/buttonChangeColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Color" />
+
+        <Button
+            android:id="@+id/buttonChangeSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Size" />
+
+        <Button
+            android:id="@+id/buttonChangeShape"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Shape" />
+
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_margin="16dp"
+        android:rotationX="4"
+        android:rotationY="-4"
+        android:text="Clear" />
+
+</FrameLayout>
