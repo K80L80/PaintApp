@@ -23,6 +23,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     private var endX = 0f
     private var endY = 0f
 
+
     init {
         paint.color = currentColor
         paint.style = currentStyle
@@ -37,7 +38,6 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         paint.color = currentColor
         paint.strokeWidth = currentSize
 
-        // 根据形状类型调整样式
         paint.style = if (currentShape == "free" || currentShape == "line") Paint.Style.STROKE else Paint.Style.FILL
 
         when (currentShape) {
