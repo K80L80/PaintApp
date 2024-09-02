@@ -23,6 +23,7 @@ class DrawFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
 
+
         // Set color button
         val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
         buttonChangeColor.setOnClickListener {
@@ -71,5 +72,9 @@ class DrawFragment : Fragment() {
         }
 
         return view
+    }
+    override fun onPause() {
+        super.onPause()
+        customDrawView.savedBitmap = customDrawView.getBitmap()
     }
 }
