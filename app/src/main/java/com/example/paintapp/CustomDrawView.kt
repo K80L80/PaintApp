@@ -1,6 +1,7 @@
 package com.example.paintapp
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -13,6 +14,8 @@ import android.view.View
 class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private val paint = Paint()
     private val path = Path()
+    private var bitmap: Bitmap = Bitmap.createBitmap(800, 1600, Bitmap.Config.ARGB_8888)
+    private var bitmapCanvas: Canvas = Canvas(bitmap)
 
     private var currentColor = Color.BLACK
     private var currentSize = 5f
@@ -22,6 +25,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     private var startY = 0f
     private var endX = 0f
     private var endY = 0f
+    var savedBitmap: Bitmap? = null
 
 
     init {
@@ -37,26 +41,27 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
 
         paint.color = currentColor
         paint.strokeWidth = currentSize
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
         paint.style = if (currentShape == "free" || currentShape == "line") Paint.Style.STROKE else Paint.Style.FILL
 
         when (currentShape) {
             "line", "free" -> {  // Merge "line" and "free" logic
                 paint.style = Paint.Style.STROKE
-                canvas.drawPath(path, paint)
+                bitmapCanvas.drawPath(path, paint)
             }
             "circle" -> {
                 val radius = Math.sqrt(
                     Math.pow((endX - startX).toDouble(), 2.0) + Math.pow((endY - startY).toDouble(), 2.0)
                 ).toFloat()
-                canvas.drawCircle(startX, startY, radius, paint)
+                bitmapCanvas.drawCircle(startX, startY, radius, paint)
             }
             "square" -> {
                 val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
-                canvas.drawRect(startX, startY, startX + side, startY + side, paint)
+                bitmapCanvas.drawRect(startX, startY, startX + side, startY + side, paint)
             }
             "rectangle" -> {
-                canvas.drawRect(startX, startY, endX, endY, paint)
+                bitmapCanvas.drawRect(startX, startY, endX, endY, paint)
             }
             "diamond" -> {
                 val diamondPath = Path()
@@ -65,11 +70,11 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                 diamondPath.lineTo((startX + endX) / 2, endY)
                 diamondPath.lineTo(startX, (startY + endY) / 2)
                 diamondPath.close()
-                canvas.drawPath(diamondPath, paint)
+                bitmapCanvas.drawPath(diamondPath, paint)
             }
             "free" -> {
                 paint.style = Paint.Style.STROKE
-                canvas.drawPath(path, paint)
+                bitmapCanvas.drawPath(path, paint)
             }
         }
     }
@@ -149,6 +154,18 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
 
     fun resetDrawing() {
         path.reset()
+        bitmapCanvas.drawColor(Color.WHITE)
         invalidate()
     }
+
+    fun getBitmap(): Bitmap {
+        return bitmap
+    }
+
+    fun setBitmap(savedBitmap: Bitmap) {
+        bitmap = savedBitmap.copy(Bitmap.Config.ARGB_8888, true)
+        bitmapCanvas = Canvas(bitmap)
+        invalidate()
+    }
+
 }
