@@ -25,10 +25,12 @@ class DrawFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
 
-        // Check if there's a saved Bitmap in the ViewModel
-        drawViewModel.userDataBitMap?.let {
-            Log.d("DrawFragment", "restoring old drawing")
-            customDrawView.setBitmap(it) // Call to restore the saved Bitmap
+        //Checkifthere'sasavedBitmapintheViewModel
+        //TODO:change this to access the bitmap through a getter/setter
+        drawViewModel.userDataBitMap?.let{
+            Log.d("DrawFragment","restoringolddrawing")
+            customDrawView.setBitmap(it)//CalltorestorethesavedBitmap
+            //TODO:observer the bitmap
         }
 
         // Set color button
