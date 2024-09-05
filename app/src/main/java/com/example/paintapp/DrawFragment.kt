@@ -3,26 +3,33 @@ package com.example.paintapp
 import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import java.util.Locale
-import com.example.paintapp.R
 
 
 class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
-
+    private val drawViewModel: DrawViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
 
+        // Check if there's a saved Bitmap in the ViewModel
+        drawViewModel.userDataBitMap?.let {
+            Log.d("DrawFragment", "restoring old drawing")
+            customDrawView.setBitmap(it) // Call to restore the saved Bitmap
+        }
 
         // Set color button
         val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
@@ -73,8 +80,11 @@ class DrawFragment : Fragment() {
 
         return view
     }
+
+    //Saving the Bitmap Before a Screen Rotation
     override fun onPause() {
         super.onPause()
-        customDrawView.savedBitmap = customDrawView.getBitmap()
+        Log.d("DrawFragment", "on pause() called..... should be called during rotation to save drawing data")
+        drawViewModel.userDataBitMap = customDrawView.getBitmap()!!
     }
 }
