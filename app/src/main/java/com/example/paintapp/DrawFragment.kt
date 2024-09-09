@@ -1,92 +1,98 @@
+/**Fragment to handle drawing in our application.
+ * Uses the draw view model
+ * Date: 09/08/2024
+ *
+ */
 package com.example.paintapp
-
-import android.app.AlertDialog
-import android.graphics.Color
+import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.SeekBar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import java.util.Locale
-
+import com.example.paintapp.databinding.FragmentDrawBinding
+import androidx.appcompat.app.AlertDialog
 
 class DrawFragment : Fragment() {
 
-    private lateinit var customDrawView: CustomDrawView
     private val drawViewModel: DrawViewModel by activityViewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
+        val binding = FragmentDrawBinding.inflate(inflater, container, false)
+        binding.customView.setViewModel(drawViewModel)
 
-        val view = inflater.inflate(R.layout.fragment_draw, container, false)
-        customDrawView = view.findViewById(R.id.customDrawView)
-
-        //Checkifthere'sasavedBitmapintheViewModel
-        //TODO:change this to access the bitmap through a getter/setter
-        drawViewModel.userDataBitMap?.let{
-            Log.d("DrawFragment","restoringolddrawing")
-            customDrawView.setBitmap(it)//CalltorestorethesavedBitmap
-            //TODO:observer the bitmap
+        //sets the view to observe the model and update in real time.
+        binding.customView.viewTreeObserver.addOnGlobalLayoutListener {
+            if (drawViewModel.getBitmap() == null) {
+                val bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
+                drawViewModel.setBitmap(bitmap)
+            }
         }
 
-        // Set color button
-        val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
-        buttonChangeColor.setOnClickListener {
-            val colors = arrayOf("Black", "Red", "Green", "Blue")
-            val colorValues = arrayOf(Color.BLACK, Color.RED, Color.GREEN, Color.BLUE)
+        //handles our slider to adjust sizing.
+        binding.sizeSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                //adjusts the size variable inside of the model
+                drawViewModel.setSize(progress.toFloat())
+            }
 
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        //Handles functionality for clicking on the color button.
+        binding.colorButton.setOnClickListener {
+            //set an array of color options we want to display.
+            val colors = arrayOf("Red", "Green", "Blue", "Black")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Color")
                 .setItems(colors) { _, which ->
-                    customDrawView.setColor(colorValues[which])
+                    val color = when (which) {
+                        //red
+                        0 -> 0xFFFF0000.toInt()
+                        //green
+                        1 -> 0xFF00FF00.toInt()
+                        //blue
+                        2 -> 0xFF0000FF.toInt()
+                        //black
+                        else -> 0xFF000000.toInt()
+                    }
+                    //pass chosen color to the model to update.
+                    drawViewModel.setColor(color)
                 }
                 .show()
         }
 
-        // Set size button
-        val buttonChangeSize: Button = view.findViewById(R.id.buttonChangeSize)
-        buttonChangeSize.setOnClickListener {
-            val sizes = arrayOf("Small", "Medium", "Large")
-            val sizeValues = arrayOf(5f, 10f, 20f)
-
-            AlertDialog.Builder(requireContext())
-                .setTitle("Select Size")
-                .setItems(sizes) { _, which ->
-                    customDrawView.setSize(sizeValues[which])
-                }
-                .show()
-        }
-
-        // Set shape button
-        val buttonChangeShape: Button = view.findViewById(R.id.buttonChangeShape)
-        buttonChangeShape.setOnClickListener {
-            val shapes = arrayOf( "Line", "Circle", "Square", "Rectangle", "Diamond")
+        //handles functionality for clicking on a shape
+        binding.shapeButton.setOnClickListener {
+            //list of available options for the user.
+            val shapes = arrayOf("Line", "Circle", "Rectangle","Diamond")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Shape")
                 .setItems(shapes) { _, which ->
-                    val selectedShape = shapes[which].replace(" ", "").lowercase(Locale.getDefault())
-                    customDrawView.setShape(selectedShape)
+                    val shape = when (which) {
+                        0 -> "line"
+                        1 -> "circle"
+                        2 -> "rectangle"
+                        3->"diamond"
+                        else -> "line"
+                    }
+                    //provide users choice to the model to update.
+                    drawViewModel.setShape(shape)
                 }
                 .show()
         }
 
-        // Clear button
-        val buttonReset: Button = view.findViewById(R.id.buttonReset)
-        buttonReset.setOnClickListener {
-            customDrawView.resetDrawing() // Call the resetDrawing method to clear the canvas
+        //button to handle resetting the screen.
+        binding.resetButton.setOnClickListener {
+            drawViewModel.resetDrawing()
         }
 
-        return view
-    }
-
-    //Saving the Bitmap Before a Screen Rotation
-    override fun onPause() {
-        super.onPause()
-        Log.d("DrawFragment", "on pause() called..... should be called during rotation to save drawing data")
-        drawViewModel.userDataBitMap = customDrawView.getBitmap()!!
+        return binding.root
     }
 }

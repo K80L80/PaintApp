@@ -1,3 +1,7 @@
+/**Activity to load our initial splash screen.
+ * Date: 09/08/2024
+ *
+ */
 package com.example.paintapp
 
 import android.content.Intent
@@ -16,10 +20,10 @@ class SplashScreen : AppCompatActivity() {
         binding = ActivitySplashScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // After 3 seconds, the system switches to the main screen
+        // After 2 seconds, the system switches to the main screen
         Handler(Looper.getMainLooper()).postDelayed({
             startActivity(Intent(this, MainActivity::class.java))
             finish()
-        }, 3000) // 3seconds
+        }, 2000)
     }
 }
