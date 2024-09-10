@@ -52,7 +52,8 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                isUserDrawing = true  // Set flag to true when the user starts drawing
+                //this tells the other events like onDraw when a user starts actually drawing.
+                isUserDrawing = true
 
                 startX = event.x
                 startY = event.y
@@ -63,7 +64,8 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                     path.reset()
                     path.moveTo(startX, startY)
                 }
-                invalidate()  // Only now invalidate to trigger onDraw
+                //triggers the draw.
+                invalidate()
                 return true
             }
 
@@ -74,7 +76,8 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                 if (paintTool.shape == "free") {
                     path.lineTo(endX, endY)
                 }
-                invalidate()  // Update the drawing as user moves
+                //updates as the user moves their mouse
+                invalidate()
                 return true
             }
 
@@ -82,7 +85,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                 endX = event.x
                 endY = event.y
 
-                // Draw the shape onto the bitmapCanvas (finalizing the shape)
+                //Now draw the shape on the canvas
                 when (paintTool.shape) {
                     "line" -> bitmapCanvas?.drawLine(startX, startY, endX, endY, paintTool.paint)
                     "circle" -> {
@@ -130,8 +133,10 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                         path.reset()
                     }
                 }
-                isUserDrawing = false  // Reset flag after user finishes drawing
-                invalidate()  // Redraw the final result
+                //update system that drawing is complete
+                isUserDrawing = false
+                //draw final
+                invalidate()
                 return true
             }
 
@@ -148,7 +153,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
             canvas.drawBitmap(it, 0f, 0f, null)
         }
 
-        // Only draw the shapes if the user is interacting (i.e., flag is true)
+        // Only draw the shapes if the user is currently drawing.
         if (isUserDrawing) {
             when (paintTool.shape) {
                 "free" -> {
@@ -202,7 +207,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     fun resetDrawing() {
         path.reset()  // Clear the path for freehand drawing
         bitmap?.eraseColor(Color.WHITE)  // Clear the bitmap by filling it with white
-        bitmapCanvas?.drawColor(Color.WHITE)  // Clear the canvas by filling it with white
+        bitmapCanvas?.drawColor(Color.WHITE)
         invalidate()  // Redraw the view to reflect the reset
     }
 
