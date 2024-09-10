@@ -60,7 +60,7 @@ class DrawFragment : Fragment() {
         // Set shape button
         val buttonChangeShape: Button = view.findViewById(R.id.buttonChangeShape)
         buttonChangeShape.setOnClickListener {
-            val shapes = arrayOf( "Line", "Circle", "Square", "Rectangle", "Diamond")
+            val shapes = arrayOf("Free", "Line", "Circle", "Square", "Rectangle", "Diamond")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Shape")
                 .setItems(shapes) { _, which ->
