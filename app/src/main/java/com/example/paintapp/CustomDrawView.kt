@@ -1,3 +1,7 @@
+/**Custom view that handles drawing, touch events, and rotation.
+ * Date:09/12/2024
+ *
+ */
 package com.example.paintapp
 
 import android.content.Context
@@ -11,175 +15,239 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import androidx.lifecycle.LifecycleOwner
 
 class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
-    private val paint = Paint()
-    private val path = Path()
     private var bitmap: Bitmap? = null
     private var bitmapCanvas: Canvas? = null
+    private val path = Path()
+    private var paintTool: PaintTool = PaintTool()
+    private var isUserDrawing = false
 
-    private var currentColor = Color.BLACK
-    private var currentSize = 5f
-    private var currentShape = "free" // default setting is Free Draw mode
-    private var currentStyle = Paint.Style.STROKE // default setting is STROKE to avoid solid styles
+    // Member variable coordinates stored for drawing
     private var startX = 0f
     private var startY = 0f
     private var endX = 0f
     private var endY = 0f
 
-
-
-    init {
-        paint.color = currentColor
-        paint.style = currentStyle
-        paint.strokeWidth = currentSize
-        paint.isAntiAlias = true
-        paint.strokeCap = Paint.Cap.ROUND
-        // Initialize the Bitmap if it doesn't exist
-        if (bitmap == null) {
-            bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
-            bitmapCanvas = Canvas(bitmap!!)
-            bitmapCanvas?.drawColor(Color.WHITE) // Background color
+    /**This sets up the observers used by the fragment to monitor changes
+     * to the bitmap and paint tool.
+     *
+     */
+    fun setUpViewModelObservers(drawViewModel: DrawViewModel) {
+        // Observe changes to the PaintTool object
+        drawViewModel.paintTool.observe(context as LifecycleOwner) { newPaintTool ->
+            paintTool = newPaintTool
+            //invalidate notifies
+            invalidate()
         }
 
-    }
-    //process user touching input on screen by updating bitmap attached to canvas
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        Log.d("CustomView", "onDraw called")
-        paint.color = currentColor
-        paint.strokeWidth = currentSize
-
-
-        canvas.drawBitmap(bitmap!!, 0f, 0f, paint)
-
-        paint.style = if (currentShape == "free" || currentShape == "line") Paint.Style.STROKE else Paint.Style.FILL
-
-        when (currentShape) {
-            "line", "free" -> {  // Merge "line" and "free" logic
-                paint.style = Paint.Style.STROKE
-                bitmapCanvas?.drawPath(path, paint)
+        drawViewModel.bitmap.observe(context as LifecycleOwner) { newBitmap ->
+            if (newBitmap != null) {
+                bitmap = newBitmap
+                bitmapCanvas = Canvas(newBitmap)
+                invalidate()
             }
-            "circle" -> {
-                val radius = Math.sqrt(
-                    Math.pow((endX - startX).toDouble(), 2.0) + Math.pow((endY - startY).toDouble(), 2.0)
-                ).toFloat()
-                bitmapCanvas?.drawCircle(startX, startY, radius, paint)
-            }
-            "square" -> {
-                val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
-                bitmapCanvas?.drawRect(startX, startY, startX + side, startY + side, paint)
-            }
-            "rectangle" -> {
-                bitmapCanvas?.drawRect(startX, startY, endX, endY, paint)
-            }
-            "diamond" -> {
-                val diamondPath = Path()
-                diamondPath.moveTo((startX + endX) / 2, startY)
-                diamondPath.lineTo(endX, (startY + endY) / 2)
-                diamondPath.lineTo((startX + endX) / 2, endY)
-                diamondPath.lineTo(startX, (startY + endY) / 2)
-                diamondPath.close()
-                bitmapCanvas?.drawPath(diamondPath, paint)
-            }
-            "free" -> {
-                paint.style = Paint.Style.STROKE
-                bitmapCanvas?.drawPath(path, paint)
+            // If no bitmap exists, create a default bitmap
+            else if(bitmap == null) {
+                bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
+                bitmapCanvas = Canvas(bitmap!!)
+                bitmapCanvas?.drawColor(Color.WHITE)
+                //pass bitmap to model
+                drawViewModel.setBitmap(bitmap)
             }
         }
     }
 
+    /**Handles user touch events to store positions for drawing shapes.
+     * also includes a boolean to ensure onDraw is only called when the user is drawing.
+     */
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                if (currentShape == "free" || currentShape == "line") {
-                    path.moveTo(event.x, event.y) // 设置起点
-                    Log.d("CustomDrawView", "Starting Drawing at: ${event.x}, ${event.y}")
-                } else {
-                    startX = event.x
-                    startY = event.y
-                    endX = event.x
-                    endY = event.y
+                //this tells the other events like onDraw when a user starts actually drawing.
+                isUserDrawing = true
+
+                startX = event.x
+                startY = event.y
+                endX = startX
+                endY = startY
+
+                if (paintTool.shape == "free") {
+                    path.reset()
+                    path.moveTo(startX, startY)
                 }
+                //updates as the user moves their mouse
                 invalidate()
                 return true
             }
+
             MotionEvent.ACTION_MOVE -> {
-                if (currentShape == "free" || currentShape == "line") {
-                    path.lineTo(event.x, event.y) // Draw, draw lines to the current position
-                    Log.d("CustomDrawView", "Drawing moving to: ${event.x}, ${event.y}")
-                    invalidate() // repaint
-                } else {
-                    endX = event.x
-                    endY = event.y
-                    invalidate()
+                endX = event.x
+                endY = event.y
+
+                if (paintTool.shape == "free") {
+                    path.lineTo(endX, endY)
                 }
-                return true
-            }
-            MotionEvent.ACTION_UP -> {
-                if (currentShape == "free" || currentShape == "line") {
-                    path.lineTo(event.x, event.y) // Update path at the end of painting
-                    Log.d("CustomDrawView", "Ending Drawing at: ${event.x}, ${event.y}")
-                } else {
-                    endX = event.x
-                    endY = event.y
-                }
+                //updates as the user moves their mouse
                 invalidate()
                 return true
             }
+
+            MotionEvent.ACTION_UP -> {
+                endX = event.x
+                endY = event.y
+
+                //draws the shapes on the canvas
+                when (paintTool.shape) {
+                    "line" -> bitmapCanvas?.drawLine(startX, startY, endX, endY, paintTool.paint)
+                    "circle" -> {
+                        val radius = Math.sqrt(
+                            Math.pow(
+                                (endX - startX).toDouble(),
+                                2.0
+                            ) + Math.pow((endY - startY).toDouble(), 2.0)
+                        ).toFloat()
+                        bitmapCanvas?.drawCircle(startX, startY, radius, paintTool.paint)
+                    }
+
+                    "square" -> {
+                        val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
+                        bitmapCanvas?.drawRect(
+                            startX,
+                            startY,
+                            startX + side,
+                            startY + side,
+                            paintTool.paint
+                        )
+                    }
+
+                    "rectangle" -> bitmapCanvas?.drawRect(
+                        startX,
+                        startY,
+                        endX,
+                        endY,
+                        paintTool.paint
+                    )
+
+                    "diamond" -> {
+                        val diamondPath = Path().apply {
+                            moveTo((startX + endX) / 2, startY)
+                            lineTo(endX, (startY + endY) / 2)
+                            lineTo((startX + endX) / 2, endY)
+                            lineTo(startX, (startY + endY) / 2)
+                            close()
+                        }
+                        bitmapCanvas?.drawPath(diamondPath, paintTool.paint)
+                    }
+
+                    "free" -> {
+                        bitmapCanvas?.drawPath(path, paintTool.paint)
+                        path.reset()
+                    }
+                }
+                //update that drawing is now completed
+                isUserDrawing = false
+                //draw final shape
+                invalidate()
+                return true
+            }
+
             else -> return false
         }
     }
 
-    fun setColor(color: Int) {
-        if (color == Color.TRANSPARENT) {
-            currentColor = Color.BLACK
-        } else {
-            currentColor = color
+    /**Handles drawing shapes on the canvas.
+     * Uses the isDrawing boolean to ensure shapes are only drawn during touch events.
+     */
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        // Always draw the bitmap if it exists
+        bitmap?.let {
+            canvas.drawBitmap(it, 0f, 0f, null)
         }
-        invalidate()
-    }
 
-    fun setSize(size: Float) {
-        currentSize = size
-        paint.strokeWidth = size
-        invalidate()
-    }
-
-    fun setShape(shape: String) {
-        currentShape = shape
-        Log.d("CustomDrawView", "Shape set to: $shape")
-        if (shape == "free") {
-            paint.style = Paint.Style.STROKE // make sure Free Draw is line style
-            path.reset() // Clear the previous path
-        } else {
-            paint.style = Paint.Style.FILL // Make sure the other shapes are solid
+        // Only draw the shapes if the user is currently drawing.
+        if (isUserDrawing) {
+            when (paintTool.shape) {
+                "free" -> {
+                    paintTool.paint.style = Paint.Style.STROKE
+                    canvas.drawPath(path, paintTool.paint)
+                }
+                "line" -> {
+                    paintTool.paint.style = Paint.Style.STROKE
+                    canvas.drawLine(startX, startY, endX, endY, paintTool.paint)
+                }
+                "circle" -> {
+                    val radius = Math.sqrt(
+                        Math.pow((endX - startX).toDouble(), 2.0) + Math.pow((endY - startY).toDouble(), 2.0)
+                    ).toFloat()
+                    paintTool.paint.style = Paint.Style.FILL
+                    canvas.drawCircle(startX, startY, radius, paintTool.paint)
+                }
+                "square" -> {
+                    val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
+                    paintTool.paint.style = Paint.Style.FILL
+                    canvas.drawRect(startX, startY, startX + side, startY + side, paintTool.paint)
+                }
+                "rectangle" -> {
+                    paintTool.paint.style = Paint.Style.FILL
+                    canvas.drawRect(startX, startY, endX, endY, paintTool.paint)
+                }
+                "diamond" -> {
+                    val diamondPath = Path().apply {
+                        moveTo((startX + endX) / 2, startY)
+                        lineTo(endX, (startY + endY) / 2)
+                        lineTo((startX + endX) / 2, endY)
+                        lineTo(startX, (startY + endY) / 2)
+                        close()
+                    }
+                    paintTool.paint.style = Paint.Style.FILL
+                    canvas.drawPath(diamondPath, paintTool.paint)
+                }
+            }
         }
-        invalidate()
     }
-    fun setStyle(style: Paint.Style) {
-        currentStyle = style
+
+
+    /**Method used to set a bitmap and the respective canvas
+     *
+     */
+    fun setBitmap(bitmap: Bitmap) {
+        this.bitmap = bitmap
+        this.bitmapCanvas = Canvas(bitmap)
+
         invalidate()
     }
 
+    /**Method to reset the drawing window.
+     *
+     */
     fun resetDrawing() {
+        // Clear the path for freehand drawing
         path.reset()
+        // Clear the bitmap by filling it with white
+        bitmap?.eraseColor(Color.WHITE)
+        // Clear the canvas by filling it with white
         bitmapCanvas?.drawColor(Color.WHITE)
+        // Redraw the view to reflect the reset
         invalidate()
     }
+
+    /**Method to get the bitmap from the view. Used in the fragment.
+     *
+     */
 
     fun getBitmap(): Bitmap? {
         return bitmap
     }
 
-    fun setBitmap(bitmap: Bitmap) {
-        this.bitmap = bitmap
-        this.bitmapCanvas = Canvas(bitmap)
-        invalidate()
-    }
 
-    //This method is automatically called by the Android framework whenever the size of a View changes.
-    // This can happen due to various reasons, such as:  Screen Rotation, Layout Changes, View Resizing
+    /**This method is automatically called by the Android framework whenever the size of a View changes.
+     * This can happen due to various reasons, such as:  Screen Rotation, Layout Changes, View Resizing
+     */
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         Log.d("CustomView", "onSizeChanged called with w: $w, h: $h, oldw: $oldw, oldh: $oldh")
@@ -199,6 +267,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
             bitmapCanvas = Canvas(scaledBitmap)
             bitmapCanvas = Canvas(bitmap!!)
         }
+
         invalidate()
     }
 }

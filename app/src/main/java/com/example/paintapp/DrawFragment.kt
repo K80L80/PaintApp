@@ -1,3 +1,7 @@
+/**Fragment that contains the button setters, observers, and model + custom view.
+ * Date:09/12/2024
+ *
+ */
 package com.example.paintapp
 
 import android.app.AlertDialog
@@ -25,15 +29,10 @@ class DrawFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
 
-        //Checkifthere'sasavedBitmapintheViewModel
-        //TODO:change this to access the bitmap through a getter/setter
-        drawViewModel.userDataBitMap?.let{
-            Log.d("DrawFragment","restoringolddrawing")
-            customDrawView.setBitmap(it)//CalltorestorethesavedBitmap
-            //TODO:observer the bitmap
-        }
+        //sets up observers
+        customDrawView.setUpViewModelObservers(drawViewModel)
 
-        // Set color button
+        // Set color button handling
         val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
         buttonChangeColor.setOnClickListener {
             val colors = arrayOf("Black", "Red", "Green", "Blue")
@@ -42,7 +41,7 @@ class DrawFragment : Fragment() {
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Color")
                 .setItems(colors) { _, which ->
-                    customDrawView.setColor(colorValues[which])
+                    drawViewModel.setColor(colorValues[which])
                 }
                 .show()
         }
@@ -56,7 +55,7 @@ class DrawFragment : Fragment() {
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Size")
                 .setItems(sizes) { _, which ->
-                    customDrawView.setSize(sizeValues[which])
+                    drawViewModel.setSize(sizeValues[which])
                 }
                 .show()
         }
@@ -64,12 +63,12 @@ class DrawFragment : Fragment() {
         // Set shape button
         val buttonChangeShape: Button = view.findViewById(R.id.buttonChangeShape)
         buttonChangeShape.setOnClickListener {
-            val shapes = arrayOf( "Line", "Circle", "Square", "Rectangle", "Diamond")
+            val shapes = arrayOf("Free", "Line", "Circle", "Square", "Rectangle", "Diamond")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Shape")
                 .setItems(shapes) { _, which ->
                     val selectedShape = shapes[which].replace(" ", "").lowercase(Locale.getDefault())
-                    customDrawView.setShape(selectedShape)
+                    drawViewModel.setShape(selectedShape)
                 }
                 .show()
         }
@@ -77,16 +76,41 @@ class DrawFragment : Fragment() {
         // Clear button
         val buttonReset: Button = view.findViewById(R.id.buttonReset)
         buttonReset.setOnClickListener {
-            customDrawView.resetDrawing() // Call the resetDrawing method to clear the canvas
+            customDrawView.getBitmap()?.let { bitmap ->
+                // Pass the width and height of the CustomDrawView to reset properly
+                customDrawView.resetDrawing()
+                drawViewModel.resetDrawing(customDrawView.width, customDrawView.height)
+            }
+
+            // After reset, tell ViewModel to reset the flag to avoid future resets
+            drawViewModel.resetComplete()
         }
 
         return view
     }
 
-    //Saving the Bitmap Before a Screen Rotation
+    /**Saves the bitmap for rotation
+     *
+     */
     override fun onPause() {
         super.onPause()
         Log.d("DrawFragment", "on pause() called..... should be called during rotation to save drawing data")
-        drawViewModel.userDataBitMap = customDrawView.getBitmap()!!
+        drawViewModel.setBitmap(customDrawView.getBitmap())
     }
+
+    /**Methods below this are only used in testing in order to get values from the drawview
+     * Model. These are not used in code implementation.
+     *
+     */
+    fun getPaintColor(): Int?{
+        return drawViewModel.getColor()
+    }
+    fun getPaintSize(): Float?{
+        return drawViewModel.getSize()
+    }
+
+    fun getPaintShape(): String?{
+        return drawViewModel.getShape()
+    }
+
 }
