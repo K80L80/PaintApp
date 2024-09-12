@@ -1,3 +1,7 @@
+/**Custom view that handles drawing, touch events, and rotation.
+ * Date:09/12/2024
+ *
+ */
 package com.example.paintapp
 
 import android.content.Context
@@ -20,19 +24,24 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     private var paintTool: PaintTool = PaintTool()
     private var isUserDrawing = false
 
-    // Coordinates used for drawing shapes
+    // Member variable coordinates stored for drawing
     private var startX = 0f
     private var startY = 0f
     private var endX = 0f
     private var endY = 0f
+
+    /**This sets up the observers used by the fragment to monitor changes
+     * to the bitmap and paint tool.
+     *
+     */
     fun setUpViewModelObservers(drawViewModel: DrawViewModel) {
         // Observe changes to the PaintTool object
         drawViewModel.paintTool.observe(context as LifecycleOwner) { newPaintTool ->
             paintTool = newPaintTool
-            invalidate() // Redraw the view with the updated tool
+            //invalidate notifies
+            invalidate()
         }
 
-        // Observe changes to the bitmap
         drawViewModel.bitmap.observe(context as LifecycleOwner) { newBitmap ->
             if (newBitmap != null) {
                 bitmap = newBitmap
@@ -44,11 +53,15 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                 bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
                 bitmapCanvas = Canvas(bitmap!!)
                 bitmapCanvas?.drawColor(Color.WHITE)
-                drawViewModel.setBitmap(bitmap) //add bitmap to view model
+                //pass bitmap to model
+                drawViewModel.setBitmap(bitmap)
             }
         }
     }
 
+    /**Handles user touch events to store positions for drawing shapes.
+     * also includes a boolean to ensure onDraw is only called when the user is drawing.
+     */
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -64,7 +77,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                     path.reset()
                     path.moveTo(startX, startY)
                 }
-                //triggers the draw.
+                //updates as the user moves their mouse
                 invalidate()
                 return true
             }
@@ -85,7 +98,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                 endX = event.x
                 endY = event.y
 
-                //Now draw the shape on the canvas
+                //draws the shapes on the canvas
                 when (paintTool.shape) {
                     "line" -> bitmapCanvas?.drawLine(startX, startY, endX, endY, paintTool.paint)
                     "circle" -> {
@@ -133,9 +146,9 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
                         path.reset()
                     }
                 }
-                //update system that drawing is complete
+                //update that drawing is now completed
                 isUserDrawing = false
-                //draw final
+                //draw final shape
                 invalidate()
                 return true
             }
@@ -144,6 +157,9 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         }
     }
 
+    /**Handles drawing shapes on the canvas.
+     * Uses the isDrawing boolean to ensure shapes are only drawn during touch events.
+     */
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -196,7 +212,9 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     }
 
 
-
+    /**Method used to set a bitmap and the respective canvas
+     *
+     */
     fun setBitmap(bitmap: Bitmap) {
         this.bitmap = bitmap
         this.bitmapCanvas = Canvas(bitmap)
@@ -204,20 +222,32 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         invalidate()
     }
 
+    /**Method to reset the drawing window.
+     *
+     */
     fun resetDrawing() {
-        path.reset()  // Clear the path for freehand drawing
-        bitmap?.eraseColor(Color.WHITE)  // Clear the bitmap by filling it with white
+        // Clear the path for freehand drawing
+        path.reset()
+        // Clear the bitmap by filling it with white
+        bitmap?.eraseColor(Color.WHITE)
+        // Clear the canvas by filling it with white
         bitmapCanvas?.drawColor(Color.WHITE)
-        invalidate()  // Redraw the view to reflect the reset
+        // Redraw the view to reflect the reset
+        invalidate()
     }
+
+    /**Method to get the bitmap from the view. Used in the fragment.
+     *
+     */
 
     fun getBitmap(): Bitmap? {
         return bitmap
     }
 
 
-    //This method is automatically called by the Android framework whenever the size of a View changes.
-    // This can happen due to various reasons, such as:  Screen Rotation, Layout Changes, View Resizing
+    /**This method is automatically called by the Android framework whenever the size of a View changes.
+     * This can happen due to various reasons, such as:  Screen Rotation, Layout Changes, View Resizing
+     */
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         Log.d("CustomView", "onSizeChanged called with w: $w, h: $h, oldw: $oldw, oldh: $oldh")
@@ -237,6 +267,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
             bitmapCanvas = Canvas(scaledBitmap)
             bitmapCanvas = Canvas(bitmap!!)
         }
+
         invalidate()
     }
 }

@@ -1,7 +1,6 @@
 package com.example.paintapp
 
 import org.junit.Test
-
 import org.junit.Assert.*
 
 /**

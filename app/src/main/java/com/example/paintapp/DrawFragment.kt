@@ -1,3 +1,7 @@
+/**Fragment that contains the button setters, observers, and model + custom view.
+ * Date:09/12/2024
+ *
+ */
 package com.example.paintapp
 
 import android.app.AlertDialog
@@ -22,14 +26,13 @@ class DrawFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        //inflates the view
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
 
         //sets up observers
         customDrawView.setUpViewModelObservers(drawViewModel)
 
-        // Set color button
+        // Set color button handling
         val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
         buttonChangeColor.setOnClickListener {
             val colors = arrayOf("Black", "Red", "Green", "Blue")
@@ -85,11 +88,29 @@ class DrawFragment : Fragment() {
 
         return view
     }
-    
-    //Saving the Bitmap Before a Screen Rotation
+
+    /**Saves the bitmap for rotation
+     *
+     */
     override fun onPause() {
         super.onPause()
         Log.d("DrawFragment", "on pause() called..... should be called during rotation to save drawing data")
         drawViewModel.setBitmap(customDrawView.getBitmap())
     }
+
+    /**Methods below this are only used in testing in order to get values from the drawview
+     * Model. These are not used in code implementation.
+     *
+     */
+    fun getPaintColor(): Int?{
+        return drawViewModel.getColor()
+    }
+    fun getPaintSize(): Float?{
+        return drawViewModel.getSize()
+    }
+
+    fun getPaintShape(): String?{
+        return drawViewModel.getShape()
+    }
+
 }
