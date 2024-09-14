@@ -12,8 +12,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import com.google.android.material.slider.Slider
 import java.util.Locale
 
 
@@ -46,16 +48,32 @@ class DrawFragment : Fragment() {
                 .show()
         }
 
-        // Set size button
+        // Below handles all of the size button and slider functionality.
+        //See draw_bar_dialogue for layout
         val buttonChangeSize: Button = view.findViewById(R.id.buttonChangeSize)
         buttonChangeSize.setOnClickListener {
-            val sizes = arrayOf("Small", "Medium", "Large")
-            val sizeValues = arrayOf(5f, 10f, 20f)
+            //get all of the layout pieces
+            val dialogView = layoutInflater.inflate(R.layout.draw_bar_dialogue, null)
+            val slider: Slider = dialogView.findViewById(R.id.sizeSlider)
+            val sliderValueText: TextView = dialogView.findViewById(R.id.sliderValue)
 
+            // This sets the starting value of the slider and displays it
+            //this will impact our draw size at the start
+            slider.value = drawViewModel.getSize() ?: 5f
+            sliderValueText.text = "${slider.value.toInt()}"
+
+            //listener for handling slider changes and displaying
+            slider.addOnChangeListener { _, value, _ ->
+                sliderValueText.text = "${value.toInt()}"
+            }
+
+            // Below creates the popup for displaying the slider
             AlertDialog.Builder(requireContext())
-                .setTitle("Select Size")
-                .setItems(sizes) { _, which ->
-                    drawViewModel.setSize(sizeValues[which])
+                .setTitle("Select Brush Size")
+                .setView(dialogView)
+                //This will update the slider only if set is clicked.
+                .setPositiveButton("Set Brush Size") { _, _ ->
+                    drawViewModel.setSize(slider.value)
                 }
                 .show()
         }
