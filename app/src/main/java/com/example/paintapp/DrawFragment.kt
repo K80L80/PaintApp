@@ -5,6 +5,7 @@
 package com.example.paintapp
 
 import android.app.AlertDialog
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -23,16 +24,61 @@ class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
     private val drawViewModel: DrawViewModel by activityViewModels()
+    private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        Log.i("DrawFragment - KS", "creating fragment")
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
 
+        // Fragments set lambda variables in custom view
+        Log.i("DrawFragment - KS", "0a (setup) - onCreateView() STARTED")
+
+        // 3) Fragment: Relaying Touch to ViewModel
+        //The view's member variable of type lambda ('onShapDrawAction') in the custom view class is assigned here in fragment, so when it’s invoked (inside the on touchEvent in the view) it actually calls the logic defined in the fragment, which in turn notifies the ViewModel.
+        Log.i("DrawFragment - KS", "0b (setup) - Fragment setting custom view lambda variable")
+        customDrawView.onShapeDrawAction = { x, y, event ->
+            // The Fragment acts as the mediator here, passing the touch data to the ViewModel and delegating the drawing logic to the ViewModel
+            Log.i("DrawFragment - KS", "2 - relaying coordinates and delegate logic to view model")
+            drawViewModel.onUserDraw(x, y, event)  // Delegate touch event to ViewModel
+        }
+
+        // Relay the size change to the ViewModel via the fragment
+        //fragment relays to viewmodel that there has been a change like rotation and the screen size changed, passing on to the view model to execute logic to resize the bitmap to the appropriate canvas size the user is on now
+        Log.i("DrawFragment - KS", "0c (setup) - Fragments setting onSizeChangedCallback  ")
+        customDrawView.onSizeChangedCallback = { width, height ->
+            // Only trigger size change logic after setup is complete
+            if (fragmentSetupComplete) {
+                Log.i("DrawFragment - KS", "configuration detected relaying canvas height and to view model to resize bitmap ")
+                drawViewModel.getOrCreateBitmap(width, height)
+            }
+        }
+
+        Log.i("DrawFragment - KS", "0d (setup) - onCreateView() ENDED")
+        return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         //sets up observers
-        customDrawView.setUpViewModelObservers(drawViewModel)
+        //customDrawView.setUpViewModelObservers(drawViewModel)
+        // Fragments set lambda variables in custom view
+        Log.i("DrawFragment - KS", "1a (setup) - onCreateView() STARTED")
+
+        //5 The fragment observes the bitmap meaning it watches for updates and receives notification with the bitmap is modified
+        //When the fragment receives word that the bitmap changed it calls on the view to update the UI (calling customDrawingView.updateBitmap(bitmap)
+        Log.i("DrawFragment - KS", "1b - (setup) bitmap observer set")
+        drawViewModel.bitmap.observe(viewLifecycleOwner) { bitmap ->
+            bitmap?.let {
+                Log.i("DrawFragment - KS", "(observing) fragment told of changed bitmap (by view model) and tells view to update itself")
+                customDrawView.updateBitmap(it)
+            }
+        }
+        fragmentSetupComplete = true
+
 
         // Set color button handling
         val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
@@ -77,15 +123,17 @@ class DrawFragment : Fragment() {
                 }
                 .show()
         }
-
+//        Log.i("DrawFragment - KS", "setting on click listener")
         // Set shape button
         val buttonChangeShape: Button = view.findViewById(R.id.buttonChangeShape)
         buttonChangeShape.setOnClickListener {
+            Log.i("DrawFragment", "button clicked")
             val shapes = arrayOf("Free", "Line", "Circle", "Square", "Rectangle", "Diamond")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Shape")
                 .setItems(shapes) { _, which ->
                     val selectedShape = shapes[which].replace(" ", "").lowercase(Locale.getDefault())
+                    Log.i("DrawFragment", "selected shape: $selectedShape")
                     drawViewModel.setShape(selectedShape)
                 }
                 .show()
@@ -103,8 +151,7 @@ class DrawFragment : Fragment() {
             // After reset, tell ViewModel to reset the flag to avoid future resets
             drawViewModel.resetComplete()
         }
-
-        return view
+        Log.i("DrawFragment - KS", "1c (setup) - onViewCreated() ENDED")
     }
 
     /**Saves the bitmap for rotation
@@ -112,7 +159,7 @@ class DrawFragment : Fragment() {
      */
     override fun onPause() {
         super.onPause()
-        Log.d("DrawFragment", "on pause() called..... should be called during rotation to save drawing data")
+        Log.d("DrawFragment - KS", "on pause() called because of rotation, fragment asks view to save drawing data")
         drawViewModel.setBitmap(customDrawView.getBitmap())
     }
 

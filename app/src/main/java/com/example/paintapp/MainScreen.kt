@@ -7,6 +7,7 @@ package com.example.paintapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,7 +30,7 @@ class MainScreen : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
-
+        Log.i("MainScreen", "main screen created")
         //this is the button that moves to the draw screen
         binding.button2.setOnClickListener {
             buttonFunction()
