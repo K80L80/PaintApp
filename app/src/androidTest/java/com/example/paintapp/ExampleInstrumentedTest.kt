@@ -113,22 +113,7 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Test
-    fun testColorSizeChange() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
 
-        // Click on color button
-        onView(withId(R.id.buttonChangeSize)).perform(click())
-        onView(withId(R.id.sizeSlider)).perform(swipeLeft())
-
-        // Select the "Red" color from the AlertDialog
-//        onView(withText("Small")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectedSize = fragment.getPaintSize()
-            assertEquals(5f, selectedSize)
-        }
-    }
 
     @Test
     fun testShapeChange() {
@@ -172,6 +157,28 @@ class ExampleInstrumentedTest {
         }
     }
 
+
+
+    //TESTS BELOW: Previous versions of code tests. Left just in case we adjust
+    //back to previous versions, or change something to a previous format.
+
+    //    @Test
+//    fun testColorSizeChange() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on color button
+//        onView(withId(R.id.buttonChangeSize)).perform(click())
+//        onView(withId(R.id.sizeSlider)).perform(swipeLeft())
+//
+//        // Select the "Red" color from the AlertDialog
+////        onView(withText("Small")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectedSize = fragment.getPaintSize()
+//            assertEquals(5f, selectedSize)
+//        }
+//    }
+
 //    @Test
 //    fun testSizeChange() {
 //        val scenario = launchFragmentInContainer<DrawFragment>()
@@ -192,9 +199,6 @@ class ExampleInstrumentedTest {
 //            assertEquals(Color.GREEN, selectedColor)
 //        }
 //    }
-
-    //TESTS BELOW: Previous versions of code tests. Left just in case we adjust
-    //back to previous versions, or change something to a previous format.
 
 //    @Test
 //    fun testColorShapeSizeChange() {
