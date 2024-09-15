@@ -2,39 +2,19 @@ package com.example.paintapp
 
 import android.graphics.Color
 import android.util.Log
-import androidx.core.graphics.red
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.ext.junit.rules.ActivityScenarioRule
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.fragment.app.activityViewModels
-
 import org.junit.Test
 import org.junit.runner.RunWith
-
 import org.junit.Assert.*
-import org.junit.Rule
-
-
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.findFragment
 import androidx.fragment.app.testing.launchFragmentInContainer
-import androidx.fragment.app.testing.withFragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.testing.TestLifecycleOwner
-import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.test.espresso.action.ViewActions.swipeLeft
-import androidx.test.espresso.action.ViewActions.swipeRight
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.isActivated
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.isRoot
-import org.junit.Before
 
 
 /**
@@ -112,7 +92,7 @@ class ExampleInstrumentedTest {
         onView(withId(R.id.buttonChangeColor)).perform(click())
 
 
-        // Select the "Red" color from the AlertDialog
+        // Select the "Blue" color from the AlertDialog
         onView(withText("Blue")).perform(click())
 
         scenario.onFragment { fragment ->
@@ -129,7 +109,7 @@ class ExampleInstrumentedTest {
         onView(withId(R.id.buttonChangeColor)).perform(click())
 
 
-        // Select the "Red" color from the AlertDialog
+        // Select the "Green" color from the AlertDialog
         onView(withText("Green")).perform(click())
 
         scenario.onFragment { fragment ->
@@ -152,7 +132,7 @@ class ExampleInstrumentedTest {
         // Verify the size value in the fragment's ViewModel
         scenario.onFragment { fragment ->
             val selectedSize = fragment.getPaintSize()
-            assertEquals(5f, selectedSize) // Assuming the default value of 5f
+            assertEquals(5f, selectedSize)
         }
     }
 
@@ -160,15 +140,15 @@ class ExampleInstrumentedTest {
     fun testShapeChange1() {
         val scenario = launchFragmentInContainer<DrawFragment>()
 
-        // Click on color button
+        // Click on shape button
         onView(withId(R.id.buttonChangeShape)).perform(click())
 
-        // Select the "Red" color from the AlertDialog
+        // Select the "Square" shape from the AlertDialog
         onView(withText("Square")).perform(click())
 
         onView(withId(R.id.buttonChangeColor)).perform(click())
 
-        // Select the "Blue" color from the AlertDialog
+        // Select the "Green" color from the AlertDialog
         onView(withText("Green")).perform(click())
 
         scenario.onFragment { fragment ->
@@ -186,10 +166,10 @@ class ExampleInstrumentedTest {
     fun testShapeChange2() {
         val scenario = launchFragmentInContainer<DrawFragment>()
 
-        // Click on color button
+        // Click on shape button
         onView(withId(R.id.buttonChangeShape)).perform(click())
 
-        // Select the "Red" color from the AlertDialog
+        // Select the "Circle" shape from the AlertDialog
         onView(withText("Circle")).perform(click())
 
         scenario.onFragment { fragment ->
@@ -204,10 +184,10 @@ class ExampleInstrumentedTest {
     fun testShapeChange3() {
         val scenario = launchFragmentInContainer<DrawFragment>()
 
-        // Click on color button
+        // Click on shape button
         onView(withId(R.id.buttonChangeShape)).perform(click())
 
-        // Select the "Red" color from the AlertDialog
+        // Select the "diamond" shape from the AlertDialog
         onView(withText("Diamond")).perform(click())
 
         scenario.onFragment { fragment ->
@@ -221,16 +201,16 @@ class ExampleInstrumentedTest {
     fun testShapeChangeMulti() {
         val scenario = launchFragmentInContainer<DrawFragment>()
 
-        // Click on color button
+        // Click on shape button
         onView(withId(R.id.buttonChangeShape)).perform(click())
 
-        // Select the "Red" color from the AlertDialog
+        // Select the "diamond" shape from the AlertDialog
         onView(withText("Diamond")).perform(click())
 
-        // Click on color button
+        // Click on shape button
         onView(withId(R.id.buttonChangeShape)).perform(click())
 
-        // Select the "Red" color from the AlertDialog
+        // Select the "line" shape from the AlertDialog
         onView(withText("Line")).perform(click())
 
         scenario.onFragment { fragment ->
@@ -244,6 +224,7 @@ class ExampleInstrumentedTest {
 
     //TESTS BELOW: Previous versions of code tests. Left just in case we adjust
     //back to previous versions, or change something to a previous format.
+    //Were also implementing a color wheel and will require updating these
 
     //    @Test
 //    fun testColorShapeChange() {
