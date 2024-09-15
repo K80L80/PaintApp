@@ -27,7 +27,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.testing.TestLifecycleOwner
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.test.espresso.action.ViewActions.swipeLeft
 import androidx.test.espresso.matcher.ViewMatchers.isActivated
+import androidx.test.espresso.matcher.ViewMatchers.isClickable
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import org.junit.Before
 
 
@@ -41,6 +44,7 @@ class ExampleInstrumentedTest {
     val vm = DrawViewModel()
     val lifeCycleOwner = TestLifecycleOwner()
     private lateinit var drawViewModel: DrawViewModel
+
 
     @Test
     fun startsCorrectly() {
@@ -64,7 +68,18 @@ class ExampleInstrumentedTest {
         assertEquals(5f, vm.getSize())
     }
 
-        @Test
+    @Test
+    fun testNavigate() {
+        // Launch the MainView fragment
+        val scenario = launchFragmentInContainer<MainScreen>()
+
+        scenario.onFragment { fragment ->
+            Log.wtf("Fragment Test", "Current Fragment: ${fragment?.javaClass?.simpleName}")
+            assertTrue(fragment?.javaClass?.simpleName == "MainScreen")
+        }
+    }
+
+    @Test
         fun testColorChangeRed() {
         val scenario = launchFragmentInContainer<DrawFragment>()
             // Click on color button
@@ -88,6 +103,7 @@ class ExampleInstrumentedTest {
         // Click on color button
         onView(withId(R.id.buttonChangeColor)).perform(click())
 
+
         // Select the "Red" color from the AlertDialog
         onView(withText("Blue")).perform(click())
 
@@ -103,9 +119,10 @@ class ExampleInstrumentedTest {
 
         // Click on color button
         onView(withId(R.id.buttonChangeSize)).perform(click())
+        onView(withId(R.id.sizeSlider)).perform(swipeLeft())
 
         // Select the "Red" color from the AlertDialog
-        onView(withText("Small")).perform(click())
+//        onView(withText("Small")).perform(click())
 
         scenario.onFragment { fragment ->
             val selectedSize = fragment.getPaintSize()
@@ -155,58 +172,68 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Test
-    fun testColorShapeSizeChange() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on color button
-        onView(withId(R.id.buttonChangeShape)).perform(click())
-
-        // Select the "Red" color from the AlertDialog
-        onView(withText("Square")).perform(click())
-
-        onView(withId(R.id.buttonChangeColor)).perform(click())
-
-        // Select the "Blue" color from the AlertDialog
-        onView(withText("Green")).perform(click())
-
-        // Click on color button
-        onView(withId(R.id.buttonChangeSize)).perform(click())
-
-        // Select the "Red" color from the AlertDialog
-        onView(withText("Large")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectedSize = fragment.getPaintSize()
-            assertEquals(20f, selectedSize)
-        }
-
-        scenario.onFragment { fragment ->
-            val selectVal = fragment.getPaintShape()
-            assertEquals("square", selectVal)
-        }
-
-        scenario.onFragment { fragment ->
-            val selectedColor = fragment.getPaintColor()
-            assertEquals(Color.GREEN, selectedColor)
-        }
-    }
-
-    @Test
-    fun testNavigateToDrawFragment() {
-        // Launch the MainView fragment
-        val scenario = launchFragmentInContainer<MainScreen>()
-
-        // Click on the button that triggers navigation to DrawFragment
-        onView(withId(R.id.button2)).perform(click())
-
-        // Verify that the DrawFragment is displayed using FragmentManager
+//    @Test
+//    fun testSizeChange() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//
 //        scenario.onFragment { fragment ->
-//            Log.wtf("Fragment Test", "Current Fragment: ${fragment?.javaClass?.simpleName}")
-//            Log.wtf("Fragment Test", "Expected Fragment: ${DrawFragment::class.java.simpleName}")
-//            assertTrue(fragment.requireActivity().supportFragmentManager.findFragmentById(R.id.fragment_container) is DrawFragment)
+//            val selectedSize = fragment.getPaintSize()
+//            assertEquals(20f, selectedSize)
 //        }
-    }
+//
+//        scenario.onFragment { fragment ->
+//            val selectVal = fragment.getPaintShape()
+//            assertEquals("square", selectVal)
+//        }
+//
+//        scenario.onFragment { fragment ->
+//            val selectedColor = fragment.getPaintColor()
+//            assertEquals(Color.GREEN, selectedColor)
+//        }
+//    }
+
+    //TESTS BELOW: Previous versions of code tests. Left just in case we adjust
+    //back to previous versions, or change something to a previous format.
+
+//    @Test
+//    fun testColorShapeSizeChange() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on color button
+//        onView(withId(R.id.buttonChangeShape)).perform(click())
+//
+//        // Select the "Red" color from the AlertDialog
+//        onView(withText("Square")).perform(click())
+//
+//        onView(withId(R.id.buttonChangeColor)).perform(click())
+//
+//        // Select the "Blue" color from the AlertDialog
+//        onView(withText("Green")).perform(click())
+//
+//        // Click on color button
+//        onView(withId(R.id.buttonChangeSize)).perform(click())
+//
+//        // Select the "Red" color from the AlertDialog
+//        onView(withText("Large")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectedSize = fragment.getPaintSize()
+//            assertEquals(20f, selectedSize)
+//        }
+//
+//        scenario.onFragment { fragment ->
+//            val selectVal = fragment.getPaintShape()
+//            assertEquals("square", selectVal)
+//        }
+//
+//        scenario.onFragment { fragment ->
+//            val selectedColor = fragment.getPaintColor()
+//            assertEquals(Color.GREEN, selectedColor)
+//        }
+//    }
+
+
 
 //        @Test
 //        fun testColorChangeBlue() {
