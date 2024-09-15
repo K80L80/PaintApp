@@ -28,9 +28,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.testing.TestLifecycleOwner
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.test.espresso.action.ViewActions.swipeLeft
+import androidx.test.espresso.action.ViewActions.swipeRight
+import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isActivated
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import org.junit.Before
 
 
@@ -80,6 +83,13 @@ class ExampleInstrumentedTest {
     }
 
     @Test
+    fun testNavigateMainButton() {
+        val scenario = launchFragmentInContainer<MainScreen>()
+        onView(withId(R.id.button2)).perform(click()).check(matches(isClickable()))
+
+    }
+
+    @Test
         fun testColorChangeRed() {
         val scenario = launchFragmentInContainer<DrawFragment>()
             // Click on color button
@@ -91,8 +101,6 @@ class ExampleInstrumentedTest {
         scenario.onFragment { fragment ->
         val selectedColor = fragment.getPaintColor()
         assertEquals(Color.RED, selectedColor)
-
-
     }
     }
 
@@ -113,26 +121,43 @@ class ExampleInstrumentedTest {
         }
     }
 
-
-
     @Test
-    fun testShapeChange() {
+    fun testColorChangeGreen() {
         val scenario = launchFragmentInContainer<DrawFragment>()
 
         // Click on color button
-        onView(withId(R.id.buttonChangeShape)).perform(click())
+        onView(withId(R.id.buttonChangeColor)).perform(click())
+
 
         // Select the "Red" color from the AlertDialog
-        onView(withText("Circle")).perform(click())
+        onView(withText("Green")).perform(click())
 
         scenario.onFragment { fragment ->
-            val selectVal = fragment.getPaintShape()
-            assertEquals("circle", selectVal)
+            val selectedColor = fragment.getPaintColor()
+            assertEquals(Color.GREEN, selectedColor)
         }
     }
 
+
+
     @Test
-    fun testColorShapeChange() {
+    fun testColorSizeChange() {
+        // Launch the DrawFragment in a container
+        val scenario = launchFragmentInContainer<DrawFragment>()
+
+        // Click on the size button to show the slider
+        onView(withId(R.id.buttonChangeSize)).check(matches(isDisplayed()))
+
+
+        // Verify the size value in the fragment's ViewModel
+        scenario.onFragment { fragment ->
+            val selectedSize = fragment.getPaintSize()
+            assertEquals(5f, selectedSize) // Assuming the default value of 5f
+        }
+    }
+
+        @Test
+    fun testShapeChange1() {
         val scenario = launchFragmentInContainer<DrawFragment>()
 
         // Click on color button
@@ -157,10 +182,111 @@ class ExampleInstrumentedTest {
         }
     }
 
+    @Test
+    fun testShapeChange2() {
+        val scenario = launchFragmentInContainer<DrawFragment>()
+
+        // Click on color button
+        onView(withId(R.id.buttonChangeShape)).perform(click())
+
+        // Select the "Red" color from the AlertDialog
+        onView(withText("Circle")).perform(click())
+
+        scenario.onFragment { fragment ->
+            val selectVal = fragment.getPaintShape()
+            assertEquals("circle", selectVal)
+        }
+
+    }
+
+
+    @Test
+    fun testShapeChange3() {
+        val scenario = launchFragmentInContainer<DrawFragment>()
+
+        // Click on color button
+        onView(withId(R.id.buttonChangeShape)).perform(click())
+
+        // Select the "Red" color from the AlertDialog
+        onView(withText("Diamond")).perform(click())
+
+        scenario.onFragment { fragment ->
+            val selectVal = fragment.getPaintShape()
+            assertEquals("diamond", selectVal)
+        }
+
+    }
+
+    @Test
+    fun testShapeChangeMulti() {
+        val scenario = launchFragmentInContainer<DrawFragment>()
+
+        // Click on color button
+        onView(withId(R.id.buttonChangeShape)).perform(click())
+
+        // Select the "Red" color from the AlertDialog
+        onView(withText("Diamond")).perform(click())
+
+        // Click on color button
+        onView(withId(R.id.buttonChangeShape)).perform(click())
+
+        // Select the "Red" color from the AlertDialog
+        onView(withText("Line")).perform(click())
+
+        scenario.onFragment { fragment ->
+            val selectVal = fragment.getPaintShape()
+            assertEquals("line", selectVal)
+        }
+
+    }
+
 
 
     //TESTS BELOW: Previous versions of code tests. Left just in case we adjust
     //back to previous versions, or change something to a previous format.
+
+    //    @Test
+//    fun testColorShapeChange() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on color button
+//        onView(withId(R.id.buttonChangeShape)).perform(click())
+//
+//        // Select the "Red" color from the AlertDialog
+//        onView(withText("Square")).perform(click())
+//
+//        onView(withId(R.id.buttonChangeColor)).perform(click())
+//
+//        // Select the "Blue" color from the AlertDialog
+//        onView(withText("Green")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectVal = fragment.getPaintShape()
+//            assertEquals("square", selectVal)
+//        }
+//
+//        scenario.onFragment { fragment ->
+//            val selectedColor = fragment.getPaintColor()
+//            assertEquals(Color.GREEN, selectedColor)
+//        }
+//    }
+
+    //    @Test
+//    fun testColorSizeChange() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on color button
+//        onView(withId(R.id.buttonChangeSize)).perform(click())
+//        onView(withId(R.id.sizeSlider)).perform(swipeLeft())
+//
+//        // Select the "Red" color from the AlertDialog
+////        onView(withText("Small")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectedSize = fragment.getPaintSize()
+//            assertEquals(5f, selectedSize)
+//        }
+//    }
 
     //    @Test
 //    fun testColorSizeChange() {
