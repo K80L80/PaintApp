@@ -51,10 +51,10 @@ class DrawFragment : Fragment() {
         Log.i("DrawFragment - KS", "0c (setup) - Fragments setting onSizeChangedCallback  ")
         customDrawView.onSizeChangedCallback = { width, height ->
             // Only trigger size change logic after setup is complete
-            if (fragmentSetupComplete) {
-                Log.i("DrawFragment - KS", "configuration detected relaying canvas height and to view model to resize bitmap ")
+            Log.i("DrawFragment - KS", "3a onSizeChangeCallback set by fragment")
+
+                //Log.i("DrawFragment - KS", "3b configuration detected relaying canvas height and to view model to resize bitmap ")
                 drawViewModel.getOrCreateBitmap(width, height)
-            }
         }
 
         Log.i("DrawFragment - KS", "0d (setup) - onCreateView() ENDED")
@@ -73,7 +73,7 @@ class DrawFragment : Fragment() {
         Log.i("DrawFragment - KS", "1b - (setup) bitmap observer set")
         drawViewModel.bitmap.observe(viewLifecycleOwner) { bitmap ->
             bitmap?.let {
-                Log.i("DrawFragment - KS", "(observing) fragment told of changed bitmap (by view model) and tells view to update itself")
+                Log.i("DrawFragment - KS", "5a (observing) fragment was told of changed bitmap (by view model) and in turn tells custom view to update itself")
                 customDrawView.updateBitmap(it)
             }
         }

@@ -13,6 +13,7 @@ import android.view.MotionEvent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlin.random.Random
 
 /**Data class to store all of our paint values, such as size, shape, and color.
  *
@@ -26,13 +27,18 @@ data class PaintTool(
     },
     val currentShape: String = "free" // Default shape is "free draw"
     //TODO: Add mode? Free?
+
 )
+//'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
 
 class DrawViewModel : ViewModel() {
 
     // Bitmap for storing the drawing
     private val _bitmap = MutableLiveData<Bitmap?>()
     val bitmap: LiveData<Bitmap?> get() = _bitmap
+
+    // Backend canvas to modify the bitmap
+    private var _backendCanvas: Canvas? = null
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
@@ -43,7 +49,6 @@ class DrawViewModel : ViewModel() {
 
     // Flag to indicate whether the drawing should be reset
     private val _shouldReset = MutableLiveData<Boolean>()
-    val shouldReset: LiveData<Boolean> get() = _shouldReset
 
     fun getOrCreateBitmap(newWidth: Int, newHeight: Int) {
         //get the bitmap on record
@@ -51,20 +56,25 @@ class DrawViewModel : ViewModel() {
 
         //create new drawing for user
         if (currentBitmap == null){
-            Log.i("ViewModel", "a new bitmap was created!")
+            Log.i("ViewModel", "4a new bitmap was created!")
             // bitmap.value is null create a new one, make a new user bitmap to store a drawing, that matches the current height and
             val createdBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
+            _backendCanvas = Canvas(createdBitmap)
+            Log.i("ViewModel", "4b load backend canvas with new bitmap")
             _bitmap.value = createdBitmap
         }
         //restore old user drawing (the bitmap) and resize if needed
         else{
+            Log.i("ViewModel", "4c restore old bitmap")
             if (currentBitmap.width != newWidth || currentBitmap.height != newHeight){
+                Log.i("ViewModel", "4d bitmap needs to be scaled!")
                 val scaledBitmap = Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
-                Log.i("ViewModel", "Old bitmap reference: $currentBitmap, Scaled bitmap reference: $scaledBitmap")
-                _bitmap.postValue(scaledBitmap)
+                _bitmap.value = scaledBitmap
+                Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
+                _backendCanvas = Canvas(scaledBitmap) //
             }
             else {
-                Log.i("ViewModel", "The existing bitmap was restored, no resizing needed")
+                Log.i("ViewModel", "4f The existing bitmap was restored, no resizing needed")
             }
         }
     }
@@ -192,12 +202,20 @@ class DrawViewModel : ViewModel() {
     //4) Drawing on the Bitmap: Each drawing method (e.g., drawRectangle(x, y, event)) modifies the bitmap based on the touch interaction.
     private fun drawFree(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for rectangle on the bitmap
-        Log.i("DrawViewModel", " 4 - execute drawing free logic")
+        if(event.action == MotionEvent.ACTION_UP)  {
+            Log.i("DrawViewModel", " 4 - (touch) execute drawing free logic$x, y: $y, event type: ${event.classification}")
+            val rando = Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
+            Log.i("DrawViewModel", "4a - (touch) drawing a random color")
+            _backendCanvas?.drawColor(rando)
+            _bitmap.value = _bitmap.value
+        }
+
     }
 
     private fun drawRectangle(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for rectangle on the bitmap
         Log.i("DrawViewModel", "drawing a rectangle")
+
     }
 
     private fun drawDiamond(x: Float, y: Float, event: MotionEvent) {

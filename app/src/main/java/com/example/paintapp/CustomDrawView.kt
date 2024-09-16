@@ -8,17 +8,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import androidx.lifecycle.LifecycleOwner
 
 class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var bitmap: Bitmap? = null
-    private var bitmapCanvas: Canvas? = null
+    private var userCanvas: Canvas? = null //while the user canvas in the custom view handles touch detection and rendering on the screen.
     private val path = Path()
     private var paintTool: PaintTool = PaintTool()
     private var isUserDrawing = false
@@ -39,30 +37,30 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
      * to the bitmap and paint tool.
      *
      */
-    fun setUpViewModelObservers(drawViewModel: DrawViewModel) {
-        // Observe changes to the PaintTool object
-        drawViewModel.paintTool.observe(context as LifecycleOwner) { newPaintTool ->
-            paintTool = newPaintTool
-            //invalidate notifies
-            invalidate()
-        }
-
-        drawViewModel.bitmap.observe(context as LifecycleOwner) { newBitmap ->
-            if (newBitmap != null) {
-                bitmap = newBitmap
-                bitmapCanvas = Canvas(newBitmap)
-                invalidate()
-            }
-            // If no bitmap exists, create a default bitmap
-            else if(bitmap == null) {
-                bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
-                bitmapCanvas = Canvas(bitmap!!)
-                bitmapCanvas?.drawColor(Color.WHITE)
-                //pass bitmap to model
-                drawViewModel.setBitmap(bitmap)
-            }
-        }
-    }
+//    fun setUpViewModelObservers(drawViewModel: DrawViewModel) {
+//        // Observe changes to the PaintTool object
+//        drawViewModel.paintTool.observe(context as LifecycleOwner) { newPaintTool ->
+//            paintTool = newPaintTool
+//            //invalidate notifies
+//            invalidate()
+//        }
+//
+//        drawViewModel.bitmap.observe(context as LifecycleOwner) { newBitmap ->
+//            if (newBitmap != null) {
+//                bitmap = newBitmap
+//                bitmapCanvas = Canvas(newBitmap)
+//                invalidate()
+//            }
+//            // If no bitmap exists, create a default bitmap
+//            else if(bitmap == null) {
+//                bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
+//                bitmapCanvas = Canvas(bitmap!!)
+//                bitmapCanvas?.drawColor(Color.WHITE)
+//                //pass bitmap to model
+//                drawViewModel.setBitmap(bitmap)
+//            }
+//        }
+//    }
 
     /**Handles user touch events to store positions for drawing shapes.
      * also includes a boolean to ensure onDraw is only called when the user is drawing.
@@ -70,7 +68,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     //1) User touches custom view and android triggers the 'onTouchEvent' method supplying us with the event which captured the x and y coordinates and the event itself
     override fun onTouchEvent(event: MotionEvent): Boolean {
          //2) onShapeDrawAction property (lambda variable) is invoked.This lambda was assigned in the fragment,  it actually calls the logic defined in the fragment
-        Log.i("CustomDrawView", "1 - touch detected, invoke lambada ")
+        Log.i("CustomDrawView", "1 - touch detected, responds by calling the logic the fragment previously set relay x and y")
         onShapeDrawAction?.invoke(event.x, event.y, event)  // Callback to Fragment
         return true
     }
@@ -177,7 +175,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
 
         // Always draw the bitmap if it exists
         bitmap?.let {
-            Log.i("CustomDrawView", "Drawing bitmap on canvas")
+            Log.i("CustomDrawView", "6b ondraw called redrawn to the userCanvas")
             canvas.drawBitmap(it, 0f, 0f, null)
         }
 //
@@ -235,9 +233,9 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
      */
     //8) This method was called by the fragment requesting the custom view to update its UI based on the fragment receiving word that the bitmap changed
     fun updateBitmap(bitmap: Bitmap) {
-        Log.i("CustomDrawView", "Bitmap updated in CustomDrawView")
+        Log.i("CustomDrawView", "6a updateBitmap called in custom view")
         this.bitmap = bitmap //8a) the bitmap (associated with the canvas for displaying the user drawing)
-        this.bitmapCanvas = Canvas(bitmap)
+        this.userCanvas = Canvas(bitmap)
         invalidate() //8b Since the bitmap was updated, this method call forces the view to redraw itself by triggering the onDraw method
     }
 
@@ -250,7 +248,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         // Clear the bitmap by filling it with white
         bitmap?.eraseColor(Color.WHITE)
         // Clear the canvas by filling it with white
-        bitmapCanvas?.drawColor(Color.WHITE)
+        userCanvas?.drawColor(Color.WHITE)
         // Redraw the view to reflect the reset
         invalidate()
     }
@@ -272,13 +270,13 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         Log.i("CustomDrawView", "2a (onSizeChange) on size change detected (screen rotation or initial configuration) invoking lambda set by fragment")
         // Notify the fragment that the size changed
         if(oldw == 0 &&  oldh == 0){
-            Log.i("CustomDrawView", "2b1 (onSizeChange) first time screen setup newWidth=$w, newHeight=$h, oldWidth=$oldw, oldHeight=$oldh")
+            Log.i("CustomDrawView", "2b (onSizeChange) first time screen setup newWidth=$w, newHeight=$h, oldWidth=$oldw, oldHeight=$oldh")
         }
         else{
-            Log.i("CustomDrawView", "2b1 (onSizeChange) actual rotation newWidth=$w, newHeight=$h, oldWidth=$oldw, oldHeight=$oldh")
+            Log.i("CustomDrawView", "2c (onSizeChange) actual rotation newWidth=$w, newHeight=$h, oldWidth=$oldw, oldHeight=$oldh")
         }
 
-      Log.i("CustomDrawView", "2c only invoked on non-initialized")
+        Log.i("CustomDrawView", "2d (onSizeChange) on SizeChangedCallback invoked")
         onSizeChangedCallback?.invoke(w, h)
 
 
