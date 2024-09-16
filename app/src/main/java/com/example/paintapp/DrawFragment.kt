@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.slider.Slider
+import yuku.ambilwarna.AmbilWarnaDialog
 import java.util.Locale
 
 
@@ -90,17 +91,10 @@ class DrawFragment : Fragment() {
         }
 
         // Set color button handling
+        // Open color picker when the user selects it
         val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
         buttonChangeColor.setOnClickListener {
-            val colors = arrayOf("Black", "Red", "Green", "Blue")
-            val colorValues = arrayOf(Color.BLACK, Color.RED, Color.GREEN, Color.BLUE)
-
-            AlertDialog.Builder(requireContext())
-                .setTitle("Select Color")
-                .setItems(colors) { _, which ->
-                    drawViewModel.setColor(colorValues[which])
-                }
-                .show()
+            openColorPicker()
         }
 
         // Below handles all of the size button and slider functionality.
@@ -189,4 +183,19 @@ class DrawFragment : Fragment() {
         return drawViewModel.getShape()
     }
 
+    private fun openColorPicker() {
+        // Initialize the color picker with the current color
+        val currentColor = drawViewModel.getColor()  // Replace with your current color logic
+
+        AmbilWarnaDialog(requireContext(), currentColor!!, object : AmbilWarnaDialog.OnAmbilWarnaListener {
+            override fun onCancel(dialog: AmbilWarnaDialog) {
+                // User canceled the dialog
+            }
+
+            override fun onOk(dialog: AmbilWarnaDialog, color: Int) {
+                // User selected a color, update the ViewModel
+                drawViewModel.setColor(color)
+            }
+        }).show()
+    }
 }

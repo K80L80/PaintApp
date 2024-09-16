@@ -53,6 +53,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 
+    //for the color wheel
+    implementation ("com.github.yukuku:ambilwarna:2.0.1")
+
     //to get livedata + viewmodel stuff
     implementation("androidx.activity:activity-ktx:1.7.2")
    // testImplementation("androidx.activity:activity-ktx:1.7.2")
