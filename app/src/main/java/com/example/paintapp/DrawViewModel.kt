@@ -8,6 +8,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
 import android.util.Log
 import android.view.MotionEvent
 import androidx.lifecycle.LiveData
@@ -21,13 +23,13 @@ import kotlin.random.Random
 data class PaintTool(
     val paint: Paint = Paint().apply {
         color = Color.BLACK
-        strokeWidth = 5f
-        style = Paint.Style.STROKE
-        isAntiAlias = true
+        strokeWidth = 30f
+//        style = Paint.Style.FILL
+//        isAntiAlias = true
     },
+   // val color: Int = Color.BLACK,
     val currentShape: String = "free" // Default shape is "free draw"
     //TODO: Add mode? Free?
-
 )
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
 
@@ -39,6 +41,7 @@ class DrawViewModel : ViewModel() {
 
     // Backend canvas to modify the bitmap
     private var _backendCanvas: Canvas? = null
+    private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
@@ -55,7 +58,7 @@ class DrawViewModel : ViewModel() {
         val currentBitmap = _bitmap.value
 
         //create new drawing for user
-        if (currentBitmap == null){
+        if (currentBitmap == null) {
             Log.i("ViewModel", "4a new bitmap was created!")
             // bitmap.value is null create a new one, make a new user bitmap to store a drawing, that matches the current height and
             val createdBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
@@ -64,20 +67,21 @@ class DrawViewModel : ViewModel() {
             _bitmap.value = createdBitmap
         }
         //restore old user drawing (the bitmap) and resize if needed
-        else{
+        else {
             Log.i("ViewModel", "4c restore old bitmap")
-            if (currentBitmap.width != newWidth || currentBitmap.height != newHeight){
+            if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
                 Log.i("ViewModel", "4d bitmap needs to be scaled!")
-                val scaledBitmap = Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
+                val scaledBitmap =
+                    Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
                 _bitmap.value = scaledBitmap
                 Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
                 _backendCanvas = Canvas(scaledBitmap) //
-            }
-            else {
+            } else {
                 Log.i("ViewModel", "4f The existing bitmap was restored, no resizing needed")
             }
         }
     }
+
 
     /**Setter for the bitmap
      *
@@ -112,6 +116,7 @@ class DrawViewModel : ViewModel() {
      */
 
     fun setSize(size: Float) {
+        Log.i("DrawViewModel", "size of paint tool set")
         _paintTool.postValue(
             _paintTool.value?.copy(
                 paint = _paintTool.value!!.paint.apply { this.strokeWidth = size }
@@ -123,8 +128,8 @@ class DrawViewModel : ViewModel() {
      * Currently only used in testing.
      *
      */
-    fun getSize(): Float?{
-       return paintTool.value?.paint?.strokeWidth
+    fun getSize(): Float? {
+        return paintTool.value?.paint?.strokeWidth
     }
 
     /**Method to update the style of the paint tool
@@ -146,6 +151,7 @@ class DrawViewModel : ViewModel() {
      */
 
     fun setShape(shape: String) {
+        Log.i("ViewModel", "setting shape ")
         _paintTool.postValue(
             _paintTool.value?.copy(currentShape = shape)
         )
@@ -154,7 +160,7 @@ class DrawViewModel : ViewModel() {
     /**Method to get the shape from the paint tool.
      *Used only in testing.
      */
-    fun getShape(): String?{
+    fun getShape(): String? {
         return paintTool.value?.currentShape
     }
 
@@ -175,66 +181,247 @@ class DrawViewModel : ViewModel() {
         _shouldReset.postValue(false)
     }
 
-  //3) In the ViewModel, the method onUserDraw(x, y, event) handles the drawing logic.
- //The x and y coordinate info here was supplied to the view model by the fragment who delegated to the viewmodel to decide what logic to implement in response to user drawing from the customview
- // The ViewModel checks the currentShape property (which could be RECTANGLE, DIAMOND, or LINE) and calls the corresponding method to draw the shape.
- fun onUserDraw(x: Float, y: Float, event: MotionEvent) {
-     val shape  = _paintTool.value?.currentShape
-      Log.i("DrawViewModel", "3 - determines which drawing logic: $shape x: $x, y: $y event: ${event.action} ")
-//     // Clone the current bitmap to avoid directly modifying the original so the orginal bitmap currently displayed to the user is left unchaged until the entire update is complete. This prevents flitcker, partial drawing and prevents concurrency issues
-//     val updatedBitmap = _bitmap.value?.copy(Bitmap.Config.ARGB_8888, true)
-//     val canvas = Canvas(updatedBitmap!!)  // Draw on the copied bitmap
-//
-     when (_paintTool.value?.currentShape) {
-             "rectangle" -> drawRectangle(x, y, event)
-             "diamond" -> drawDiamond(x, y, event)
-             "line"-> drawLine(x, y, event)
-             "free" -> drawFree(x, y, event)
-         }
-//                 // 6) After the drawing operation, the updated bitmap is set to the LiveData (currentBitmap.value = updatedBitmap).
-//                 // This triggers an update to the observers of currentBitmap (in this case, the Fragment), which will in tern update the UI.
-//                 //Once the ViewModel updates the bitmap (by setting the currentBitmap.value), the observer in the fragment is notified.
+    //In the ViewModel, the method onUserDraw(x, y, event) handles the drawing logic.
+    //The x and y coordinate info here was supplied to the view model by the fragment who delegated to the viewmodel to decide what logic to implement in response to user drawing from the customview
+    // The ViewModel checks the currentShape property (which could be RECTANGLE, DIAMOND, or LINE) and calls the corresponding method to draw the shape.
+    fun onUserDraw(x: Float, y: Float, event: MotionEvent) {
+        val shape = _paintTool.value?.currentShape
+        Log.i(
+            "DrawViewModel",
+            "3 - determines which drawing logic: $shape x: $x, y: $y event: ${event.action} "
+        )
 
-//     }
+        //if its just a normal shape
+        if (shape != "free" && (event.action == MotionEvent.ACTION_DOWN || event.action == MotionEvent.ACTION_MOVE)) {
+            Log.i("DrawViewModel", "$x, y: $y, event type: ${event.classification}")
+            when (_paintTool.value?.currentShape) {
+                "free" -> drawFree(x, y, event)
+                "line" -> drawLine(x, y, event)
+                "circle" -> drawCircle(x, y, event)
+                "square" -> drawSquare(x, y, event)
+                "rectangle" -> drawRectangle(x, y, event)
+                "diamond" -> drawDiamond(x, y, event)
+            }
+        }
+        //free draw requires processing of up down ect.
+        else {
+            drawFree(x, y, event)
+        }
+    }
 
-}
+    // After the drawing operation, the updated bitmap is set to the LiveData (currentBitmap.value = updatedBitmap).
+    // This triggers an update to the observers of currentBitmap (in this case, the Fragment), which will in tern update the UI.
+    //Once the ViewModel updates the bitmap (by setting the currentBitmap.value), the observer in the fragment is notified.
+
 
     //4) Drawing on the Bitmap: Each drawing method (e.g., drawRectangle(x, y, event)) modifies the bitmap based on the touch interaction.
-    private fun drawFree(x: Float, y: Float, event: MotionEvent) {
+
+    private fun drawSquare(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for rectangle on the bitmap
-        if(event.action == MotionEvent.ACTION_UP)  {
-            Log.i("DrawViewModel", " 4 - (touch) execute drawing free logic$x, y: $y, event type: ${event.classification}")
-            val rando = Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
-            Log.i("DrawViewModel", "4a - (touch) drawing a random color")
-            _backendCanvas?.drawColor(rando)
+        Log.i("DrawViewModel", "drawing a square")
+        // Drawing logic for rectangle on the bitmap
+
+        val width: Float = this.getSize() ?: 30f //gets stroke width
+        val height: Float = this.getSize() ?: 30f //gets stroke width
+
+        Log.i("DrawViewModel", "4a - (touch) drawing a random color")
+        _paintTool.value?.let {
+            _backendCanvas?.drawRect(
+                x + width / 2,
+                y + height / 2,
+                x - width / 2,
+                y - height / 2,
+                it.paint
+            )
+            _bitmap.value = _bitmap.value
+        }
+    }
+
+
+    private fun drawCircle(x: Float, y: Float, event: MotionEvent) {
+        // Drawing logic for rectangle on the bitmap
+        val radius: Float = this.getSize() ?: 30f
+        Log.i("DrawViewModel", "drawing a circle")
+        _paintTool.value?.let {
+            Log.i("DrawViewModel", "drawing a circle")
+            _backendCanvas?.drawCircle(x, y, radius, it.paint)
+            _bitmap.value = _bitmap.value
+        }
+    }
+
+    private fun drawRectangle(x: Float, y: Float, event: MotionEvent) {
+        // Drawing logic for rectangle on the bitmap
+        val width: Float = this.getSize() ?: 30f //gets stroke width
+        val height: Float = this.getSize() ?: 30f //gets stroke width
+
+        val scaledUpHeight = height * 2
+        Log.i("DrawViewModel", "drawing a rectangle")
+        _paintTool.value?.let {
+            _backendCanvas?.drawRect(
+                x + width / 2,
+                y + scaledUpHeight / 2,
+                x - width / 2,
+                y - scaledUpHeight / 2,
+                it.paint
+            )
             _bitmap.value = _bitmap.value
         }
 
     }
 
-    private fun drawRectangle(x: Float, y: Float, event: MotionEvent) {
-        // Drawing logic for rectangle on the bitmap
-        Log.i("DrawViewModel", "drawing a rectangle")
 
+    private var startX = 0f
+    private var startY = 0f
+
+    private fun drawLine(x: Float, y: Float, event: MotionEvent) {
+        _paintTool.value?.let {
+            // Create a copy of the Paint object
+            val copiedPaint = Paint(it.paint).apply {
+                style = Paint.Style.STROKE
+            }
+
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Capture the starting point of the line
+                    startX = x
+                    startY = y
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    // (Optional) Preview the line while dragging
+                    // Redraw the view without committing it to the bitmap
+                    _backendCanvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR) // Clear the preview
+                    _backendCanvas?.drawLine(startX, startY, x, y, copiedPaint)
+                    _bitmap.value = _bitmap.value  // Trigger observer to refresh the view
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    // Finalize the line when the user lifts their finger and commit to the bitmap
+                    _backendCanvas?.drawLine(startX, startY, x, y, copiedPaint)
+                    _bitmap.value = _bitmap.value  // Notify observers to update the view
+                }
+            }
+        }
     }
 
+
+
+
+    //must use path for non-uniform shapes (ie circle, rectangle)
     private fun drawDiamond(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for diamond on the bitmap
-        Log.i("DrawViewModel", "drawing a rectangle")
-    }
-    private fun drawLine(x: Float, y: Float, event: MotionEvent) {
-        val startTime = System.currentTimeMillis()
-        Log.i("DrawViewModel", "drawing a rectangle")
-        val endTime = System.currentTimeMillis()
-        Log.i("DrawViewModel", "Time taken for bitmap update: ${endTime - startTime} ms")
+        Log.i("DrawViewModel", "drawing a diamond")
+
+        // Size of the diamond
+        val size: Float = this.getSize() ?: 30f
+        val halfSize = size / 2
+
+        // Create a new Path for the diamond
+        val path = Path().apply {
+            // Move to the top point of the diamond
+            moveTo(x, y - halfSize)  // Top point
+
+            // Draw line to the right point
+            lineTo(x + halfSize, y)  // Right point
+
+            // Draw line to the bottom point
+            lineTo(x, y + halfSize)  // Bottom point
+
+            // Draw line to the left point
+            lineTo(x - halfSize, y)  // Left point
+
+            // Close the path back to the top point
+            close()  // This connects the last point to the first point
+        }
+
+        // Get the current paint tool and draw the diamond on the canvas
+        _paintTool.value?.let {
+            _backendCanvas?.drawPath(path, it.paint)
+            _bitmap.value = _bitmap.value  // Notify the fragment of the updated bitmap
+        }
     }
 
+    private fun drawFree(x: Float, y: Float, event: MotionEvent) {
+        _paintTool.value?.let {
+            // Create a copy of the Paint object
+            val copiedPaint = Paint(it.paint).apply {
+                style = Paint.Style.STROKE
+            }
+
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Start a new path at the touch down point
+                    freeDrawPath.moveTo(x, y)
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    // Continue the path as the user moves their finger
+                    freeDrawPath.lineTo(x, y)
+
+                    // Draw the path in real-time as the user is drawing (during ACTION_MOVE)
+                    _backendCanvas?.drawPath(freeDrawPath, copiedPaint)
+
+                    // Redraw the canvas with the updated path
+                    _bitmap.value = _bitmap.value  // Trigger observer to refresh the view
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    // Finalize the path when the user lifts their finger
+                    _backendCanvas?.drawPath(freeDrawPath, copiedPaint)
+                    _bitmap.value = _bitmap.value  // Notify observers to update the view
+
+                    // Reset the path for the next freehand stroke
+                    freeDrawPath.reset()
+                }
+            }
+        }
+    }
+
+//    fun resetDrawing() {
+//        Log.i("CustomDrawView", "resting the user bitmap")
+//        // Clear the path for freehand drawing
+//        path.reset()
+//        // Clear the bitmap by filling it with white
+//        bitmap?.eraseColor(Color.WHITE)
+//        // Clear the canvas by filling it with white
+//        userCanvas?.drawColor(Color.WHITE)
+//        // Redraw the view to reflect the reset
+//        invalidate()
+//    }
+
+
+    fun clearBitmap() {
+        _bitmap.value?.let {
+            // Clear the existing bitmap by drawing a transparent background
+            val canvas = Canvas(it)
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)  // Clear the bitmap
+            _bitmap.value = it  // Post the cleared bitmap
+        }
+    }
+
+
+
+}
+
+//val rando = Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
 
 //
 //    fun selectShape(shape: Shape) {
 //        currentShape = shape
 //    }
-}
+//}
+//
+//_paintTool.value?.let {
+//    // Create a copy of the Paint object
+//    val copiedPaint = Paint(it.paint)
+//
+//    // Now you can modify the copied paint without affecting the original
+//    copiedPaint.color = Color.RED  // Change color for example
+//
+//    // Use the copied paint for drawing
+//    _backendCanvas?.drawPath(freeDrawPath, copiedPaint)  // Draw the path using the copied paint
+//}
+
 
 //Shape mode?
 //when (event.action ) {
@@ -258,3 +445,10 @@ class DrawViewModel : ViewModel() {
 //        // You can clone the bitmap here, after the drawing is complete
 //    }
 //}
+
+//     // Clone the current bitmap to avoid directly modifying the original so the orginal bitmap currently displayed to the user is left unchaged until the entire update is complete. This prevents flitcker, partial drawing and prevents concurrency issues
+//     val updatedBitmap = _bitmap.value?.copy(Bitmap.Config.ARGB_8888, true)
+//     val canvas = Canvas(updatedBitmap!!)  // Draw on the copied bitmap
+
+
+

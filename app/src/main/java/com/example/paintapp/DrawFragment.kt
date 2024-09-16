@@ -57,6 +57,9 @@ class DrawFragment : Fragment() {
                 drawViewModel.getOrCreateBitmap(width, height)
         }
 
+        customDrawView.onResetCallback = {
+            drawViewModel.clearBitmap()
+        }
         Log.i("DrawFragment - KS", "0d (setup) - onCreateView() ENDED")
         return view
     }
@@ -68,6 +71,7 @@ class DrawFragment : Fragment() {
         // Fragments set lambda variables in custom view
         Log.i("DrawFragment - KS", "1a (setup) - onCreateView() STARTED")
 
+        //OBSERVING DRAWING DATA
         //5 The fragment observes the bitmap meaning it watches for updates and receives notification with the bitmap is modified
         //When the fragment receives word that the bitmap changed it calls on the view to update the UI (calling customDrawingView.updateBitmap(bitmap)
         Log.i("DrawFragment - KS", "1b - (setup) bitmap observer set")
@@ -79,6 +83,11 @@ class DrawFragment : Fragment() {
         }
         fragmentSetupComplete = true
 
+        //OBSERVING COLOR CHANGES
+        drawViewModel.paintTool.observe(viewLifecycleOwner){
+            Log.i("DrawFragment - KS", "fragment observing a change to paint tool!!")
+            //TODO: eventually want the paint tool and color to display on screen??
+        }
 
         // Set color button handling
         val buttonChangeColor: Button = view.findViewById(R.id.buttonChangeColor)
@@ -98,6 +107,7 @@ class DrawFragment : Fragment() {
         //See draw_bar_dialogue for layout
         val buttonChangeSize: Button = view.findViewById(R.id.buttonChangeSize)
         buttonChangeSize.setOnClickListener {
+            Log.i("DrawFragment - KS", "(button click) size changed button clicked")
             //get all of the layout pieces
             val dialogView = layoutInflater.inflate(R.layout.draw_bar_dialogue, null)
             val slider: Slider = dialogView.findViewById(R.id.sizeSlider)
@@ -105,12 +115,14 @@ class DrawFragment : Fragment() {
 
             // This sets the starting value of the slider and displays it
             //this will impact our draw size at the start
-            slider.value = drawViewModel.getSize() ?: 5f
+            slider.value = drawViewModel.getSize()!!
             sliderValueText.text = "${slider.value.toInt()}"
 
             //listener for handling slider changes and displaying
             slider.addOnChangeListener { _, value, _ ->
                 sliderValueText.text = "${value.toInt()}"
+                Log.i("DrawFragment - KS", "user picks size: ${slider.value}")
+                drawViewModel.setSize(slider.value)
             }
 
             // Below creates the popup for displaying the slider
@@ -122,18 +134,19 @@ class DrawFragment : Fragment() {
                     drawViewModel.setSize(slider.value)
                 }
                 .show()
+            Log.i("DrawFragment - KS", "(pop-up slider) user picks size ")
         }
 //        Log.i("DrawFragment - KS", "setting on click listener")
         // Set shape button
         val buttonChangeShape: Button = view.findViewById(R.id.buttonChangeShape)
         buttonChangeShape.setOnClickListener {
             Log.i("DrawFragment", "button clicked")
-            val shapes = arrayOf("Free", "Line", "Circle", "Square", "Rectangle", "Diamond")
+            val shapes = arrayOf("free", "line", "circle", "square", "rectangle", "diamond")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Shape")
                 .setItems(shapes) { _, which ->
-                    val selectedShape = shapes[which].replace(" ", "").lowercase(Locale.getDefault())
-                    Log.i("DrawFragment", "selected shape: $selectedShape")
+                    val selectedShape = shapes[which]
+                    Log.i("DrawFragment - KS", "selected shape: $selectedShape")
                     drawViewModel.setShape(selectedShape)
                 }
                 .show()
@@ -144,10 +157,8 @@ class DrawFragment : Fragment() {
         buttonReset.setOnClickListener {
             customDrawView.getBitmap()?.let { bitmap ->
                 // Pass the width and height of the CustomDrawView to reset properly
-                customDrawView.resetDrawing()
-                drawViewModel.resetDrawing(customDrawView.width, customDrawView.height)
+                drawViewModel.clearBitmap()
             }
-
             // After reset, tell ViewModel to reset the flag to avoid future resets
             drawViewModel.resetComplete()
         }

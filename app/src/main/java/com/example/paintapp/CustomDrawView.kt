@@ -33,6 +33,9 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     // Callback to notify the fragment during a screen rotation
     var onSizeChangedCallback: ((Int, Int) -> Unit)? = null
 
+    // Callback to notify the fragment during a screen rotation
+    var onResetCallback: (() -> Unit?)? = null
+
     /**This sets up the observers used by the fragment to monitor changes
      * to the bitmap and paint tool.
      *
@@ -242,16 +245,17 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     /**Method to reset the drawing window.
      *
      */
-    fun resetDrawing() {
-        // Clear the path for freehand drawing
-        path.reset()
-        // Clear the bitmap by filling it with white
-        bitmap?.eraseColor(Color.WHITE)
-        // Clear the canvas by filling it with white
-        userCanvas?.drawColor(Color.WHITE)
-        // Redraw the view to reflect the reset
-        invalidate()
-    }
+//    fun resetDrawing() {
+//        Log.i("CustomDrawView", "resting the user bitmap")
+//        // Clear the path for freehand drawing
+//        path.reset()
+//        // Clear the bitmap by filling it with white
+//        bitmap?.eraseColor(Color.WHITE)
+//        // Clear the canvas by filling it with white
+//        userCanvas?.drawColor(Color.WHITE)
+//        // Redraw the view to reflect the reset
+//        invalidate()
+//    }
 
     /**Method to get the bitmap from the view. Used in the fragment.
      *
