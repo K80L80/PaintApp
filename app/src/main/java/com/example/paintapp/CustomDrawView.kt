@@ -36,35 +36,6 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     // Callback to notify the fragment during a screen rotation
     var onResetCallback: (() -> Unit?)? = null
 
-    /**This sets up the observers used by the fragment to monitor changes
-     * to the bitmap and paint tool.
-     *
-     */
-//    fun setUpViewModelObservers(drawViewModel: DrawViewModel) {
-//        // Observe changes to the PaintTool object
-//        drawViewModel.paintTool.observe(context as LifecycleOwner) { newPaintTool ->
-//            paintTool = newPaintTool
-//            //invalidate notifies
-//            invalidate()
-//        }
-//
-//        drawViewModel.bitmap.observe(context as LifecycleOwner) { newBitmap ->
-//            if (newBitmap != null) {
-//                bitmap = newBitmap
-//                bitmapCanvas = Canvas(newBitmap)
-//                invalidate()
-//            }
-//            // If no bitmap exists, create a default bitmap
-//            else if(bitmap == null) {
-//                bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
-//                bitmapCanvas = Canvas(bitmap!!)
-//                bitmapCanvas?.drawColor(Color.WHITE)
-//                //pass bitmap to model
-//                drawViewModel.setBitmap(bitmap)
-//            }
-//        }
-//    }
-
     /**Handles user touch events to store positions for drawing shapes.
      * also includes a boolean to ensure onDraw is only called when the user is drawing.
      */
@@ -75,104 +46,12 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         onShapeDrawAction?.invoke(event.x, event.y, event)  // Callback to Fragment
         return true
     }
-//        when (event.action) {
-//            MotionEvent.ACTION_DOWN -> {
-//                //this tells the other events like onDraw when a user starts actually drawing.
-//                isUserDrawing = true
-//
-//                startX = event.x
-//                startY = event.y
-//                endX = startX
-//                endY = startY
-//
-//                if (paintTool.shape == "free") {
-//                    path.reset()
-//                    path.moveTo(startX, startY)
-//                }
-//                //updates as the user moves their mouse
-//                invalidate()
-//                return true
-//            }
-//
-//            MotionEvent.ACTION_MOVE -> {
-//                endX = event.x
-//                endY = event.y
-//
-//                if (paintTool.shape == "free") {
-//                    path.lineTo(endX, endY)
-//                }
-//                //updates as the user moves their mouse
-//                invalidate()
-//                return true
-//            }
-//
-//            MotionEvent.ACTION_UP -> {
-//                endX = event.x
-//                endY = event.y
-//
-//                //draws the shapes on the canvas
-//                when (paintTool.shape) {
-//                    "line" -> bitmapCanvas?.drawLine(startX, startY, endX, endY, paintTool.paint)
-//                    "circle" -> {
-//                        val radius = Math.sqrt(
-//                            Math.pow(
-//                                (endX - startX).toDouble(),
-//                                2.0
-//                            ) + Math.pow((endY - startY).toDouble(), 2.0)
-//                        ).toFloat()
-//                        bitmapCanvas?.drawCircle(startX, startY, radius, paintTool.paint)
-//                    }
-//
-//                    "square" -> {
-//                        val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
-//                        bitmapCanvas?.drawRect(
-//                            startX,
-//                            startY,
-//                            startX + side,
-//                            startY + side,
-//                            paintTool.paint
-//                        )
-//                    }
-//
-//                    "rectangle" -> bitmapCanvas?.drawRect(
-//                        startX,
-//                        startY,
-//                        endX,
-//                        endY,
-//                        paintTool.paint
-//                    )
-//
-//                    "diamond" -> {
-//                        val diamondPath = Path().apply {
-//                            moveTo((startX + endX) / 2, startY)
-//                            lineTo(endX, (startY + endY) / 2)
-//                            lineTo((startX + endX) / 2, endY)
-//                            lineTo(startX, (startY + endY) / 2)
-//                            close()
-//                        }
-//                        bitmapCanvas?.drawPath(diamondPath, paintTool.paint)
-//                    }
-//
-//                    "free" -> {
-//                        bitmapCanvas?.drawPath(path, paintTool.paint)
-//                        path.reset()
-//                    }
-//                }
-//                //update that drawing is now completed
-//                isUserDrawing = false
-//                //draw final shape
-//                invalidate()
-//                return true
-//            }
-//
-//            else -> return false
-//        }
-//    }
+
 
     /**Handles drawing shapes on the canvas.
      * Uses the isDrawing boolean to ensure shapes are only drawn during touch events.
      */
-//9) the onDraw method was trigger when the view realizes that it has an older verison of the bitmap and needs to display the new one (tiggered by the update bitmap method here in the view)
+    //the onDraw method was trigger when the view realizes that it has an older verison of the bitmap and needs to display the new one (tiggered by the update bitmap method here in the view)
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -181,53 +60,6 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
             Log.i("CustomDrawView", "6b ondraw called redrawn to the userCanvas")
             canvas.drawBitmap(it, 0f, 0f, null)
         }
-//
-//        super.onDraw(canvas)
-//        // Draw the updated bitmap onto the canvas
-         // //the modifications the user made to the drawing are now reflected on the screen after this call
-//        canvas.drawBitmap(currentBitmap, 0f, 0f, null)
-//    }
-
-//        // Only draw the shapes if the user is currently drawing.
-//        if (isUserDrawing) {
-//            when (paintTool.currentShape) {
-//                "free" -> {
-//                    paintTool.paint.style = Paint.Style.STROKE
-//                    canvas.drawPath(path, paintTool.paint)
-//                }
-//                "line" -> {
-//                    paintTool.paint.style = Paint.Style.STROKE
-//                    canvas.drawLine(startX, startY, endX, endY, paintTool.paint)
-//                }
-//                "circle" -> {
-//                    val radius = Math.sqrt(
-//                        Math.pow((endX - startX).toDouble(), 2.0) + Math.pow((endY - startY).toDouble(), 2.0)
-//                    ).toFloat()
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawCircle(startX, startY, radius, paintTool.paint)
-//                }
-//                "square" -> {
-//                    val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawRect(startX, startY, startX + side, startY + side, paintTool.paint)
-//                }
-//                "rectangle" -> {
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawRect(startX, startY, endX, endY, paintTool.paint)
-//                }
-//                "diamond" -> {
-//                    val diamondPath = Path().apply {
-//                        moveTo((startX + endX) / 2, startY)
-//                        lineTo(endX, (startY + endY) / 2)
-//                        lineTo((startX + endX) / 2, endY)
-//                        lineTo(startX, (startY + endY) / 2)
-//                        close()
-//                    }
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawPath(diamondPath, paintTool.paint)
-//                }
-//            }
-//        }
     }
 
 
@@ -242,25 +74,9 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         invalidate() //8b Since the bitmap was updated, this method call forces the view to redraw itself by triggering the onDraw method
     }
 
-    /**Method to reset the drawing window.
-     *
-     */
-//    fun resetDrawing() {
-//        Log.i("CustomDrawView", "resting the user bitmap")
-//        // Clear the path for freehand drawing
-//        path.reset()
-//        // Clear the bitmap by filling it with white
-//        bitmap?.eraseColor(Color.WHITE)
-//        // Clear the canvas by filling it with white
-//        userCanvas?.drawColor(Color.WHITE)
-//        // Redraw the view to reflect the reset
-//        invalidate()
-//    }
-
     /**Method to get the bitmap from the view. Used in the fragment.
      *
      */
-
     fun getBitmap(): Bitmap? {
         return bitmap
     }
@@ -283,7 +99,10 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
         Log.i("CustomDrawView", "2d (onSizeChange) on SizeChangedCallback invoked")
         onSizeChangedCallback?.invoke(w, h)
 
+    }
+}
 
+//NOTES:
 //        Log.d("CustomView", "onSizeChanged called with w: $w, h: $h, oldw: $oldw, oldh: $oldh")
 //        //No user drawing yet, need a new bitmap to store that data
 //        if (bitmap == null) {
@@ -303,5 +122,17 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
 //        }
 //
 //        invalidate()
-    }
-}
+/**Method to reset the drawing window.
+ *
+ */
+//    fun resetDrawing() {
+//        Log.i("CustomDrawView", "resting the user bitmap")
+//        // Clear the path for freehand drawing
+//        path.reset()
+//        // Clear the bitmap by filling it with white
+//        bitmap?.eraseColor(Color.WHITE)
+//        // Clear the canvas by filling it with white
+//        userCanvas?.drawColor(Color.WHITE)
+//        // Redraw the view to reflect the reset
+//        invalidate()
+//    }

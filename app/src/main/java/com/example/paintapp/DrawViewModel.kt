@@ -32,7 +32,6 @@ data class PaintTool(
     //TODO: Add mode? Free?
 )
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
-
 class DrawViewModel : ViewModel() {
 
     // Bitmap for storing the drawing
@@ -81,7 +80,6 @@ class DrawViewModel : ViewModel() {
             }
         }
     }
-
 
     /**Setter for the bitmap
      *
@@ -181,8 +179,8 @@ class DrawViewModel : ViewModel() {
         _shouldReset.postValue(false)
     }
 
-    //In the ViewModel, the method onUserDraw(x, y, event) handles the drawing logic.
-    //The x and y coordinate info here was supplied to the view model by the fragment who delegated to the viewmodel to decide what logic to implement in response to user drawing from the customview
+    // In the ViewModel, the method onUserDraw(x, y, event) handles the drawing logic.
+    // The x and y coordinate info here was supplied to the view model by the fragment who delegated to the viewmodel to decide what logic to implement in response to user drawing from the customview
     // The ViewModel checks the currentShape property (which could be RECTANGLE, DIAMOND, or LINE) and calls the corresponding method to draw the shape.
     fun onUserDraw(x: Float, y: Float, event: MotionEvent) {
         val shape = _paintTool.value?.currentShape
@@ -212,10 +210,7 @@ class DrawViewModel : ViewModel() {
     // After the drawing operation, the updated bitmap is set to the LiveData (currentBitmap.value = updatedBitmap).
     // This triggers an update to the observers of currentBitmap (in this case, the Fragment), which will in tern update the UI.
     //Once the ViewModel updates the bitmap (by setting the currentBitmap.value), the observer in the fragment is notified.
-
-
-    //4) Drawing on the Bitmap: Each drawing method (e.g., drawRectangle(x, y, event)) modifies the bitmap based on the touch interaction.
-
+    //Drawing on the Bitmap: Each drawing method (e.g., drawRectangle(x, y, event)) modifies the bitmap based on the touch interaction.
     private fun drawSquare(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for rectangle on the bitmap
         Log.i("DrawViewModel", "drawing a square")
@@ -236,7 +231,6 @@ class DrawViewModel : ViewModel() {
             _bitmap.value = _bitmap.value
         }
     }
-
 
     private fun drawCircle(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for rectangle on the bitmap
@@ -268,7 +262,6 @@ class DrawViewModel : ViewModel() {
         }
 
     }
-
 
     private var startX = 0f
     private var startY = 0f
@@ -303,9 +296,6 @@ class DrawViewModel : ViewModel() {
             }
         }
     }
-
-
-
 
     //must use path for non-uniform shapes (ie circle, rectangle)
     private fun drawDiamond(x: Float, y: Float, event: MotionEvent) {
@@ -377,19 +367,6 @@ class DrawViewModel : ViewModel() {
         }
     }
 
-//    fun resetDrawing() {
-//        Log.i("CustomDrawView", "resting the user bitmap")
-//        // Clear the path for freehand drawing
-//        path.reset()
-//        // Clear the bitmap by filling it with white
-//        bitmap?.eraseColor(Color.WHITE)
-//        // Clear the canvas by filling it with white
-//        userCanvas?.drawColor(Color.WHITE)
-//        // Redraw the view to reflect the reset
-//        invalidate()
-//    }
-
-
     fun clearBitmap() {
         _bitmap.value?.let {
             // Clear the existing bitmap by drawing a transparent background
@@ -402,6 +379,147 @@ class DrawViewModel : ViewModel() {
 
 
 }
+//NOTES:
+//        super.onDraw(canvas)
+//        // Draw the updated bitmap onto the canvas
+// //the modifications the user made to the drawing are now reflected on the screen after this call
+//        canvas.drawBitmap(currentBitmap, 0f, 0f, null)
+//    }
+
+//        // Only draw the shapes if the user is currently drawing.
+//        if (isUserDrawing) {
+//            when (paintTool.currentShape) {
+//                "free" -> {
+//                    paintTool.paint.style = Paint.Style.STROKE
+//                    canvas.drawPath(path, paintTool.paint)
+//                }
+//                "line" -> {
+//                    paintTool.paint.style = Paint.Style.STROKE
+//                    canvas.drawLine(startX, startY, endX, endY, paintTool.paint)
+//                }
+//                "circle" -> {
+//                    val radius = Math.sqrt(
+//                        Math.pow((endX - startX).toDouble(), 2.0) + Math.pow((endY - startY).toDouble(), 2.0)
+//                    ).toFloat()
+//                    paintTool.paint.style = Paint.Style.FILL
+//                    canvas.drawCircle(startX, startY, radius, paintTool.paint)
+//                }
+//                "square" -> {
+//                    val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
+//                    paintTool.paint.style = Paint.Style.FILL
+//                    canvas.drawRect(startX, startY, startX + side, startY + side, paintTool.paint)
+//                }
+//                "rectangle" -> {
+//                    paintTool.paint.style = Paint.Style.FILL
+//                    canvas.drawRect(startX, startY, endX, endY, paintTool.paint)
+//                }
+//                "diamond" -> {
+//                    val diamondPath = Path().apply {
+//                        moveTo((startX + endX) / 2, startY)
+//                        lineTo(endX, (startY + endY) / 2)
+//                        lineTo((startX + endX) / 2, endY)
+//                        lineTo(startX, (startY + endY) / 2)
+//                        close()
+//                    }
+//                    paintTool.paint.style = Paint.Style.FILL
+//                    canvas.drawPath(diamondPath, paintTool.paint)
+//                }
+//            }
+//        }
+
+//        when (event.action) {
+//            MotionEvent.ACTION_DOWN -> {
+//                //this tells the other events like onDraw when a user starts actually drawing.
+//                isUserDrawing = true
+//
+//                startX = event.x
+//                startY = event.y
+//                endX = startX
+//                endY = startY
+//
+//                if (paintTool.shape == "free") {
+//                    path.reset()
+//                    path.moveTo(startX, startY)
+//                }
+//                //updates as the user moves their mouse
+//                invalidate()
+//                return true
+//            }
+//
+//            MotionEvent.ACTION_MOVE -> {
+//                endX = event.x
+//                endY = event.y
+//
+//                if (paintTool.shape == "free") {
+//                    path.lineTo(endX, endY)
+//                }
+//                //updates as the user moves their mouse
+//                invalidate()
+//                return true
+//            }
+//
+//            MotionEvent.ACTION_UP -> {
+//                endX = event.x
+//                endY = event.y
+//
+//                //draws the shapes on the canvas
+//                when (paintTool.shape) {
+//                    "line" -> bitmapCanvas?.drawLine(startX, startY, endX, endY, paintTool.paint)
+//                    "circle" -> {
+//                        val radius = Math.sqrt(
+//                            Math.pow(
+//                                (endX - startX).toDouble(),
+//                                2.0
+//                            ) + Math.pow((endY - startY).toDouble(), 2.0)
+//                        ).toFloat()
+//                        bitmapCanvas?.drawCircle(startX, startY, radius, paintTool.paint)
+//                    }
+//
+//                    "square" -> {
+//                        val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
+//                        bitmapCanvas?.drawRect(
+//                            startX,
+//                            startY,
+//                            startX + side,
+//                            startY + side,
+//                            paintTool.paint
+//                        )
+//                    }
+//
+//                    "rectangle" -> bitmapCanvas?.drawRect(
+//                        startX,
+//                        startY,
+//                        endX,
+//                        endY,
+//                        paintTool.paint
+//                    )
+//
+//                    "diamond" -> {
+//                        val diamondPath = Path().apply {
+//                            moveTo((startX + endX) / 2, startY)
+//                            lineTo(endX, (startY + endY) / 2)
+//                            lineTo((startX + endX) / 2, endY)
+//                            lineTo(startX, (startY + endY) / 2)
+//                            close()
+//                        }
+//                        bitmapCanvas?.drawPath(diamondPath, paintTool.paint)
+//                    }
+//
+//                    "free" -> {
+//                        bitmapCanvas?.drawPath(path, paintTool.paint)
+//                        path.reset()
+//                    }
+//                }
+//                //update that drawing is now completed
+//                isUserDrawing = false
+//                //draw final shape
+//                invalidate()
+//                return true
+//            }
+//
+//            else -> return false
+//        }
+//    }
 
 //val rando = Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
 
