@@ -9,6 +9,11 @@ android {
     buildFeatures{
         viewBinding = true
         dataBinding = true
+
+        compose = true //to use jetpack compose
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.0" //to use jetpack compose
     }
     defaultConfig {
         applicationId = "com.example.paintapp"
@@ -68,4 +73,14 @@ dependencies {
     debugImplementation("androidx.fragment:fragment-testing-manifest:$fragment_version")
 
     androidTestImplementation("androidx.fragment:fragment-testing:$fragment_version")
+
+    //To use Jetpack Compose
+    implementation ("androidx.compose.ui:ui:1.7.1")
+    implementation ("androidx.compose.material:material:1.7.1")
+    implementation ("androidx.compose.ui:ui-tooling-preview:1.7.1")
+    implementation ("androidx.activity:activity-compose:1.9.2")
 }
+
+
+
+
