@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 
+//Keep as is (View)
 class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var bitmap: Bitmap? = null
     private var userCanvas: Canvas? = null //while the user canvas in the custom view handles touch detection and rendering on the screen.

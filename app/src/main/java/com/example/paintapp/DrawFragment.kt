@@ -14,6 +14,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.slider.Slider
@@ -198,4 +212,47 @@ class DrawFragment : Fragment() {
             }
         }).show()
     }
+
+//    @Composable
+//    fun CustomComposableView(modifier: Modifier = Modifier) {
+//        Canvas(modifier = modifier.background(Color.Red)) {//Unresolved reference: Red
+//            // Custom drawing logic goes here
+//            // Example: Draw a circle at the center
+//            drawCircle(
+//                color = Color.Blue, //Unresolved reference: Blue
+//                radius = 50f,
+//                center = Offset(size.width / 2, size.height / 2)
+//            )
+//        }
+//    }
+
+ //   @Composable
+//    fun ExampleScreen(onButtonOneClick: () -> Unit, onButtonTwoClick: () -> Unit) {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(16.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            CustomComposableView(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(200.dp)
+//            )
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            Button(onClick = { onButtonOneClick() }) {
+//                Text("Button One") //type mismatch Required: Context! Found: () → Unit
+//            }
+//
+//            Spacer(modifier = Modifier.height(8.dp))
+//
+//            Button(onClick = { onButtonTwoClick() }) { //Named arguments are not allowed for non-Kotlin functions Cannot find a parameter with this name: onClick
+//                Text("Button Two") //Type mismatch. Required: Context!Found: () → Unit
+//            }
+//        }
+//    }
+
+
 }
