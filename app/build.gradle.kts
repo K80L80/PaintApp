@@ -9,6 +9,11 @@ android {
     buildFeatures{
         viewBinding = true
         dataBinding = true
+
+        compose = true //to use jetpack compose
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.0" //to use jetpack compose
     }
     defaultConfig {
         applicationId = "com.example.paintapp"
@@ -53,6 +58,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 
+    //for the color wheel
+    implementation ("com.github.yukuku:ambilwarna:2.0.1")
+
     //to get livedata + viewmodel stuff
     implementation("androidx.activity:activity-ktx:1.7.2")
    // testImplementation("androidx.activity:activity-ktx:1.7.2")
@@ -62,7 +70,29 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
     val fragment_version = "1.8.3"
 
+    //for testing
     debugImplementation("androidx.fragment:fragment-testing-manifest:$fragment_version")
-
     androidTestImplementation("androidx.fragment:fragment-testing:$fragment_version")
+
+    //To use Jetpack Compose
+    implementation ("androidx.compose.ui:ui:1.7.1")
+    implementation ("androidx.compose.material:material:1.7.1")
+
+    //jetpack preview annotations (provides developer a UI) to see components of user UI
+    implementation ("androidx.compose.ui:ui-tooling-preview:1.7.1")
+
+    //To use jetpack navigation
+    implementation ("androidx.navigation:navigation-ui-ktx:2.8.0")
+
+    //Jetpack Navigation w/ Views - need to make navigation folder + navigation xml file
+    implementation ("androidx.activity:activity-compose:1.9.2")
+    implementation ("androidx.navigation:navigation-fragment-ktx:2.8.0")
+
+    //Jetpack Navigation w/ Jetpack compose - Navigation is done in kotlin file (no seperate xml file)
+    implementation ("androidx.navigation:navigation-compose: 2.5.3")
+
 }
+
+
+
+

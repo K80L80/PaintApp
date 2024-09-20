@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/mainScreen2">
+    <fragment
+        android:id="@+id/mainScreen2"
+        android:name="com.example.paintapp.MainScreen"
+        android:label="activity_main_screen"
+        tools:layout="@layout/activity_main_screen" >
+        <action
+            android:id="@+id/action_mainScreen2_to_drawFragment2"
+            app:destination="@id/drawFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/drawFragment"
+        android:name="com.example.paintapp.DrawFragment"
+        android:label="fragment_draw"
+        tools:layout="@layout/fragment_draw" />
+</navigation>
