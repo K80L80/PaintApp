@@ -34,7 +34,7 @@ import com.google.android.material.slider.Slider
 import yuku.ambilwarna.AmbilWarnaDialog
 import java.util.Locale
 
-
+//TODO – add a save button, and have user enter a filename to save their drawing
 class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView

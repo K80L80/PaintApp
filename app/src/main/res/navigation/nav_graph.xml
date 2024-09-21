@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--    //This file use to do jetpack navigation (using jetpack composable)-->
+<!--    //TODO: setup navigation between fragments instead of using intents/transaction manager-->
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
