@@ -14,8 +14,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 
-//TODO: Welcome screen, list of files already created, for new drawings have user enter text for the filename
-//TODO: Use Lazy Column COMPOSABLE HERE - to display the file list (bitmap)
+//TODO: Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
+//TODO: Use Lazy Column to show files already created.  (use COMPOSABLE HERE) display the file list as just names then eventually show mini snapshots of the drawings)
 class MainScreen : Fragment() {
 
     private var buttonFunction: () -> Unit = {}

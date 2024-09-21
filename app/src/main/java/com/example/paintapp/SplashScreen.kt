@@ -12,7 +12,7 @@ import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import com.example.paintapp.databinding.ActivitySplashScreenBinding
 
-//Splash Screen (Animation) Composable
+//TODO: Spencer –– Splash Screen (Animation) Composable
 class SplashScreen : AppCompatActivity() {
 
     private lateinit var binding: ActivitySplashScreenBinding
