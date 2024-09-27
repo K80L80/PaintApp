@@ -68,8 +68,8 @@ class DrawFragment : Fragment() {
             // Only trigger size change logic after setup is complete
             Log.i("DrawFragment - KS", "3a onSizeChangeCallback set by fragment")
 
-                //Log.i("DrawFragment - KS", "3b configuration detected relaying canvas height and to view model to resize bitmap ")
-                drawViewModel.getOrCreateBitmap(width, height)
+            //Log.i("DrawFragment - KS", "3b configuration detected relaying canvas height and to view model to resize bitmap ")
+            drawViewModel.getOrCreateBitmap(width, height)
         }
 
         customDrawView.onResetCallback = {
@@ -226,7 +226,7 @@ class DrawFragment : Fragment() {
 //        }
 //    }
 
- //   @Composable
+    //   @Composable
 //    fun ExampleScreen(onButtonOneClick: () -> Unit, onButtonTwoClick: () -> Unit) {
 //        Column(
 //            modifier = Modifier
