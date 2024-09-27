@@ -5,6 +5,11 @@
     android:layout_height="match_parent"
     tools:context=".MainScreen">
 
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/composeView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/button2"
         android:layout_width="287dp"
@@ -13,5 +18,6 @@
         android:insetTop="10dp"
         android:insetBottom="0dp"
         android:text="Start Drawing" />
-
 </FrameLayout>
+
+
