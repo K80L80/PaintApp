@@ -3,23 +3,32 @@
  *
  */
 package com.example.paintapp
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -36,10 +45,11 @@ class MainScreen : Fragment() {
     ): View {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
         Log.i("MainScreen", "main screen created")
-
+        val testDrawings = generateTestDrawings()
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
-            FileListScreen(getFileNames())
+            //FileListScreen(getFileNames())
+            GalleryOfDrawings(testDrawings)
         }
 
         //this is the button that moves to the draw screen
@@ -59,32 +69,30 @@ class MainScreen : Fragment() {
 
 // Composable function to display the file list using LazyColumn
 @Composable
-fun FileListScreen(fileNames: List<String>) {
+fun GalleryOfDrawings(drawings: List<Bitmap>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        items(fileNames) { fileName ->
-            FileItem(fileName)
+        items(drawings) { drawing ->
+            Drawing(drawing)
         }
     }
 }
 
 // Composable function to display a single file item
 @Composable
-fun FileItem(fileName: String) {
-    Row(
-        modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween, // Spread the items in the row
-        verticalAlignment = Alignment.CenterVertically // Align items verticall
-    ){
-        Text(text = fileName, modifier = Modifier.padding(8.dp))
-        Button(onClick = {}) {
-            Text(text = "open")
-        }
-    }
+fun Drawing(bitmap: Bitmap) {
+    // Convert Bitmap to ImageBitmap to use in Compose
+    val imageBitmap = bitmap.asImageBitmap()
 
+    // Display the Bitmap as an Image
+    Image(
+        bitmap = imageBitmap,
+        contentDescription = "Drawing Thumbnail",
+        modifier = Modifier
+            .size(100.dp) // Set the size of each image
+            .padding(8.dp)
+    )
 }
