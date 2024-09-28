@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 
 //TODO: Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
@@ -51,7 +52,7 @@ class MainScreen : Fragment() {
 
         //this is the button that moves to the draw screen
         binding.button2.setOnClickListener {
-            buttonFunction()
+            findNavController().navigate(R.id.action_mainScreen2_to_drawFragment2)
         }
         return binding.root
 

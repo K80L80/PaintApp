@@ -45,12 +45,13 @@ import kotlinx.coroutines.delay
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContent {
-            ShowSplashScreenAnimation{
-
-            }
-        }
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+//        setContent {
+//            ShowSplashScreenAnimation{
+//
+//            }
+//        }
     }
 //        // Check if fragmentContainerView contains a fragment already due to rotation
 //        if (savedInstanceState == null) {
