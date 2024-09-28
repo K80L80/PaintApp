@@ -5,7 +5,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph.xml"
-    app:startDestination="@id/mainScreen2">
+    app:startDestination="@id/splashScreenFragment">
+    <!-- Splash Screen Fragment -->
+    <fragment
+        android:id="@+id/splashScreenFragment"
+        android:name="com.example.paintapp.SplashScreenFragment"
+        android:label="Splash Screen"
+        tools:layout="@layout/fragment_splash_screen">
+        <action
+            android:id="@+id/action_splash_to_mainScreen2"
+            app:destination="@id/mainScreen2" />
+    </fragment>
+    <!-- Main Menu Fragment -->
     <fragment
         android:id="@+id/mainScreen2"
         android:name="com.example.paintapp.MainScreen"
@@ -15,6 +26,7 @@
             android:id="@+id/action_mainScreen2_to_drawFragment2"
             app:destination="@id/drawFragment" />
     </fragment>
+    <!-- Draw Fragment -->
     <fragment
         android:id="@+id/drawFragment"
         android:name="com.example.paintapp.DrawFragment"

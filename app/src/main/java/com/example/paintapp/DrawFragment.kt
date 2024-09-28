@@ -170,6 +170,17 @@ class DrawFragment : Fragment() {
             // After reset, tell ViewModel to reset the flag to avoid future resets
             drawViewModel.resetComplete()
         }
+
+        //save button
+        val saveButton: Button = view.findViewById(R.id.saveBtn)
+        saveButton.setOnClickListener{
+            customDrawView.getBitmap()?.let { bitmap ->
+                Log.i("DrawFragment - KS", "call to viewModel.saveBitmap()")
+                //TODO: implement save bitmap in view model
+                //drawViewModel.saveBitmap()
+            }
+        }
+
         Log.i("DrawFragment - KS", "1c (setup) - onViewCreated() ENDED")
     }
 
