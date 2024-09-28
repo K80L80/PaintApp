@@ -75,28 +75,7 @@ class MainActivity : AppCompatActivity() {
 //    }
 }
 
-//This method handles the timing and animation logic
-@Composable
-fun ShowSplashScreenAnimation(onAnimationComplete: () -> Unit) {
 
-    //is needed to make the UI react to changes.
-    var isVisible by remember { mutableStateOf(true) }
-
-    //Displays the spash screen for 3 seconds total; 1 sec fade in, 1 sec hold, 1 sec fade out
-    //Acts as timer, starts immediately when main activity starts
-    LaunchedEffect(Unit) {
-        delay(1000)
-        isVisible = false
-    }
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(animationSpec = tween(durationMillis = 1000)),  // Fade in over 1.5 seconds
-        exit = fadeOut(animationSpec = tween(durationMillis = 1000))   // Fade out over 1.5 seconds
-    ) {
-        SplashScreenComposable()
-    }
-}
 
 
 ////TODO:
