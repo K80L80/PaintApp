@@ -74,7 +74,13 @@ fun FileListScreen(fileNames: List<String>) {
 // Composable function to display a single file item
 @Composable
 fun FileItem(fileName: String) {
-    Row{
+    Row(
+        modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween, // Spread the items in the row
+        verticalAlignment = Alignment.CenterVertically // Align items verticall
+    ){
         Text(text = fileName, modifier = Modifier.padding(8.dp))
         Button(onClick = {}) {
             Text(text = "open")
