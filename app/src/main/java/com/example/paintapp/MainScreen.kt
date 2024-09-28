@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -91,19 +92,21 @@ fun GalleryOfDrawings(drawings: List<Bitmap>) {
 
 @Composable
 fun FileGridItem(bitmap: Bitmap){
+    val aspectRatio = getAspectRatioForOrientation()
     Column (
         modifier = Modifier
             .fillMaxWidth() // Adjust the width of each column
             .padding(8.dp)  // Add padding between grid items
-            .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
+            .border(BorderStroke(2.dp, Color.Gray)), // Add a border with 2dp thickness and gray color
+        horizontalAlignment = Alignment.CenterHorizontally // Center align content
     ){
-    Drawing(bitmap)
+    Drawing(bitmap, aspectRatio)
         Text(text = "test name")
     }
 }
 // Composable function to display a single file item
 @Composable
-fun Drawing(bitmap: Bitmap) {
+fun Drawing(bitmap: Bitmap,  aspectRatio: Float) {
     // Convert Bitmap to ImageBitmap to use in Compose
     val imageBitmap = bitmap.asImageBitmap()
 
@@ -113,8 +116,17 @@ fun Drawing(bitmap: Bitmap) {
         contentDescription = "Drawing Thumbnail",
         contentScale = ContentScale.Crop, //to scale the image
         modifier = Modifier
-            .aspectRatio(9f / 16f) // Keep each item square
+            .aspectRatio(aspectRatio) // Keep each item square
             .padding(8.dp)
-            .border(BorderStroke(2.dp, Color.Black)),
     )
 }
+@Composable
+fun getAspectRatioForOrientation(): Float {
+    val configuration = LocalConfiguration.current
+    return if (configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
+        9f / 16f // Portrait aspect ratio
+    } else {
+        16f / 9f // Landscape aspect ratio
+    }
+}
+
