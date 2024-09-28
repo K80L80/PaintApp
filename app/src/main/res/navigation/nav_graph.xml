@@ -18,6 +18,7 @@
             app:popUpTo="@id/splashScreenFragment"
             app:popUpToInclusive="true" />
     </fragment>
+    <!-- Main Menu Fragment -->
     <fragment
         android:id="@+id/mainScreen2"
         android:name="com.example.paintapp.MainScreen"
@@ -27,6 +28,7 @@
             android:id="@+id/action_mainScreen2_to_drawFragment2"
             app:destination="@id/drawFragment" />
     </fragment>
+    <!-- Draw Fragment -->
     <fragment
         android:id="@+id/drawFragment"
         android:name="com.example.paintapp.DrawFragment"
