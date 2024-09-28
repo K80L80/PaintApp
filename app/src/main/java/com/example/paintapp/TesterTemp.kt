@@ -5,14 +5,19 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 
-fun generateTestDrawings(): List<Bitmap> {
-    val drawings = mutableListOf<Bitmap>()
+data class Drawing(
+    val thumbnail: Bitmap,
+    val fileName: String
+)
+
+fun generateTestDrawings(): List<Drawing> {
+    val drawings = mutableListOf<Drawing>()
 
     // Define a standard size for each bitmap
     val width = 200
     val height = 200
 
-    // Create bitmaps with different shapes
+    // Create bitmaps with different shapes and filenames
     for (i in 1..5) {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
@@ -47,7 +52,11 @@ fun generateTestDrawings(): List<Bitmap> {
             }
         }
 
-        drawings.add(bitmap)
+        // Generate a filename (e.g., "drawing_1.png", "drawing_2.png", etc.)
+        val fileName = "drawing_$i.png"
+
+        // Add the Drawing object to the list
+        drawings.add(Drawing(thumbnail = bitmap, fileName = fileName))
     }
 
     return drawings

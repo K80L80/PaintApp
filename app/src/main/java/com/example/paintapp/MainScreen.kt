@@ -78,7 +78,7 @@ class MainScreen : Fragment() {
 
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Bitmap>) {
+fun GalleryOfDrawings(drawings: List<Drawing>) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -92,8 +92,9 @@ fun GalleryOfDrawings(drawings: List<Bitmap>) {
 }
 
 @Composable
-fun FileGridItem(bitmap: Bitmap){
+fun FileGridItem(drawing: Drawing){
     val aspectRatio = getAspectRatioForOrientation()
+    //creates box effect holds drawing and file name
     Column (
         horizontalAlignment = Alignment.CenterHorizontally, // Center align content
         modifier = Modifier
@@ -106,8 +107,10 @@ fun FileGridItem(bitmap: Bitmap){
                 Log.i("KT MainScreen","image clicked")
         },
     ){
-    Drawing(bitmap, aspectRatio)
-    Text(text = "test name")
+        //displays drawing
+        Drawing(drawing.thumbnail, aspectRatio)
+        //displays file name
+        Text(text = drawing.fileName)
     }
 }
 // Composable function to display a single file item
