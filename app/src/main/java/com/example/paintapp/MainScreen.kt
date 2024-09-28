@@ -13,6 +13,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -94,14 +95,19 @@ fun GalleryOfDrawings(drawings: List<Bitmap>) {
 fun FileGridItem(bitmap: Bitmap){
     val aspectRatio = getAspectRatioForOrientation()
     Column (
+        horizontalAlignment = Alignment.CenterHorizontally, // Center align content
         modifier = Modifier
             .fillMaxWidth() // Adjust the width of each column
             .padding(8.dp)  // Add padding between grid items
-            .border(BorderStroke(2.dp, Color.Gray)), // Add a border with 2dp thickness and gray color
-        horizontalAlignment = Alignment.CenterHorizontally // Center align content
+            .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
+            .clickable {
+                //TODO: use jetpack navigation and load in picture into custom draw
+                // Your click action here
+                Log.i("KT MainScreen","image clicked")
+        },
     ){
     Drawing(bitmap, aspectRatio)
-        Text(text = "test name")
+    Text(text = "test name")
     }
 }
 // Composable function to display a single file item
@@ -120,6 +126,7 @@ fun Drawing(bitmap: Bitmap,  aspectRatio: Float) {
             .padding(8.dp)
     )
 }
+
 @Composable
 fun getAspectRatioForOrientation(): Float {
     val configuration = LocalConfiguration.current
@@ -129,4 +136,6 @@ fun getAspectRatioForOrientation(): Float {
         16f / 9f // Landscape aspect ratio
     }
 }
+
+
 
