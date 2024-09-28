@@ -15,8 +15,14 @@ import android.view.MotionEvent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
 import kotlin.random.Random
-
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 /**Data class to store all of our paint values, such as size, shape, and color.
  *
  */
@@ -31,8 +37,15 @@ data class PaintTool(
     val currentShape: String = "free" // Default shape is "free draw"
     //TODO: Add mode? Free?
 )
+
+data class BitmapData(
+    val name: String,
+    val bitmap: String // This will store the base64 encoded bitmap
+)
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
 class DrawViewModel : ViewModel() {
+    private val gson = Gson()
+    val bitmapPath = "app/src/main/java/com/example/paintapp/bitmaps.json"
 
     // Bitmap for storing the drawing
     private val _bitmap = MutableLiveData<Bitmap?>()
@@ -376,197 +389,82 @@ class DrawViewModel : ViewModel() {
         }
     }
 
+    /**Function to check if file already exists, and return the path
+     * or create the file and return that path.
+     *
+     */
+    private fun getBitmapPath(filePath: String): File {
+        val bitmapFile = File(filePath)
+        if (!bitmapFile.exists()) {
+            try {
+                bitmapFile.createNewFile()
+                val writer = FileWriter(bitmapFile)
+                try
+                {
+                    val emptyList = mutableListOf<BitmapData>()
+                    gson.toJson(emptyList, writer)
+                }
+                finally
+                {
+                    writer.close()
+                }
+            }
+            catch (e: IOException)
+            {
+                Log.e("Bitmap File IO", "Error creating file")
+            }
+        }
+        return bitmapFile
+    }
 
+    /**function to save a bitmap to our created file.
+     *
+     */
+    fun saveBitmapToFile(bitmapName: String, bitmap: Bitmap) {
+        //get the current file path or create the file
+        val bitmapFile = getBitmapPath(bitmapPath)
+        //get our bitmap to save.
+        val bitmap = BitmapData(bitmapName, bitmapToBase64(bitmap))
 
+        //first try to read the file
+        try {
+            val reader = FileReader(bitmapFile)
+            var bitmapList: MutableList<BitmapData>
+            try
+            {
+                val fileType = object : TypeToken<MutableList<BitmapData>>() {}.type
+                bitmapList = gson.fromJson(reader, fileType) ?: mutableListOf()
+            }
+            finally
+            {
+                reader.close()
+            }
+
+            bitmapList.add(bitmap)
+
+            //now add bitmap and write.
+            val writer = FileWriter(bitmapFile)
+            try
+            {
+                gson.toJson(bitmapList, writer)
+            }
+            finally
+            {
+                writer.close()
+            }
+
+            Log.d("File IO DVM", "Bitmap saved")
+        } catch (e: IOException) {
+            Log.e("File IO DVM", "Error writing bitmap")
+        }
+    }
+
+    /**Method to convert bitmap for our file
+     *
+     */
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        return android.util.Base64.encodeToString(outputStream.toByteArray(), android.util.Base64.DEFAULT)
+    }
 }
-//NOTES:
-//        super.onDraw(canvas)
-//        // Draw the updated bitmap onto the canvas
-// //the modifications the user made to the drawing are now reflected on the screen after this call
-//        canvas.drawBitmap(currentBitmap, 0f, 0f, null)
-//    }
-
-//        // Only draw the shapes if the user is currently drawing.
-//        if (isUserDrawing) {
-//            when (paintTool.currentShape) {
-//                "free" -> {
-//                    paintTool.paint.style = Paint.Style.STROKE
-//                    canvas.drawPath(path, paintTool.paint)
-//                }
-//                "line" -> {
-//                    paintTool.paint.style = Paint.Style.STROKE
-//                    canvas.drawLine(startX, startY, endX, endY, paintTool.paint)
-//                }
-//                "circle" -> {
-//                    val radius = Math.sqrt(
-//                        Math.pow((endX - startX).toDouble(), 2.0) + Math.pow((endY - startY).toDouble(), 2.0)
-//                    ).toFloat()
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawCircle(startX, startY, radius, paintTool.paint)
-//                }
-//                "square" -> {
-//                    val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawRect(startX, startY, startX + side, startY + side, paintTool.paint)
-//                }
-//                "rectangle" -> {
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawRect(startX, startY, endX, endY, paintTool.paint)
-//                }
-//                "diamond" -> {
-//                    val diamondPath = Path().apply {
-//                        moveTo((startX + endX) / 2, startY)
-//                        lineTo(endX, (startY + endY) / 2)
-//                        lineTo((startX + endX) / 2, endY)
-//                        lineTo(startX, (startY + endY) / 2)
-//                        close()
-//                    }
-//                    paintTool.paint.style = Paint.Style.FILL
-//                    canvas.drawPath(diamondPath, paintTool.paint)
-//                }
-//            }
-//        }
-
-//        when (event.action) {
-//            MotionEvent.ACTION_DOWN -> {
-//                //this tells the other events like onDraw when a user starts actually drawing.
-//                isUserDrawing = true
-//
-//                startX = event.x
-//                startY = event.y
-//                endX = startX
-//                endY = startY
-//
-//                if (paintTool.shape == "free") {
-//                    path.reset()
-//                    path.moveTo(startX, startY)
-//                }
-//                //updates as the user moves their mouse
-//                invalidate()
-//                return true
-//            }
-//
-//            MotionEvent.ACTION_MOVE -> {
-//                endX = event.x
-//                endY = event.y
-//
-//                if (paintTool.shape == "free") {
-//                    path.lineTo(endX, endY)
-//                }
-//                //updates as the user moves their mouse
-//                invalidate()
-//                return true
-//            }
-//
-//            MotionEvent.ACTION_UP -> {
-//                endX = event.x
-//                endY = event.y
-//
-//                //draws the shapes on the canvas
-//                when (paintTool.shape) {
-//                    "line" -> bitmapCanvas?.drawLine(startX, startY, endX, endY, paintTool.paint)
-//                    "circle" -> {
-//                        val radius = Math.sqrt(
-//                            Math.pow(
-//                                (endX - startX).toDouble(),
-//                                2.0
-//                            ) + Math.pow((endY - startY).toDouble(), 2.0)
-//                        ).toFloat()
-//                        bitmapCanvas?.drawCircle(startX, startY, radius, paintTool.paint)
-//                    }
-//
-//                    "square" -> {
-//                        val side = Math.min(Math.abs(endX - startX), Math.abs(endY - startY))
-//                        bitmapCanvas?.drawRect(
-//                            startX,
-//                            startY,
-//                            startX + side,
-//                            startY + side,
-//                            paintTool.paint
-//                        )
-//                    }
-//
-//                    "rectangle" -> bitmapCanvas?.drawRect(
-//                        startX,
-//                        startY,
-//                        endX,
-//                        endY,
-//                        paintTool.paint
-//                    )
-//
-//                    "diamond" -> {
-//                        val diamondPath = Path().apply {
-//                            moveTo((startX + endX) / 2, startY)
-//                            lineTo(endX, (startY + endY) / 2)
-//                            lineTo((startX + endX) / 2, endY)
-//                            lineTo(startX, (startY + endY) / 2)
-//                            close()
-//                        }
-//                        bitmapCanvas?.drawPath(diamondPath, paintTool.paint)
-//                    }
-//
-//                    "free" -> {
-//                        bitmapCanvas?.drawPath(path, paintTool.paint)
-//                        path.reset()
-//                    }
-//                }
-//                //update that drawing is now completed
-//                isUserDrawing = false
-//                //draw final shape
-//                invalidate()
-//                return true
-//            }
-//
-//            else -> return false
-//        }
-//    }
-
-//val rando = Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
-
-//
-//    fun selectShape(shape: Shape) {
-//        currentShape = shape
-//    }
-//}
-//
-//_paintTool.value?.let {
-//    // Create a copy of the Paint object
-//    val copiedPaint = Paint(it.paint)
-//
-//    // Now you can modify the copied paint without affecting the original
-//    copiedPaint.color = Color.RED  // Change color for example
-//
-//    // Use the copied paint for drawing
-//    _backendCanvas?.drawPath(freeDrawPath, copiedPaint)  // Draw the path using the copied paint
-//}
-
-
-//Shape mode?
-//when (event.action ) {
-//    MotionEvent.ACTION_DOWN -> {
-//        // Handle start of touch
-//        Log.i("DrawViewModel", "Action Down: Starting to draw shape: ${_paintTool.value?.currentShape}")
-//    }
-//    MotionEvent.ACTION_MOVE -> {
-//        // Handle drawing as finger moves
-//        Log.i("DrawViewModel", "Action Move: Drawing shape: ${_paintTool.value?.currentShape}")
-//        when (_paintTool.value?.currentShape) {
-//            "rectangle" -> drawRectangle(x, y, event)
-//            "diamond" -> drawDiamond(x, y, event)
-//            "line"-> drawLine(x, y, event)
-//            "free" -> drawFree(x, y, event)
-//        }
-//    }
-//    MotionEvent.ACTION_UP -> {
-//        // Finalize the shape drawing
-//        Log.i("DrawViewModel", "Action Up: Finalizing shape: ${_paintTool.value?.currentShape}")
-//        // You can clone the bitmap here, after the drawing is complete
-//    }
-//}
-
-//     // Clone the current bitmap to avoid directly modifying the original so the orginal bitmap currently displayed to the user is left unchaged until the entire update is complete. This prevents flitcker, partial drawing and prevents concurrency issues
-//     val updatedBitmap = _bitmap.value?.copy(Bitmap.Config.ARGB_8888, true)
-//     val canvas = Canvas(updatedBitmap!!)  // Draw on the copied bitmap
-
-
-
