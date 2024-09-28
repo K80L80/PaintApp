@@ -9,16 +9,22 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
@@ -50,6 +56,7 @@ class MainScreen : Fragment() {
         binding.composeView.setContent {
             //FileListScreen(getFileNames())
             GalleryOfDrawings(testDrawings)
+            //LazyGrid(testDrawings)
         }
 
         //this is the button that moves to the draw screen
@@ -91,8 +98,10 @@ fun Drawing(bitmap: Bitmap) {
     Image(
         bitmap = imageBitmap,
         contentDescription = "Drawing Thumbnail",
+        contentScale = ContentScale.Crop, //to scale the image
         modifier = Modifier
-            .size(100.dp) // Set the size of each image
+            .aspectRatio(9f / 16f) // Keep each item square
             .padding(8.dp)
+            .border(BorderStroke(2.dp, Color.Black)),
     )
 }
