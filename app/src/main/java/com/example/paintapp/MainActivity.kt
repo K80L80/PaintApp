@@ -98,25 +98,7 @@ fun ShowSplashScreenAnimation(onAnimationComplete: () -> Unit) {
     }
 }
 
-//Splash screen is composable now, instead of a view (ie Activity)
-//SplashScreenComposable strictly handles the UI presentation
-@Composable
-fun SplashScreenComposable() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "👏Welcome to the Paint App!\nLet's start drawing ✌️!",
-            fontSize = 25.sp,
-            color = Color.Blue,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-    }
-}
+
 ////TODO:
 //private fun navigateToMainScreen() {
 //    val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
