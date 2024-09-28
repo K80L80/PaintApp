@@ -77,17 +77,30 @@ class MainScreen : Fragment() {
 // Composable function to display the file list using LazyColumn
 @Composable
 fun GalleryOfDrawings(drawings: List<Bitmap>) {
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         items(drawings) { drawing ->
-            Drawing(drawing)
+            FileGridItem(drawing)
         }
     }
 }
 
+@Composable
+fun FileGridItem(bitmap: Bitmap){
+    Column (
+        modifier = Modifier
+            .fillMaxWidth() // Adjust the width of each column
+            .padding(8.dp)  // Add padding between grid items
+            .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
+    ){
+    Drawing(bitmap)
+        Text(text = "test name")
+    }
+}
 // Composable function to display a single file item
 @Composable
 fun Drawing(bitmap: Bitmap) {
