@@ -14,9 +14,7 @@
         tools:layout="@layout/fragment_splash_screen">
         <action
             android:id="@+id/action_splash_to_mainScreen2"
-            app:destination="@id/mainScreen2"
-            app:popUpTo="@id/splashScreenFragment"
-            app:popUpToInclusive="true" />
+            app:destination="@id/mainScreen2" />
     </fragment>
     <!-- Main Menu Fragment -->
     <fragment

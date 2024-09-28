@@ -41,7 +41,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.coroutines.delay
 
-//TODO: Remove support Manager and do jetpack navigation
+//Removed support Manager and do jetpack navigation
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

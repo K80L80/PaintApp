@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivitySplashScreenBinding
 import com.example.paintapp.databinding.FragmentSplashScreenBinding
 import kotlinx.coroutines.delay
@@ -53,7 +55,8 @@ class SplashScreenFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.composeView.setContent {
             ShowSplashScreenAnimation{
-
+                //after splash screen finishes uses nav graph action to navigate from splash screen to mainscren2
+                findNavController().navigate(R.id.action_splash_to_mainScreen2)
             }
         }
     }
@@ -70,6 +73,8 @@ fun ShowSplashScreenAnimation(onAnimationComplete: () -> Unit) {
     LaunchedEffect(Unit) {
         delay(1000)
         isVisible = false
+        delay(1000)
+        onAnimationComplete()
     }
 
     AnimatedVisibility(
@@ -79,6 +84,7 @@ fun ShowSplashScreenAnimation(onAnimationComplete: () -> Unit) {
     ) {
         SplashScreenComposable()
     }
+
 }
 @Composable
 fun SplashScreenComposable() {
