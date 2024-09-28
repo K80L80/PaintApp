@@ -47,32 +47,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-//        setContent {
-//            ShowSplashScreenAnimation{
-//
-//            }
-//        }
     }
-//        // Check if fragmentContainerView contains a fragment already due to rotation
-//        if (savedInstanceState == null) {
-//            // Add MainScreen fragment initially if none exists
-//            supportFragmentManager.beginTransaction()
-//                .replace(R.id.fragment_container, MainScreen(), "mainScreenTag")
-//                .commitNow()
-//        }
-//
-//        // Set up button function inside MainScreen to replace with PaintScreen
-//        val mainScreen = supportFragmentManager.findFragmentByTag("mainScreenTag") as? MainScreen
-//        mainScreen?.setButtonFunction {
-//            val drawFragment = DrawFragment()
-//            val transaction = supportFragmentManager.beginTransaction()
-//            transaction.replace(R.id.fragment_container, drawFragment, "drawFragmentTag")
-//            transaction.addToBackStack(null)
-//            transaction.commit()
-//        }
-//
-//        setContentView(binding.root)
-//    }
 }
 
 
