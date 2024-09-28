@@ -9,23 +9,27 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.example.paintapp.databinding.ActivitySplashScreenBinding
+import com.example.paintapp.databinding.FragmentSplashScreenBinding
 
 //TODO: Spencer –– Splash Screen (Animation) Composable
-class SplashScreen : AppCompatActivity() {
+class SplashScreenFragment : Fragment() {
 
-    private lateinit var binding: ActivitySplashScreenBinding
+    private var _binding: FragmentSplashScreenBinding? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivitySplashScreenBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    private val binding get() = _binding!!
 
-        // After X (currently 2) seconds, the system switches to the main screen
-        Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-        }, 2000)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentSplashScreenBinding.inflate(inflater, container, false)
+        return binding.root
     }
 }
+
