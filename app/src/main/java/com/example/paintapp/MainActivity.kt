@@ -41,6 +41,13 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.coroutines.delay
 
+/*
+TODO: Database class: Keep track of path in SQLLite + save file (bitmap) on device (RECOMMENDED)
+TODO: have user enter a filename
+TODO: store the file name use in database (SQLLite)
+TODO: actual drawing stored on device (Dir folder -special folder for the application
+*/
+
 //Removed support Manager and do jetpack navigation
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,17 +56,3 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
     }
 }
-
-
-
-
-////TODO:
-//private fun navigateToMainScreen() {
-//    val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-//    val navController = navHostFragment.navController
-//
-//    // Use the action defined in your navigation graph to navigate to the main screen
-//    navController.navigate(R.id.action_splashScreen_to_mainScreenFragment)
-//}
-//
-
