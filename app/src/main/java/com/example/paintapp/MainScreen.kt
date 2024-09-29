@@ -39,6 +39,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 
@@ -57,7 +59,8 @@ class MainScreen : Fragment() {
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
             //FileListScreen(getFileNames())
-            GalleryOfDrawings(testDrawings)
+            val navController = findNavController()
+            GalleryOfDrawings(testDrawings,navController)
             //LazyGrid(testDrawings)
         }
 
@@ -78,7 +81,7 @@ class MainScreen : Fragment() {
 
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Drawing>) {
+fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -86,13 +89,13 @@ fun GalleryOfDrawings(drawings: List<Drawing>) {
             .padding(16.dp)
     ) {
         items(drawings) { drawing ->
-            FileGridItem(drawing)
+            FileGridItem(drawing,navController)
         }
     }
 }
 
 @Composable
-fun FileGridItem(drawing: Drawing){
+fun FileGridItem(drawing: Drawing,navController: NavController){
     val aspectRatio = getAspectRatioForOrientation()
     //creates box effect holds drawing and file name
     Column (
@@ -105,6 +108,7 @@ fun FileGridItem(drawing: Drawing){
                 //TODO: use jetpack navigation and load in picture into custom draw
                 // Your click action here
                 Log.i("KT MainScreen","image clicked")
+                navController.navigate(R.id.action_mainScreen2_to_drawFragment) //ERROR: No value passed for parameter 'fragment'
         },
     ){
         //displays drawing
