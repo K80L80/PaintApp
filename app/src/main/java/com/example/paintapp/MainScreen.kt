@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
@@ -79,6 +80,11 @@ class MainScreen : Fragment() {
     }
 }
 
+fun onClick(v: View) {
+    val amount: Float = 1f
+    val action = MainScreenDirections.actionMainScreenToDrawFragment(amount) //Too many arguments for public open fun actionMainScreenToDrawFragment(): NavDirections defined in com.example.paintapp.MainScreenDirections
+    v.findNavController().navigate(action)
+}
 // Composable function to display the file list using LazyColumn
 @Composable
 fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController) {
