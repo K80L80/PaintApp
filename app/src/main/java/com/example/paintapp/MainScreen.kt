@@ -67,7 +67,7 @@ class MainScreen : Fragment() {
         //this is the button that moves to the draw screen
         binding.button2.setOnClickListener {
             //buttonFunction.invoke()
-            findNavController().navigate(R.id.action_mainScreen2_to_drawFragment2)
+            findNavController().navigate(R.id.action_mainScreen_to_drawFragment)
         }
         return binding.root
 
@@ -108,7 +108,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController){
                 //TODO: use jetpack navigation and load in picture into custom draw
                 // Your click action here
                 Log.i("KT MainScreen","image clicked")
-                navController.navigate(R.id.action_mainScreen2_to_drawFragment) //ERROR: No value passed for parameter 'fragment'
+                navController.navigate(R.id.action_mainScreen_to_drawFragment) //ERROR: No value passed for parameter 'fragment'
         },
     ){
         //displays drawing
