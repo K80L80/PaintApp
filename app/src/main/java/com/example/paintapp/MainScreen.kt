@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
@@ -61,7 +62,7 @@ class MainScreen : Fragment() {
         binding.composeView.setContent {
             //FileListScreen(getFileNames())
             val navController = findNavController()
-            GalleryOfDrawings(testDrawings,navController)
+            GalleryOfDrawings(testDrawings,navController,vm)
             //LazyGrid(testDrawings)
         }
 
@@ -91,7 +92,7 @@ fun onClick(v: View) {
 }
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController) {
+fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:ViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -99,13 +100,13 @@ fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController) {
             .padding(16.dp)
     ) {
         items(drawings) { drawing ->
-            FileGridItem(drawing,navController)
+            FileGridItem(drawing,navController, vm)
         }
     }
 }
 
 @Composable
-fun FileGridItem(drawing: Drawing,navController: NavController){
+fun FileGridItem(drawing: Drawing,navController: NavController, vm: ViewModel){
     val aspectRatio = getAspectRatioForOrientation()
     //creates box effect holds drawing and file name
     Column (
