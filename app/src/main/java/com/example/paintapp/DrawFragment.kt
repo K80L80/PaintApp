@@ -49,6 +49,11 @@ class DrawFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
 
+        val fileName = arguments?.getString("fileName")
+        // Use the fileName for whatever logic you need
+        Log.i("DrawFragment - KS", "00 Received fileName: $fileName")
+
+
         // Fragments set lambda variables in custom view
         Log.i("DrawFragment - KS", "0a (setup) - onCreateView() STARTED")
 

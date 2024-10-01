@@ -26,8 +26,8 @@
             android:id="@+id/action_mainScreen_to_drawFragment"
             app:destination="@id/drawFragment" >
             <argument
-                android:name="tester1"
-                app:argType="float"/>
+                android:name="fileName"
+                app:argType="string"/>
         </action>
     </fragment>
     <!-- Draw Fragment -->
@@ -36,5 +36,4 @@
         android:name="com.example.paintapp.DrawFragment"
         android:label="fragment_draw"
         tools:layout="@layout/fragment_draw" />
-    <argument android:name="tester2" />
 </navigation>

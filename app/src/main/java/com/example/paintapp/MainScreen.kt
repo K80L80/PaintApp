@@ -68,7 +68,11 @@ class MainScreen : Fragment() {
         //this is the button that moves to the draw screen
         binding.button2.setOnClickListener {
             //buttonFunction.invoke()
-            findNavController().navigate(R.id.action_mainScreen_to_drawFragment)
+            //findNavController().navigate(R.id.action_mainScreen_to_drawFragment)
+            val navController = findNavController()
+            val action = MainScreenDirections.actionMainScreenToDrawFragment("example_file_name")
+            Log.d("KT MainScreen", "Sending safe args to drawFragment (new drawing) ")
+            navController.navigate(action)
         }
         return binding.root
 
@@ -81,8 +85,8 @@ class MainScreen : Fragment() {
 }
 
 fun onClick(v: View) {
-    val amount: Float = 1f
-    val action = MainScreenDirections.actionMainScreenToDrawFragment(amount) //Too many arguments for public open fun actionMainScreenToDrawFragment(): NavDirections defined in com.example.paintapp.MainScreenDirections
+    val fileName: String = "fileNameTest"
+    val action = MainScreenDirections.actionMainScreenToDrawFragment(fileName) //Too many arguments for public open fun actionMainScreenToDrawFragment(): NavDirections defined in com.example.paintapp.MainScreenDirections
     v.findNavController().navigate(action)
 }
 // Composable function to display the file list using LazyColumn
@@ -114,7 +118,9 @@ fun FileGridItem(drawing: Drawing,navController: NavController){
                 //TODO: use jetpack navigation and load in picture into custom draw
                 // Your click action here
                 Log.i("KT MainScreen","image clicked")
-                navController.navigate(R.id.action_mainScreen_to_drawFragment) //ERROR: No value passed for parameter 'fragment'
+                val action = MainScreenDirections.actionMainScreenToDrawFragment("example_file_name")
+                Log.d("KT MainScreen", "Sending safe args to drawFragment (previous drawing) ")
+                navController.navigate(action)
         },
     ){
         //displays drawing
