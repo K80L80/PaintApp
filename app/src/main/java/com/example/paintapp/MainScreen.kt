@@ -31,6 +31,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +41,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
@@ -51,18 +55,22 @@ class MainScreen : Fragment() {
 
     private var buttonFunction: (() -> Unit)? = null
 
+    private val drawVM : DrawViewModel  by activityViewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
         Log.i("MainScreen", "main screen created")
-        val testDrawings = generateTestDrawings()
+
+
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
-            //FileListScreen(getFileNames())
+            //load in all drawings from the view model and display is gallary
+            val drawings by drawVM.drawings.observeAsState(emptyList())
             val navController = findNavController()
-            GalleryOfDrawings(testDrawings,navController,vm)
+            GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
             //LazyGrid(testDrawings)
         }
 
@@ -92,7 +100,7 @@ fun onClick(v: View) {
 }
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:ViewModel) {
+fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:DrawViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -106,7 +114,7 @@ fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:V
 }
 
 @Composable
-fun FileGridItem(drawing: Drawing,navController: NavController, vm: ViewModel){
+fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewModel){
     val aspectRatio = getAspectRatioForOrientation()
     //creates box effect holds drawing and file name
     Column (
@@ -118,6 +126,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: ViewModel){
             .clickable {
                 //TODO: use jetpack navigation and load in picture into custom draw
                 // Your click action here
+                vm.selectDrawing(drawing)//How do I reference this drawing?
                 Log.i("KT MainScreen","image clicked")
                 val action = MainScreenDirections.actionMainScreenToDrawFragment("example_file_name")
                 Log.d("KT MainScreen", "Sending safe args to drawFragment (previous drawing) ")
@@ -125,7 +134,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: ViewModel){
         },
     ){
         //displays drawing
-        Drawing(drawing.thumbnail, aspectRatio)
+        Drawing(drawing.bitmap, aspectRatio)
         //displays file name
         Text(text = drawing.fileName)
     }

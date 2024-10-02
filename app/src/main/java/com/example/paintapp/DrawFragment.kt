@@ -95,8 +95,8 @@ class DrawFragment : Fragment() {
         //5 The fragment observes the bitmap meaning it watches for updates and receives notification with the bitmap is modified
         //When the fragment receives word that the bitmap changed it calls on the view to update the UI (calling customDrawingView.updateBitmap(bitmap)
         Log.i("DrawFragment - KS", "1b - (setup) bitmap observer set")
-        drawViewModel.bitmap.observe(viewLifecycleOwner) { bitmap ->
-            bitmap?.let {
+        drawViewModel.selectedDrawing.observe(viewLifecycleOwner) { drawing ->
+            drawing?.bitmap?.let { //Unresolved reference: bitmap
                 Log.i("DrawFragment - KS", "5a (observing) fragment was told of changed bitmap (by view model) and in turn tells custom view to update itself")
                 customDrawView.updateBitmap(it)
             }

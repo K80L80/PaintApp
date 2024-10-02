@@ -8,26 +8,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-data class Drawing(
-    val thumbnail: Bitmap,
-    val fileName: String
-)
+
 class TesterVM : ViewModel() {
-    private val _drawings = MutableLiveData<List<Drawing>>()
-    val drawings: LiveData<List<Drawing>> get() = _drawings
 
-    private val _selectedDrawing = MutableLiveData<Drawing?>()
-    val selectedDrawing: LiveData<Drawing?> get() = _selectedDrawing
-
-    // Initialize with some mock data or load from repository
-    init {
-        _drawings.value = generateTestDrawings()
-    }
-
-    // Method to select a drawing
-    fun selectDrawing(drawing: Drawing) {
-        _selectedDrawing.value = drawing
-    }
 }
 fun generateTestDrawings(): List<Drawing> {
     val drawings = mutableListOf<Drawing>()
@@ -75,7 +58,7 @@ fun generateTestDrawings(): List<Drawing> {
         val fileName = "drawing_$i.png"
 
         // Add the Drawing object to the list
-        drawings.add(Drawing(thumbnail = bitmap, fileName = fileName))
+        drawings.add(Drawing(bitmap = bitmap, fileName = fileName))
     }
 
     return drawings
