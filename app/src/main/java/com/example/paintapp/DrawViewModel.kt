@@ -30,7 +30,7 @@ data class PaintTool(
     //TODO: Add mode? Free?
 )
 data class Drawing(
-//    val id: String, // Unique identifier for the drawing
+    val id: Long, // Unique identifier for the drawing
     val bitmap: Bitmap, // Bitmap for storing the drawing
     val fileName: String
 )
@@ -66,13 +66,21 @@ class DrawViewModel : ViewModel() {
     // Inside your DrawViewModel
     fun createNewDrawing() {
         val newBitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888) // Create a blank bitmap
-        val newDrawing = Drawing(bitmap = newBitmap, fileName = "new_drawing_${System.currentTimeMillis()}")
+        val newDrawing = Drawing(id = System.currentTimeMillis(), bitmap = newBitmap, fileName = "new_drawing")
 
         val currentDrawings = _drawings.value ?: emptyList()
         _drawings.value = currentDrawings + newDrawing
 
         // Set the new drawing as the selected drawing
         _selectedDrawing.value = newDrawing
+    }
+    fun updateDrawingInList(updatedDrawing: Drawing) {
+        val currentList = _drawings.value?.toMutableList() ?: mutableListOf()
+        val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
+        if (index != -1) {
+            currentList[index] = updatedDrawing // Update the drawing in the list
+            _drawings.value = currentList // Update the LiveData list
+        }
     }
 
 
