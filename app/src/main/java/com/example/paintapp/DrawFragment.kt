@@ -182,7 +182,7 @@ class DrawFragment : Fragment() {
             customDrawView.getBitmap()?.let { bitmap ->
                 Log.i("DrawFragment - KS", "call to viewModel.saveBitmap()")
                 //TODO: implement save bitmap in view model
-                //drawViewModel.saveBitmap()
+
             }
         }
 

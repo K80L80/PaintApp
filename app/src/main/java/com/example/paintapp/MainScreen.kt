@@ -65,23 +65,20 @@ class MainScreen : Fragment() {
         Log.i("MainScreen", "main screen created")
 
 
+        val navController = findNavController()
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
             //load in all drawings from the view model and display is gallary
             val drawings by drawVM.drawings.observeAsState(emptyList())
-            val navController = findNavController()
             GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
             //LazyGrid(testDrawings)
         }
 
         //this is the button that moves to the draw screen
         binding.button2.setOnClickListener {
-            //buttonFunction.invoke()
-
-            //TODO: view model needs to add new bitmap
-            val navController = findNavController()
-            drawVM
-            findNavController().navigate(R.id.action_mainScreen_to_drawFragment)
+            //creates a new bitmap and adds it to drawing list
+            drawVM.createNewDrawing()
+            navController.navigate(R.id.action_mainScreen_to_drawFragment)
             Log.d("KT MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
         }
         return binding.root

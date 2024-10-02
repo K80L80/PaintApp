@@ -51,6 +51,23 @@ class DrawViewModel : ViewModel() {
     fun selectDrawing(drawing: Drawing) {
         _selectedDrawing.value = drawing
     }
+    // Method to add a new drawing
+    fun addNewDrawing(newDrawing: Drawing) {
+        val currentDrawings = _drawings.value ?: emptyList()
+        _drawings.value = currentDrawings + newDrawing
+    }
+
+    // Inside your DrawViewModel
+    fun createNewDrawing() {
+        val newBitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888) // Create a blank bitmap
+        val newDrawing = Drawing(bitmap = newBitmap, fileName = "new_drawing_${System.currentTimeMillis()}")
+
+        val currentDrawings = _drawings.value ?: emptyList()
+        _drawings.value = currentDrawings + newDrawing
+
+        // Set the new drawing as the selected drawing
+        _selectedDrawing.value = newDrawing
+    }
     ///––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 //    private val _bitmap = MutableLiveData<Bitmap?>()
