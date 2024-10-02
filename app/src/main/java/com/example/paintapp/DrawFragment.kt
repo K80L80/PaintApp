@@ -30,6 +30,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
 import yuku.ambilwarna.AmbilWarnaDialog
 import java.util.Locale
@@ -76,10 +77,11 @@ class DrawFragment : Fragment() {
                 //Log.i("DrawFragment - KS", "3b configuration detected relaying canvas height and to view model to resize bitmap ")
                 drawViewModel.getOrCreateBitmap(width, height)
         }
-
         customDrawView.onResetCallback = {
             drawViewModel.clearBitmap()
         }
+
+
         Log.i("DrawFragment - KS", "0d (setup) - onCreateView() ENDED")
         return view
     }
@@ -176,16 +178,28 @@ class DrawFragment : Fragment() {
             drawViewModel.resetComplete()
         }
 
-        //save button
+        //save button, sets callback
         val saveButton: Button = view.findViewById(R.id.saveBtn)
         saveButton.setOnClickListener{
-            customDrawView.getBitmap()?.let { bitmap ->
-                Log.i("DrawFragment - KS", "call to viewModel.saveBitmap()")
-                //TODO: implement save bitmap in view model
-
+            customDrawView.getBitmap()?.let{
+                // Assume customDrawView provides this method
+                drawViewModel.saveCurrentDrawing(it) //Type mismatch.Required: Bitmap Found: Bitmap?
+                Log.i("DrawFragment - KS", "Bitmap saved to drawing list")
             }
         }
 
+        // Listen for when the fragment is navigated away from
+        findNavController().addOnDestinationChangedListener { _, destination, _ ->
+            if (destination.id != R.id.drawFragment) { // Replace with your fragment ID
+                // Save the current bitmap when navigating away
+                customDrawView.getBitmap()?.let { currentBitmap ->
+                    drawViewModel.saveCurrentDrawing(currentBitmap)
+                    Log.i("DrawFragment", "Bitmap saved via back navigation")
+                } ?: run {
+                    Log.e("DrawFragment", "Failed to save: Bitmap is null")
+                }
+            }
+        }
         Log.i("DrawFragment - KS", "1c (setup) - onViewCreated() ENDED")
     }
 
@@ -228,6 +242,9 @@ class DrawFragment : Fragment() {
             }
         }).show()
     }
+
+
+
 
 //    @Composable
 //    fun CustomComposableView(modifier: Modifier = Modifier) {

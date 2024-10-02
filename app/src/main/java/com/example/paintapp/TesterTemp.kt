@@ -16,8 +16,8 @@ fun generateTestDrawings(): List<Drawing> {
     val drawings = mutableListOf<Drawing>()
 
     // Define a standard size for each bitmap
-    val width = 200
-    val height = 200
+    val width = 800
+    val height = 800
 
     // Create bitmaps with different shapes and filenames
     for (i in 1..5) {
@@ -30,35 +30,39 @@ fun generateTestDrawings(): List<Drawing> {
 
         when (i) {
             1 -> { // Draw a circle
-                canvas.drawCircle(width / 2f, height / 2f, width / 3f, paint)
+                canvas.drawCircle(width / 2f, height / 2f, width / 3f, paint) // Centered circle
             }
             2 -> { // Draw a square
-                canvas.drawRect(50f, 50f, 150f, 150f, paint)
+                canvas.drawRect(100f, 100f, 700f, 700f, paint) // Adjusted square to fit the new size
             }
             3 -> { // Draw a triangle
                 val path = Path().apply {
-                    moveTo(width / 2f, 50f) // Top
-                    lineTo(50f, height - 50f) // Bottom-left
-                    lineTo(width - 50f, height - 50f) // Bottom-right
+                    moveTo(width / 2f, 100f) // Top (centered)
+                    lineTo(100f, height - 100f) // Bottom-left
+                    lineTo(width - 100f, height - 100f) // Bottom-right
                     close()
                 }
                 canvas.drawPath(path, paint)
             }
             4 -> { // Draw a line
-                paint.strokeWidth = 10f
+                paint.strokeWidth = 20f
                 paint.style = Paint.Style.STROKE
-                canvas.drawLine(50f, 50f, width - 50f, height - 50f, paint)
+                canvas.drawLine(100f, 100f, width - 100f, height - 100f, paint) // Adjusted line to fit new size
             }
             5 -> { // Draw an oval
-                canvas.drawOval(50f, 100f, width - 50f, height - 50f, paint)
+                canvas.drawOval(100f, 200f, width - 100f, height - 200f, paint) // Adjusted oval to fit new size
             }
         }
 
         // Generate a filename (e.g., "drawing_1.png", "drawing_2.png", etc.)
         val fileName = "drawing_$i.png"
+        val id = System.currentTimeMillis() // Use current time in milliseconds as the unique id
 
         // Add the Drawing object to the list
-        drawings.add(Drawing(bitmap = bitmap, fileName = fileName))
+        drawings.add(Drawing(id = id, bitmap = bitmap, fileName = fileName))
+
+        // Optional: Add delay to ensure unique IDs
+        Thread.sleep(1)
     }
 
     return drawings

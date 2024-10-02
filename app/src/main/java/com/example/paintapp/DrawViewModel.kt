@@ -74,8 +74,17 @@ class DrawViewModel : ViewModel() {
         // Set the new drawing as the selected drawing
         _selectedDrawing.value = newDrawing
     }
+    // Update the bitmap of the selected drawing
+    // Function to save the current drawing's bitmap
+    fun saveCurrentDrawing(newBitmap: Bitmap) {
+        _selectedDrawing.value?.let { drawing ->
+            val updatedDrawing = drawing.copy(bitmap = newBitmap)
+            updateDrawingInList(updatedDrawing)
+        }
+    }
+
     fun updateDrawingInList(updatedDrawing: Drawing) {
-       
+
         val currentList = _drawings.value?.toMutableList() ?: mutableListOf() // //Retrieves the current list of drawings from _drawings (which is a LiveData object) and converts it to a mutable list (a list that can be changed).
         //Find the drawing in the list that matches this index
         val index = currentList.indexOfFirst { it.id == updatedDrawing.id }

@@ -13,6 +13,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
 
 //Keep as is (View)
 class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
@@ -37,6 +38,8 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     // Callback to notify the fragment during a screen rotation
     var onResetCallback: (() -> Unit?)? = null
 
+    // Set a callback for when the drawing changes in the custom view
+    var onDrawingChanged: ((Bitmap) -> Unit)? = null
     /**Handles user touch events to store positions for drawing shapes.
      * also includes a boolean to ensure onDraw is only called when the user is drawing.
      */
