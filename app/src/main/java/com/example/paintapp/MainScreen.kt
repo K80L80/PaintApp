@@ -77,11 +77,12 @@ class MainScreen : Fragment() {
         //this is the button that moves to the draw screen
         binding.button2.setOnClickListener {
             //buttonFunction.invoke()
-            //findNavController().navigate(R.id.action_mainScreen_to_drawFragment)
+
+            //TODO: view model needs to add new bitmap
             val navController = findNavController()
-            val action = MainScreenDirections.actionMainScreenToDrawFragment("example_file_name")
-            Log.d("KT MainScreen", "Sending safe args to drawFragment (new drawing) ")
-            navController.navigate(action)
+            drawVM
+            findNavController().navigate(R.id.action_mainScreen_to_drawFragment)
+            Log.d("KT MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
         }
         return binding.root
 
