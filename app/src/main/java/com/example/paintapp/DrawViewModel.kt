@@ -75,9 +75,13 @@ class DrawViewModel : ViewModel() {
         _selectedDrawing.value = newDrawing
     }
     fun updateDrawingInList(updatedDrawing: Drawing) {
-        val currentList = _drawings.value?.toMutableList() ?: mutableListOf()
+       
+        val currentList = _drawings.value?.toMutableList() ?: mutableListOf() // //Retrieves the current list of drawings from _drawings (which is a LiveData object) and converts it to a mutable list (a list that can be changed).
+        //Find the drawing in the list that matches this index
         val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
-        if (index != -1) {
+
+        if (index != -1) { //make sure drawing with that index is in the list, returns negative if not present
+            // Replace the old drawing with the updated one
             currentList[index] = updatedDrawing // Update the drawing in the list
             _drawings.value = currentList // Update the LiveData list
         }
