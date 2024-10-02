@@ -30,6 +30,7 @@ data class PaintTool(
     //TODO: Add mode? Free?
 )
 data class Drawing(
+//    val id: String, // Unique identifier for the drawing
     val bitmap: Bitmap, // Bitmap for storing the drawing
     val fileName: String
 )
@@ -42,6 +43,10 @@ class DrawViewModel : ViewModel() {
     private val _selectedDrawing = MutableLiveData<Drawing?>()
     val selectedDrawing: LiveData<Drawing?> get() = _selectedDrawing
 
+    // Backend canvas to modify the bitmap
+    private var _backendCanvas: Canvas? = null
+    private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
+
     // Initialize with some mock data or load from repository
     init {
         _drawings.value = generateTestDrawings()
@@ -50,6 +55,7 @@ class DrawViewModel : ViewModel() {
     // Method to select a drawing
     fun selectDrawing(drawing: Drawing) {
         _selectedDrawing.value = drawing
+        _backendCanvas = Canvas(drawing.bitmap)
     }
     // Method to add a new drawing
     fun addNewDrawing(newDrawing: Drawing) {
@@ -68,14 +74,7 @@ class DrawViewModel : ViewModel() {
         // Set the new drawing as the selected drawing
         _selectedDrawing.value = newDrawing
     }
-    ///––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
-//    private val _bitmap = MutableLiveData<Bitmap?>()
-//    val bitmap: LiveData<Bitmap?> get() = _bitmap
-
-    // Backend canvas to modify the bitmap
-    private var _backendCanvas: Canvas? = null
-    private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
@@ -208,9 +207,8 @@ class DrawViewModel : ViewModel() {
     fun resetDrawing(width: Int, height: Int) {
         // Create a new blank bitmap
         val blankBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        //_bitmap.postValue(blankBitmap) //Before
-        _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = blankBitmap)//after
 
+        _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = blankBitmap)
 
         // Set the flag to indicate path should be reset
         _shouldReset.postValue(true)
@@ -270,9 +268,6 @@ class DrawViewModel : ViewModel() {
                 y - height / 2,
                 it.paint
             )
-            //_bitmap.value = _bitmap.value //before refactor
-            //_selectedDrawing.value?.bitmap = _selectedDrawing.value?.bitmap //first attempt at refactor wrong
-            //_selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = _selectedDrawing.value?.bitmap) //Type mismatch. Required: Bitmap Found: Bitmap?
             _selectedDrawing.value?.bitmap?.let { bitmap ->
                 _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
             }
@@ -286,10 +281,6 @@ class DrawViewModel : ViewModel() {
         _paintTool.value?.let {
             Log.i("DrawViewModel", "drawing a circle")
             _backendCanvas?.drawCircle(x, y, radius, it.paint)
-            //_bitmap.value = _bitmap.value //before refactor
-            //_selectedDrawing.value?.bitmap = _selectedDrawing.value?.bitmap //first attempt at refactor wrong
-           // _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = _selectedDrawing.value?.bitmap) //second attept at refactor, are you sure this is right? seems overly complicated
-            //_selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = updatedBitmap) //fourth attempt at refactoring. Unresolved reference: updatedBitmap
             _selectedDrawing.value?.bitmap?.let { bitmap ->
                 _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
             }
@@ -311,7 +302,6 @@ class DrawViewModel : ViewModel() {
                 y - scaledUpHeight / 2,
                 it.paint
             )
-//            _bitmap.value = _bitmap.value
             _selectedDrawing.value?.bitmap?.let { bitmap ->
                 _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
             }
@@ -341,7 +331,6 @@ class DrawViewModel : ViewModel() {
                     // Redraw the view without committing it to the bitmap
                     _backendCanvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR) // Clear the preview
                     _backendCanvas?.drawLine(startX, startY, x, y, copiedPaint)
-//                    _bitmap.value = _bitmap.value  // Trigger observer to refresh the view
                     _selectedDrawing.value?.bitmap?.let { bitmap ->
                         _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
                     }
@@ -350,7 +339,6 @@ class DrawViewModel : ViewModel() {
                 MotionEvent.ACTION_UP -> {
                     // Finalize the line when the user lifts their finger and commit to the bitmap
                     _backendCanvas?.drawLine(startX, startY, x, y, copiedPaint)
-//                    _bitmap.value = _bitmap.value  // Notify observers to update the view
                     _selectedDrawing.value?.bitmap?.let { bitmap ->
                         _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
                     }
@@ -393,7 +381,6 @@ class DrawViewModel : ViewModel() {
         // Get the current paint tool and draw the diamond on the canvas
         _paintTool.value?.let {
             _backendCanvas?.drawPath(path, it.paint)
- //           _bitmap.value = _bitmap.value  // Notify the fragment of the updated bitmap
         }
     }
 
@@ -418,7 +405,6 @@ class DrawViewModel : ViewModel() {
                     _backendCanvas?.drawPath(freeDrawPath, copiedPaint)
 
                     // Redraw the canvas with the updated path
-//                    _bitmap.value = _bitmap.value  // Trigger observer to refresh the view
                     _selectedDrawing.value?.bitmap?.let { bitmap ->
                         _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
                     }
@@ -428,7 +414,6 @@ class DrawViewModel : ViewModel() {
                     // Finalize the path when the user lifts their finger
                     _backendCanvas?.drawPath(freeDrawPath, copiedPaint)
 
-//                    _bitmap.value = _bitmap.value  // Notify observers to update the view
                     _selectedDrawing.value?.bitmap?.let { bitmap ->
                         _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
                     }
