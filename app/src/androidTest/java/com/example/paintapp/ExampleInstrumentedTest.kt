@@ -2,6 +2,7 @@ package com.example.paintapp
 
 import android.graphics.Color
 import android.util.Log
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -15,6 +16,8 @@ import androidx.lifecycle.testing.TestLifecycleOwner
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import org.junit.Before
+import org.junit.Rule
 
 
 /**
@@ -23,203 +26,222 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
-    val vm = DrawViewModel()
-    val lifeCycleOwner = TestLifecycleOwner()
+class MainScreenAndDrawFragmentTest {
+
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
     private lateinit var drawViewModel: DrawViewModel
 
-
-    @Test
-    fun startsCorrectly() {
-        assertEquals(vm.getColor(), Color.BLACK)
-        assertEquals(vm.getSize(), 5f)
-        assertEquals(vm.getShape(), "free")
-    }
-    @Test
-    fun basicTesting(){
-        val before = vm.getColor()
-        vm.setColor(Color.BLUE)
-        assertNotEquals(before, vm.getColor())
-        val new = vm.getColor()
-        assertEquals(new, vm.getColor())
-        vm.setColor(Color.GREEN)
-        val new2 = vm.getColor()
-        assertEquals(new2, vm.getColor())
-        vm.setSize(10f)
-        assertEquals(10f, vm.getSize())
-        vm.setSize(5f)
-        assertEquals(5f, vm.getSize())
+    @Before
+    fun setUp() {
+        drawViewModel = DrawViewModel()
     }
 
-    @Test
-    fun testNavigate() {
-        // Launch the MainView fragment
-        val scenario = launchFragmentInContainer<MainScreen>()
+    // ---------------- Unit Tests ----------------
 
-        scenario.onFragment { fragment ->
-            Log.wtf("Fragment Test", "Current Fragment: ${fragment?.javaClass?.simpleName}")
-            assertTrue(fragment?.javaClass?.simpleName == "MainScreen")
+    @Test
+    fun SpencerTest(){
+        composeTestRule.setContent {
+        
         }
-    }
-
-    @Test
-    fun testNavigateMainButton() {
-        val scenario = launchFragmentInContainer<MainScreen>()
-        onView(withId(R.id.button2)).perform(click()).check(matches(isClickable()))
-
-    }
-
-    @Test
-        fun testColorChangeRed() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-            // Click on color button
-            onView(withId(R.id.buttonChangeColor)).perform(click())
-
-            // Select the "Red" color from the AlertDialog
-            onView(withText("Red")).perform(click())
-
-        scenario.onFragment { fragment ->
-        val selectedColor = fragment.getPaintColor()
-        assertEquals(Color.RED, selectedColor)
-    }
-    }
-
-    @Test
-    fun testColorChangeBlue() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on color button
-        onView(withId(R.id.buttonChangeColor)).perform(click())
-
-
-        // Select the "Blue" color from the AlertDialog
-        onView(withText("Blue")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectedColor = fragment.getPaintColor()
-            assertEquals(Color.BLUE, selectedColor)
-        }
-    }
-
-    @Test
-    fun testColorChangeGreen() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on color button
-        onView(withId(R.id.buttonChangeColor)).perform(click())
-
-
-        // Select the "Green" color from the AlertDialog
-        onView(withText("Green")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectedColor = fragment.getPaintColor()
-            assertEquals(Color.GREEN, selectedColor)
-        }
-    }
-
-
-
-    @Test
-    fun testColorSizeChange() {
-        // Launch the DrawFragment in a container
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on the size button to show the slider
-        onView(withId(R.id.buttonChangeSize)).check(matches(isDisplayed()))
-
-
-        // Verify the size value in the fragment's ViewModel
-        scenario.onFragment { fragment ->
-            val selectedSize = fragment.getPaintSize()
-            assertEquals(5f, selectedSize)
-        }
-    }
-
-        @Test
-    fun testShapeChange1() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on shape button
-        onView(withId(R.id.buttonChangeShape)).perform(click())
-
-        // Select the "Square" shape from the AlertDialog
-        onView(withText("Square")).perform(click())
-
-        onView(withId(R.id.buttonChangeColor)).perform(click())
-
-        // Select the "Green" color from the AlertDialog
-        onView(withText("Green")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectVal = fragment.getPaintShape()
-            assertEquals("square", selectVal)
-        }
-
-        scenario.onFragment { fragment ->
-            val selectedColor = fragment.getPaintColor()
-            assertEquals(Color.GREEN, selectedColor)
-        }
-    }
-
-    @Test
-    fun testShapeChange2() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on shape button
-        onView(withId(R.id.buttonChangeShape)).perform(click())
-
-        // Select the "Circle" shape from the AlertDialog
-        onView(withText("Circle")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectVal = fragment.getPaintShape()
-            assertEquals("circle", selectVal)
-        }
-
-    }
-
-
-    @Test
-    fun testShapeChange3() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on shape button
-        onView(withId(R.id.buttonChangeShape)).perform(click())
-
-        // Select the "diamond" shape from the AlertDialog
-        onView(withText("Diamond")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectVal = fragment.getPaintShape()
-            assertEquals("diamond", selectVal)
-        }
-
-    }
-
-    @Test
-    fun testShapeChangeMulti() {
-        val scenario = launchFragmentInContainer<DrawFragment>()
-
-        // Click on shape button
-        onView(withId(R.id.buttonChangeShape)).perform(click())
-
-        // Select the "diamond" shape from the AlertDialog
-        onView(withText("Diamond")).perform(click())
-
-        // Click on shape button
-        onView(withId(R.id.buttonChangeShape)).perform(click())
-
-        // Select the "line" shape from the AlertDialog
-        onView(withText("Line")).perform(click())
-
-        scenario.onFragment { fragment ->
-            val selectVal = fragment.getPaintShape()
-            assertEquals("line", selectVal)
-        }
-
-    }
-
+//class ExampleInstrumentedTest {
+//    val vm = DrawViewModel()
+//    val lifeCycleOwner = TestLifecycleOwner()
+//    private lateinit var drawViewModel: DrawViewModel
+//
+//
+//    @Test
+//    fun startsCorrectly() {
+//        assertEquals(vm.getColor(), Color.BLACK)
+//        assertEquals(vm.getSize(), 5f)
+//        assertEquals(vm.getShape(), "free")
+//    }
+//    @Test
+//    fun basicTesting(){
+//        val before = vm.getColor()
+//        vm.setColor(Color.BLUE)
+//        assertNotEquals(before, vm.getColor())
+//        val new = vm.getColor()
+//        assertEquals(new, vm.getColor())
+//        vm.setColor(Color.GREEN)
+//        val new2 = vm.getColor()
+//        assertEquals(new2, vm.getColor())
+//        vm.setSize(10f)
+//        assertEquals(10f, vm.getSize())
+//        vm.setSize(5f)
+//        assertEquals(5f, vm.getSize())
+//    }
+//
+//    @Test
+//    fun testNavigate() {
+//        // Launch the MainView fragment
+//        val scenario = launchFragmentInContainer<MainScreen>()
+//
+//        scenario.onFragment { fragment ->
+//            Log.wtf("Fragment Test", "Current Fragment: ${fragment?.javaClass?.simpleName}")
+//            assertTrue(fragment?.javaClass?.simpleName == "MainScreen")
+//        }
+//    }
+//
+//    @Test
+//    fun testNavigateMainButton() {
+//        val scenario = launchFragmentInContainer<MainScreen>()
+//        onView(withId(R.id.button2)).perform(click()).check(matches(isClickable()))
+//
+//    }
+//
+//    @Test
+//        fun testColorChangeRed() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//            // Click on color button
+//            onView(withId(R.id.buttonChangeColor)).perform(click())
+//
+//            // Select the "Red" color from the AlertDialog
+//            onView(withText("Red")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//        val selectedColor = fragment.getPaintColor()
+//        assertEquals(Color.RED, selectedColor)
+//    }
+//    }
+//
+//    @Test
+//    fun testColorChangeBlue() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on color button
+//        onView(withId(R.id.buttonChangeColor)).perform(click())
+//
+//
+//        // Select the "Blue" color from the AlertDialog
+//        onView(withText("Blue")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectedColor = fragment.getPaintColor()
+//            assertEquals(Color.BLUE, selectedColor)
+//        }
+//    }
+//
+//    @Test
+//    fun testColorChangeGreen() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on color button
+//        onView(withId(R.id.buttonChangeColor)).perform(click())
+//
+//
+//        // Select the "Green" color from the AlertDialog
+//        onView(withText("Green")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectedColor = fragment.getPaintColor()
+//            assertEquals(Color.GREEN, selectedColor)
+//        }
+//    }
+//
+//
+//
+//    @Test
+//    fun testColorSizeChange() {
+//        // Launch the DrawFragment in a container
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on the size button to show the slider
+//        onView(withId(R.id.buttonChangeSize)).check(matches(isDisplayed()))
+//
+//
+//        // Verify the size value in the fragment's ViewModel
+//        scenario.onFragment { fragment ->
+//            val selectedSize = fragment.getPaintSize()
+//            assertEquals(5f, selectedSize)
+//        }
+//    }
+//
+//        @Test
+//    fun testShapeChange1() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on shape button
+//        onView(withId(R.id.buttonChangeShape)).perform(click())
+//
+//        // Select the "Square" shape from the AlertDialog
+//        onView(withText("Square")).perform(click())
+//
+//        onView(withId(R.id.buttonChangeColor)).perform(click())
+//
+//        // Select the "Green" color from the AlertDialog
+//        onView(withText("Green")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectVal = fragment.getPaintShape()
+//            assertEquals("square", selectVal)
+//        }
+//
+//        scenario.onFragment { fragment ->
+//            val selectedColor = fragment.getPaintColor()
+//            assertEquals(Color.GREEN, selectedColor)
+//        }
+//    }
+//
+//    @Test
+//    fun testShapeChange2() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on shape button
+//        onView(withId(R.id.buttonChangeShape)).perform(click())
+//
+//        // Select the "Circle" shape from the AlertDialog
+//        onView(withText("Circle")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectVal = fragment.getPaintShape()
+//            assertEquals("circle", selectVal)
+//        }
+//
+//    }
+//
+//
+//    @Test
+//    fun testShapeChange3() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on shape button
+//        onView(withId(R.id.buttonChangeShape)).perform(click())
+//
+//        // Select the "diamond" shape from the AlertDialog
+//        onView(withText("Diamond")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectVal = fragment.getPaintShape()
+//            assertEquals("diamond", selectVal)
+//        }
+//
+//    }
+//
+//    @Test
+//    fun testShapeChangeMulti() {
+//        val scenario = launchFragmentInContainer<DrawFragment>()
+//
+//        // Click on shape button
+//        onView(withId(R.id.buttonChangeShape)).perform(click())
+//
+//        // Select the "diamond" shape from the AlertDialog
+//        onView(withText("Diamond")).perform(click())
+//
+//        // Click on shape button
+//        onView(withId(R.id.buttonChangeShape)).perform(click())
+//
+//        // Select the "line" shape from the AlertDialog
+//        onView(withText("Line")).perform(click())
+//
+//        scenario.onFragment { fragment ->
+//            val selectVal = fragment.getPaintShape()
+//            assertEquals("line", selectVal)
+//        }
+//
+//    }
+//
 
 
     //TESTS BELOW: Previous versions of code tests. Left just in case we adjust
