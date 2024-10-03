@@ -55,7 +55,7 @@ class MainScreen : Fragment() {
 
     private var buttonFunction: (() -> Unit)? = null
 
-    private val drawVM : DrawViewModel  by activityViewModels()
+    private val drawVM : DrawViewModel  by activityViewModels() {VMFactory(DrawRepository())}
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

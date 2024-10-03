@@ -39,7 +39,8 @@ import java.util.Locale
 class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
-    private val drawViewModel: DrawViewModel by activityViewModels()
+    val repository = DrawRepository();
+    private val drawViewModel: DrawViewModel by activityViewModels() {VMFactory(DrawRepository())}
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
     override fun onCreateView(
