@@ -68,7 +68,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
-    //creates a new bitmap adds, lets the repository know to add it, and updates local tools to modify it after the trasntion from main menu to draw screen
+    //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
     fun createNewDrawing() {
         val newBitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888) // Create a blank bitmap
         val newDrawing = Drawing(id = System.currentTimeMillis(), bitmap = newBitmap, fileName = "new_drawing")
@@ -80,9 +80,9 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         selectDrawing(newDrawing) //hooks up
     }
 
-    //when user navigates away from the draw screen or clicks save, this will take their drawing and save it so any changes they made are reflected in the gallary
+    //when user navigates away from the draw screen or clicks save, this will take their drawing and save any changes they made (so then when gallery is rendered they see their most recent updates in the thumbnail of their drawing)
     fun saveCurrentDrawing(newBitmap: Bitmap) {
-        // Update the bitmap of the selected drawing
+        // takes the user drawing (that they modified) and saves the changes to the List of drawings
         _selectedDrawing.value?.let { drawing ->
             val updatedDrawing = drawing.copy(bitmap = newBitmap)
             updateExistingDrawing(updatedDrawing)
