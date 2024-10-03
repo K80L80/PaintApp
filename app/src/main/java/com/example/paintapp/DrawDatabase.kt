@@ -29,16 +29,3 @@ abstract class DrawDatabase : RoomDatabase() {
         }
     }
 }
-
-@Dao
-interface DrawDAO {
-
-    @Insert
-    suspend fun addDrawing(data: DrawEntity)
-
-    @Query("SELECT * FROM Drawings ORDER BY id DESC LIMIT 1")
-    fun latestDrawing(): Flow<DrawEntity>
-
-    @Query("SELECT * FROM Drawings ORDER BY id DESC")
-    fun allDrawings(): Flow<List<DrawEntity>>
-}
