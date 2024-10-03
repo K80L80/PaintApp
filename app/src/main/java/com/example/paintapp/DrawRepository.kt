@@ -5,8 +5,7 @@ import androidx.lifecycle.MutableLiveData
 //TODO: pass DOA 'private val drawDao: DrawDAO'
 class DrawRepository() {
 
-    private val _drawings = MutableLiveData<List<Drawing>>()
-    val drawings: LiveData<List<Drawing>> get() = _drawings
+    val allDrawings: LiveData<List<Drawing>> = generateTestDrawingsAsLiveData()
     //TODO: val allDrawings = drawDao.getAllDrawings()
 
     suspend fun getAllDrawings() {

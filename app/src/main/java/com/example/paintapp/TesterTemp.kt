@@ -67,3 +67,10 @@ fun generateTestDrawings(): List<Drawing> {
 
     return drawings
 }
+
+fun generateTestDrawingsAsLiveData(): LiveData<List<Drawing>>{
+    // Directly initialize MutableLiveData with the generated test drawings
+    val mutableDrawingList = MutableLiveData<List<Drawing>>()
+    mutableDrawingList.value = generateTestDrawings() // Assign the test drawings to the value
+    return mutableDrawingList
+}
