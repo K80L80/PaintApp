@@ -12,9 +12,12 @@ import android.graphics.Path
 import android.graphics.PorterDuff
 import android.util.Log
 import android.view.MotionEvent
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 /**Data class to store all of our paint values, such as size, shape, and color.
@@ -37,10 +40,15 @@ data class Drawing(
 
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
 class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
+    // Method to add a new drawing
+    private val _drawRepository = drawRepository
 
     private val _drawings = MutableLiveData<List<Drawing>>()
     val drawings: LiveData<List<Drawing>> get() = _drawings
 
+    private val drawingsR : LiveData<List<Drawing>> = drawRepository.allDrawings
+
+    //selected Drawing is session based (ie selected drawing does not need to be tracked in database since you always have to pick you drawing through main app and that is a decision relative to the current instance not across app instances)
     private val _selectedDrawing = MutableLiveData<Drawing?>()
     val selectedDrawing: LiveData<Drawing?> get() = _selectedDrawing
 
@@ -60,8 +68,9 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
     // Method to add a new drawing
     fun addNewDrawing(newDrawing: Drawing) {
-        val currentDrawings = _drawings.value ?: emptyList()
-        _drawings.value = currentDrawings + newDrawing
+        viewModelScope.launch {
+            _drawRepository.addDrawing(newDrawing)
+        }
     }
 
     // Inside your DrawViewModel

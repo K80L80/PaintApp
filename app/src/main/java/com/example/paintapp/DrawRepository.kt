@@ -5,14 +5,17 @@ import androidx.lifecycle.MutableLiveData
 //TODO: pass DOA 'private val drawDao: DrawDAO'
 class DrawRepository() {
 
-    val allDrawings: LiveData<List<Drawing>> = generateTestDrawingsAsLiveData()
+    private val _drawings: LiveData<List<Drawing>> = generateTestDrawingsAsLiveData()
+    val allDrawings: LiveData<List<Drawing>> get() = _drawings
     //TODO: val allDrawings = drawDao.getAllDrawings()
 
     suspend fun getAllDrawings() {
         //TODO: drawDao.delete(drawing)
-    }
-    suspend fun addDrawingToList(){
 
+    }
+    suspend fun addDrawing(newDrawing: Drawing){
+        val currentDrawings = _drawings.value ?: emptyList()
+        _drawings.value = currentDrawings + newDrawing
     }
     suspend fun insertDrawing(drawing: Drawing) {
         //TODO: drawDao.insert(drawing)
