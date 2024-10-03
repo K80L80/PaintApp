@@ -122,13 +122,9 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
             .padding(8.dp)  // Add padding between grid items
             .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
             .clickable {
-                //TODO: use jetpack navigation and load in picture into custom draw
-                // Your click action here
-                vm.selectDrawing(drawing)//How do I reference this drawing?
-                Log.i("KT MainScreen","image clicked")
-                val action = MainScreenDirections.actionMainScreenToDrawFragment("example_file_name")
-                Log.d("KT MainScreen", "Sending safe args to drawFragment (previous drawing) ")
-                navController.navigate(action)
+                //Use jetpack navigation and load in picture into custom draw
+                vm.selectDrawing(drawing)
+                navController.navigate(R.id.action_mainScreen_to_drawFragment)
         },
     ){
         //displays drawing
