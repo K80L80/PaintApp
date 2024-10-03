@@ -88,6 +88,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.6.1")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.activity:activity-ktx:1.7.2")
+    implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
 
     // Room for persistence
     ksp("androidx.room:room-compiler:2.6.1")

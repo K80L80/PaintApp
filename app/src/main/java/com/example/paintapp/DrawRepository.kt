@@ -1,7 +1,9 @@
 package com.example.paintapp
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.asLiveData
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.output.ByteArrayOutputStream
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -9,12 +11,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
 import java.io.InputStreamReader
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: Context) {
 
     val currentDrawing = dao.latestDrawing().asLiveData()
     val allDrawings = dao.allDrawings().asLiveData()
+
+    private val gson = Gson()
+    val bitmapPath = "app/src/main/java/com/example/paintapp/bitmaps.json"
 
    //this saves all drawings from our file.
     fun loadDrawingFromFile(fileName: String) {
@@ -105,5 +113,32 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: C
 //        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
 //        return android.util.Base64.encodeToString(outputStream.toByteArray(), android.util.Base64.DEFAULT)
 //    }
-
+//
+//    /**Function to check if file already exists, and return the path
+//     * or create the file and return that path.
+//     *
+//     */
+//    private fun getBitmapPath(filePath: String): File {
+//        val bitmapFile = File(filePath)
+//        if (!bitmapFile.exists()) {
+//            try {
+//                bitmapFile.createNewFile()
+//                val writer = FileWriter(bitmapFile)
+//                try
+//                {
+//                    val emptyList = mutableListOf<BitmapData>()
+//                    gson.toJson(emptyList, writer)
+//                }
+//                finally
+//                {
+//                    writer.close()
+//                }
+//            }
+//            catch (e: IOException)
+//            {
+//                Log.e("Bitmap File IO", "Error creating file")
+//            }
+//        }
+//        return bitmapFile
+//    }
 }
