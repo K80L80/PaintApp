@@ -36,10 +36,10 @@ data class Drawing(
 )
 
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
-class DrawViewModel : ViewModel() {
-    val allDrawings: LiveData<List<Drawing>> = DrawRepository.allDrawings
-//    private val _drawings = MutableLiveData<List<Drawing>>()
-//    val drawings: LiveData<List<Drawing>> get() = _drawings
+class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
+
+    private val _drawings = MutableLiveData<List<Drawing>>()
+    val drawings: LiveData<List<Drawing>> get() = _drawings
 
     private val _selectedDrawing = MutableLiveData<Drawing?>()
     val selectedDrawing: LiveData<Drawing?> get() = _selectedDrawing

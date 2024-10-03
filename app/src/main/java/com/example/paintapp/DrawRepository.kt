@@ -11,7 +11,9 @@ class DrawRepository() {
     suspend fun getAllDrawings() {
         //TODO: drawDao.delete(drawing)
     }
+    suspend fun addDrawingToList(){
 
+    }
     suspend fun insertDrawing(drawing: Drawing) {
         //TODO: drawDao.insert(drawing)
     }
