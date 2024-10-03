@@ -54,4 +54,56 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: C
             }
         }
     }
+
+//    /**function to save a bitmap to our created file.
+//     *
+//     */
+//    fun saveBitmapToFile(bitmapName: String, bitmap: Bitmap) {
+//        //get the current file path or create the file
+//        val bitmapFile = getBitmapPath(bitmapPath)
+//        //get our bitmap to save.
+//        val bitmap = BitmapData(bitmapName, bitmapToBase64(bitmap))
+//
+//        //first try to read the file
+//        try {
+//            val reader = FileReader(bitmapFile)
+//            var bitmapList: MutableList<BitmapData>
+//            try
+//            {
+//                val fileType = object : TypeToken<MutableList<BitmapData>>() {}.type
+//                bitmapList = gson.fromJson(reader, fileType) ?: mutableListOf()
+//            }
+//            finally
+//            {
+//                reader.close()
+//            }
+//
+//            bitmapList.add(bitmap)
+//
+//            //now add bitmap and write.
+//            val writer = FileWriter(bitmapFile)
+//            try
+//            {
+//                gson.toJson(bitmapList, writer)
+//            }
+//            finally
+//            {
+//                writer.close()
+//            }
+//
+//            Log.d("File IO DVM", "Bitmap saved")
+//        } catch (e: IOException) {
+//            Log.e("File IO DVM", "Error writing bitmap")
+//        }
+//    }
+//
+//    /**Method to convert bitmap for our file
+//     *
+//     */
+//    private fun bitmapToBase64(bitmap: Bitmap): String {
+//        val outputStream = ByteArrayOutputStream()
+//        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+//        return android.util.Base64.encodeToString(outputStream.toByteArray(), android.util.Base64.DEFAULT)
+//    }
+
 }
