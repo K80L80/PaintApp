@@ -29,16 +29,73 @@ data class PaintTool(
     val currentShape: String = "free" // Default shape is "free draw"
     //TODO: Add mode? Free?
 )
+data class Drawing(
+    val id: Long, // Unique identifier for the drawing
+    val bitmap: Bitmap, // Bitmap for storing the drawing
+    val fileName: String
+)
+
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
 class DrawViewModel : ViewModel() {
+    private val _drawings = MutableLiveData<List<Drawing>>()
+    val drawings: LiveData<List<Drawing>> get() = _drawings
 
-    // Bitmap for storing the drawing
-    private val _bitmap = MutableLiveData<Bitmap?>()
-    val bitmap: LiveData<Bitmap?> get() = _bitmap
+    private val _selectedDrawing = MutableLiveData<Drawing?>()
+    val selectedDrawing: LiveData<Drawing?> get() = _selectedDrawing
 
     // Backend canvas to modify the bitmap
     private var _backendCanvas: Canvas? = null
     private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
+
+    // Initialize with some mock data or load from repository
+    init {
+        _drawings.value = generateTestDrawings()
+    }
+
+    // Method to select a drawing
+    fun selectDrawing(drawing: Drawing) {
+        _selectedDrawing.value = drawing
+        _backendCanvas = Canvas(drawing.bitmap)
+    }
+    // Method to add a new drawing
+    fun addNewDrawing(newDrawing: Drawing) {
+        val currentDrawings = _drawings.value ?: emptyList()
+        _drawings.value = currentDrawings + newDrawing
+    }
+
+    // Inside your DrawViewModel
+    fun createNewDrawing() {
+        val newBitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888) // Create a blank bitmap
+        val newDrawing = Drawing(id = System.currentTimeMillis(), bitmap = newBitmap, fileName = "new_drawing")
+
+        val currentDrawings = _drawings.value ?: emptyList()
+        _drawings.value = currentDrawings + newDrawing
+
+        // Set the new drawing as the selected drawing
+        _selectedDrawing.value = newDrawing
+    }
+    // Update the bitmap of the selected drawing
+    // Function to save the current drawing's bitmap
+    fun saveCurrentDrawing(newBitmap: Bitmap) {
+        _selectedDrawing.value?.let { drawing ->
+            val updatedDrawing = drawing.copy(bitmap = newBitmap)
+            updateDrawingInList(updatedDrawing)
+        }
+    }
+
+    fun updateDrawingInList(updatedDrawing: Drawing) {
+
+        val currentList = _drawings.value?.toMutableList() ?: mutableListOf() // //Retrieves the current list of drawings from _drawings (which is a LiveData object) and converts it to a mutable list (a list that can be changed).
+        //Find the drawing in the list that matches this index
+        val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
+
+        if (index != -1) { //make sure drawing with that index is in the list, returns negative if not present
+            // Replace the old drawing with the updated one
+            currentList[index] = updatedDrawing // Update the drawing in the list
+            _drawings.value = currentList // Update the LiveData list
+        }
+    }
+
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
@@ -52,8 +109,8 @@ class DrawViewModel : ViewModel() {
 
     fun getOrCreateBitmap(newWidth: Int, newHeight: Int) {
         //get the bitmap on record
-        val currentBitmap = _bitmap.value
-
+        //val currentBitmap = _bitmap.value //before
+        val currentBitmap =  _selectedDrawing.value?.bitmap
         //create new drawing for user
         if (currentBitmap == null) {
             Log.i("ViewModel", "4a new bitmap was created!")
@@ -61,16 +118,18 @@ class DrawViewModel : ViewModel() {
             val createdBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
             _backendCanvas = Canvas(createdBitmap)
             Log.i("ViewModel", "4b load backend canvas with new bitmap")
-            _bitmap.value = createdBitmap
+            //_bitmap.value = createdBitmap //before
+            _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = createdBitmap) //Val cannot be reassigned
         }
         //restore old user drawing (the bitmap) and resize if needed
         else {
-            Log.i("ViewModel", "4c restore old bitmap")
+                Log.i("ViewModel", "4c restore old bitmap")
             if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
                 Log.i("ViewModel", "4d bitmap needs to be scaled!")
                 val scaledBitmap =
                     Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
-                _bitmap.value = scaledBitmap
+                //_bitmap.value = scaledBitmap //before
+                _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = scaledBitmap) ////after
                 Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
                 _backendCanvas = Canvas(scaledBitmap) //
             } else {
@@ -83,7 +142,10 @@ class DrawViewModel : ViewModel() {
      *
      */
     fun setBitmap(bitmap: Bitmap?) {
-        _bitmap.postValue(bitmap)
+       // _bitmap.postValue(bitmap)
+        bitmap?.let {
+            _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)//after
+        }
     }
 
     /**Method to update the color of the paint tool
@@ -166,7 +228,8 @@ class DrawViewModel : ViewModel() {
     fun resetDrawing(width: Int, height: Int) {
         // Create a new blank bitmap
         val blankBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        _bitmap.postValue(blankBitmap)
+
+        _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = blankBitmap)
 
         // Set the flag to indicate path should be reset
         _shouldReset.postValue(true)
@@ -226,7 +289,9 @@ class DrawViewModel : ViewModel() {
                 y - height / 2,
                 it.paint
             )
-            _bitmap.value = _bitmap.value
+            _selectedDrawing.value?.bitmap?.let { bitmap ->
+                _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
+            }
         }
     }
 
@@ -237,7 +302,9 @@ class DrawViewModel : ViewModel() {
         _paintTool.value?.let {
             Log.i("DrawViewModel", "drawing a circle")
             _backendCanvas?.drawCircle(x, y, radius, it.paint)
-            _bitmap.value = _bitmap.value
+            _selectedDrawing.value?.bitmap?.let { bitmap ->
+                _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
+            }
         }
     }
 
@@ -256,7 +323,9 @@ class DrawViewModel : ViewModel() {
                 y - scaledUpHeight / 2,
                 it.paint
             )
-            _bitmap.value = _bitmap.value
+            _selectedDrawing.value?.bitmap?.let { bitmap ->
+                _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
+            }
         }
 
     }
@@ -283,13 +352,21 @@ class DrawViewModel : ViewModel() {
                     // Redraw the view without committing it to the bitmap
                     _backendCanvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR) // Clear the preview
                     _backendCanvas?.drawLine(startX, startY, x, y, copiedPaint)
-                    _bitmap.value = _bitmap.value  // Trigger observer to refresh the view
+                    _selectedDrawing.value?.bitmap?.let { bitmap ->
+                        _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
+                    }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     // Finalize the line when the user lifts their finger and commit to the bitmap
                     _backendCanvas?.drawLine(startX, startY, x, y, copiedPaint)
-                    _bitmap.value = _bitmap.value  // Notify observers to update the view
+                    _selectedDrawing.value?.bitmap?.let { bitmap ->
+                        _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
+                    }
+                }
+                else -> {
+                    // Handle any other unexpected motion events, or just ignore them
+                    Log.w("DrawViewModel", "Unhandled MotionEvent action: ${event.action}")
                 }
             }
         }
@@ -325,7 +402,6 @@ class DrawViewModel : ViewModel() {
         // Get the current paint tool and draw the diamond on the canvas
         _paintTool.value?.let {
             _backendCanvas?.drawPath(path, it.paint)
-            _bitmap.value = _bitmap.value  // Notify the fragment of the updated bitmap
         }
     }
 
@@ -336,7 +412,7 @@ class DrawViewModel : ViewModel() {
                 style = Paint.Style.STROKE
             }
 
-            when (event.action) {
+            when (event.action) { //now saying 'when' expression must be exhaustive, add necessary 'else' branch
                 MotionEvent.ACTION_DOWN -> {
                     // Start a new path at the touch down point
                     freeDrawPath.moveTo(x, y)
@@ -350,27 +426,36 @@ class DrawViewModel : ViewModel() {
                     _backendCanvas?.drawPath(freeDrawPath, copiedPaint)
 
                     // Redraw the canvas with the updated path
-                    _bitmap.value = _bitmap.value  // Trigger observer to refresh the view
+                    _selectedDrawing.value?.bitmap?.let { bitmap ->
+                        _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
+                    }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     // Finalize the path when the user lifts their finger
                     _backendCanvas?.drawPath(freeDrawPath, copiedPaint)
-                    _bitmap.value = _bitmap.value  // Notify observers to update the view
+
+                    _selectedDrawing.value?.bitmap?.let { bitmap ->
+                        _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
+                    }
 
                     // Reset the path for the next freehand stroke
                     freeDrawPath.reset()
+                }
+                else -> {
+                    // Handle any other unexpected motion events, or just ignore them
+                    Log.w("DrawViewModel", "Unhandled MotionEvent action: ${event.action}")
                 }
             }
         }
     }
 
     fun clearBitmap() {
-        _bitmap.value?.let {
+        _selectedDrawing.value?.let {
             // Clear the existing bitmap by drawing a transparent background
-            val canvas = Canvas(it)
+            val canvas = Canvas(it.bitmap)
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)  // Clear the bitmap
-            _bitmap.value = it  // Post the cleared bitmap
+            _selectedDrawing.value = it  // Post the cleared bitmap
         }
     }
 }

@@ -14,17 +14,21 @@
         tools:layout="@layout/fragment_splash_screen">
         <action
             android:id="@+id/action_splash_to_mainScreen2"
-            app:destination="@id/mainScreen2" />
+            app:destination="@id/mainScreen" />
     </fragment>
     <!-- Main Menu Fragment -->
     <fragment
-        android:id="@+id/mainScreen2"
+        android:id="@+id/mainScreen"
         android:name="com.example.paintapp.MainScreen"
         android:label="activity_main_screen"
         tools:layout="@layout/activity_main_screen" >
         <action
-            android:id="@+id/action_mainScreen2_to_drawFragment2"
-            app:destination="@id/drawFragment" />
+            android:id="@+id/action_mainScreen_to_drawFragment"
+            app:destination="@id/drawFragment" >
+            <argument
+                android:name="fileName"
+                app:argType="string"/>
+        </action>
     </fragment>
     <!-- Draw Fragment -->
     <fragment
