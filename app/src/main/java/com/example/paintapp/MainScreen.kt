@@ -91,11 +91,6 @@ class MainScreen : Fragment() {
     }
 }
 
-fun onClick(v: View) {
-    val fileName: String = "fileNameTest"
-    val action = MainScreenDirections.actionMainScreenToDrawFragment(fileName) //Too many arguments for public open fun actionMainScreenToDrawFragment(): NavDirections defined in com.example.paintapp.MainScreenDirections
-    v.findNavController().navigate(action)
-}
 // Composable function to display the file list using LazyColumn
 @Composable
 fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:DrawViewModel) {
