@@ -12,13 +12,11 @@ import android.graphics.Path
 import android.graphics.PorterDuff
 import android.util.Log
 import android.view.MotionEvent
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 /**Data class to store all of our paint values, such as size, shape, and color.
  *
@@ -43,10 +41,10 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Method to add a new drawing
     private val _drawRepository = drawRepository
 
-    private val _drawings = MutableLiveData<List<Drawing>>()
-    val drawings: LiveData<List<Drawing>> get() = _drawings
+//    private val _drawings = MutableLiveData<List<Drawing>>()
+//    val drawings: LiveData<List<Drawing>> get() = _drawings
 
-    private val drawingsR : LiveData<List<Drawing>> = drawRepository.allDrawings
+    val drawings : LiveData<List<Drawing>> = drawRepository.allDrawings
 
     //selected Drawing is session based (ie selected drawing does not need to be tracked in database since you always have to pick you drawing through main app and that is a decision relative to the current instance not across app instances)
     private val _selectedDrawing = MutableLiveData<Drawing?>()
@@ -56,56 +54,48 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     private var _backendCanvas: Canvas? = null
     private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
 
-    // Initialize with some mock data or load from repository
-    init {
-        _drawings.value = generateTestDrawings()
-    }
 
-    // Method to select a drawing
+    // Method to select a drawing (ie local reference to the drawing the user picked from the main menu that they want to now modify)
     fun selectDrawing(drawing: Drawing) {
         _selectedDrawing.value = drawing
-        _backendCanvas = Canvas(drawing.bitmap)
+        _backendCanvas = Canvas(drawing.bitmap) //hook up selected drawing to backend canvas used for modifying the bitmap
     }
-    // Method to add a new drawing
-    fun addNewDrawing(newDrawing: Drawing) {
+
+    // Method to add a new drawing to the repository (aka appends new drawing to list of drawings)
+    private fun addNewDrawing(newDrawing: Drawing) {
         viewModelScope.launch {
             _drawRepository.addDrawing(newDrawing)
         }
     }
 
-    // Inside your DrawViewModel
+    //creates a new bitmap adds, lets the repository know to add it, and updates local tools to modify it after the trasntion from main menu to draw screen
     fun createNewDrawing() {
         val newBitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888) // Create a blank bitmap
         val newDrawing = Drawing(id = System.currentTimeMillis(), bitmap = newBitmap, fileName = "new_drawing")
 
-        val currentDrawings = _drawings.value ?: emptyList()
-        _drawings.value = currentDrawings + newDrawing
+        //adds new drawing to list backed by repo
+        addNewDrawing(newDrawing)
 
-        // Set the new drawing as the selected drawing
-        _selectedDrawing.value = newDrawing
+        // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
+        selectDrawing(newDrawing) //hooks up
     }
-    // Update the bitmap of the selected drawing
-    // Function to save the current drawing's bitmap
+
+    //when user navigates away from the draw screen or clicks save, this will take their drawing and save it so any changes they made are reflected in the gallary
     fun saveCurrentDrawing(newBitmap: Bitmap) {
+        // Update the bitmap of the selected drawing
         _selectedDrawing.value?.let { drawing ->
             val updatedDrawing = drawing.copy(bitmap = newBitmap)
-            updateDrawingInList(updatedDrawing)
+            updateExistingDrawing(updatedDrawing)
         }
     }
 
-    fun updateDrawingInList(updatedDrawing: Drawing) {
-
-        val currentList = _drawings.value?.toMutableList() ?: mutableListOf() // //Retrieves the current list of drawings from _drawings (which is a LiveData object) and converts it to a mutable list (a list that can be changed).
-        //Find the drawing in the list that matches this index
-        val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
-
-        if (index != -1) { //make sure drawing with that index is in the list, returns negative if not present
-            // Replace the old drawing with the updated one
-            currentList[index] = updatedDrawing // Update the drawing in the list
-            _drawings.value = currentList // Update the LiveData list
+    //called when user selects a previous drawing they created (displayed in main menu) and now wants to make edits to it
+    private fun updateExistingDrawing(updatedDrawing: Drawing) {
+        //takes user modified drawing and reflects those changes in the full list of drawings
+        viewModelScope.launch {
+            _drawRepository.updateExistingDrawing(updatedDrawing)
         }
     }
-
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
