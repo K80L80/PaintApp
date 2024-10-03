@@ -91,11 +91,6 @@ class MainScreen : Fragment() {
     }
 }
 
-fun onClick(v: View) {
-    val fileName: String = "fileNameTest"
-    val action = MainScreenDirections.actionMainScreenToDrawFragment(fileName) //Too many arguments for public open fun actionMainScreenToDrawFragment(): NavDirections defined in com.example.paintapp.MainScreenDirections
-    v.findNavController().navigate(action)
-}
 // Composable function to display the file list using LazyColumn
 @Composable
 fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:DrawViewModel) {
@@ -126,9 +121,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
                 // Your click action here
                 vm.selectDrawing(drawing)//How do I reference this drawing?
                 Log.i("KT MainScreen","image clicked")
-                val action = MainScreenDirections.actionMainScreenToDrawFragment("example_file_name")
                 Log.d("KT MainScreen", "Sending safe args to drawFragment (previous drawing) ")
-                navController.navigate(action)
         },
     ){
         //displays drawing
