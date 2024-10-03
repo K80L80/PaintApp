@@ -16,8 +16,8 @@ fun generateTestDrawings(): List<Drawing> {
     val drawings = mutableListOf<Drawing>()
 
     // Define a standard size for each bitmap
-    val width = 800
-    val height = 800
+    val width = 1080
+    val height = 2209
 
     // Create bitmaps with different shapes and filenames
     for (i in 1..5) {

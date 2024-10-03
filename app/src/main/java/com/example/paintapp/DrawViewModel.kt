@@ -111,6 +111,10 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
 
         val currentBitmap =  _selectedDrawing.value?.bitmap ?: return
 
+
+        Log.i("ViewModel", "New width: $newWidth, New height: $newHeight")
+        Log.i("ViewModel", "Current bitmap width: ${currentBitmap.width}, Current bitmap height: ${currentBitmap.height}")
+
         Log.i("ViewModel", "4c restore old bitmap")
         if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
             Log.i("ViewModel", "4d bitmap needs to be scaled!")
