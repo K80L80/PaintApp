@@ -107,34 +107,20 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Flag to indicate whether the drawing should be reset
     private val _shouldReset = MutableLiveData<Boolean>()
 
-    fun getOrCreateBitmap(newWidth: Int, newHeight: Int) {
-        //get the bitmap on record
-        //val currentBitmap = _bitmap.value //before
-        val currentBitmap =  _selectedDrawing.value?.bitmap
-        //create new drawing for user
-        if (currentBitmap == null) {
-            Log.i("ViewModel", "4a new bitmap was created!")
-            // bitmap.value is null create a new one, make a new user bitmap to store a drawing, that matches the current height and
-            val createdBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
-            _backendCanvas = Canvas(createdBitmap)
-            Log.i("ViewModel", "4b load backend canvas with new bitmap")
-            //_bitmap.value = createdBitmap //before
-            _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = createdBitmap) //Val cannot be reassigned
-        }
-        //restore old user drawing (the bitmap) and resize if needed
-        else {
-                Log.i("ViewModel", "4c restore old bitmap")
-            if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
-                Log.i("ViewModel", "4d bitmap needs to be scaled!")
-                val scaledBitmap =
-                    Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
-                //_bitmap.value = scaledBitmap //before
-                _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = scaledBitmap) ////after
-                Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
-                _backendCanvas = Canvas(scaledBitmap) //
-            } else {
-                Log.i("ViewModel", "4f The existing bitmap was restored, no resizing needed")
-            }
+    fun respondToResizeEvent(newWidth: Int, newHeight: Int) {
+
+        val currentBitmap =  _selectedDrawing.value?.bitmap ?: return
+
+        Log.i("ViewModel", "4c restore old bitmap")
+        if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
+            Log.i("ViewModel", "4d bitmap needs to be scaled!")
+            val scaledBitmap = Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
+            //_bitmap.value = scaledBitmap //before
+            _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = scaledBitmap) ////after
+            Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
+            _backendCanvas = Canvas(scaledBitmap) //
+        } else {
+            Log.i("ViewModel", "4f no resizing needed")
         }
     }
 

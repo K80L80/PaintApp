@@ -116,6 +116,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
             .fillMaxWidth() // Adjust the width of each column
             .padding(8.dp)  // Add padding between grid items
             .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
+            //user clicks on the drawing they want to modify
             .clickable {
                 //Use jetpack navigation and load in picture into custom draw
                 vm.selectDrawing(drawing)
@@ -138,10 +139,10 @@ fun Drawing(bitmap: Bitmap,  aspectRatio: Float) {
     Image(
         bitmap = imageBitmap,
         contentDescription = "Drawing Thumbnail",
-        contentScale = ContentScale.Crop, //to scale the image
         modifier = Modifier
             .aspectRatio(aspectRatio) // Keep each item square
             .padding(8.dp)
+            .border(BorderStroke(2.dp, Color.Gray))
     )
 }
 
