@@ -15,14 +15,18 @@ import java.io.File
 // For testing: replace with actual DAO later
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
+//
+//    private val _allDrawings = MutableLiveData<List<Drawing>>()
+//    val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
+//
+//    init {
+//        // Initialize with some test data or empty list
+//        _allDrawings.value = generateTestDrawings()
+//    }
 
-    private val _allDrawings = MutableLiveData<List<Drawing>>()
-    val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
+    // Directly expose the DAO's LiveData
+    val allDrawings: LiveData<List<DrawEntity>> = dao.getAllDrawings()
 
-    init {
-        // Initialize with some test data or empty list
-        _allDrawings.value = generateTestDrawings()
-    }
 
     suspend fun addDrawing(newDrawing: Drawing){
         //TODO: refactor to integrate doa
