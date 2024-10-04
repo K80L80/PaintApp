@@ -5,8 +5,6 @@
 package com.example.paintapp
 
 import android.app.AlertDialog
-import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,32 +12,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
 import yuku.ambilwarna.AmbilWarnaDialog
-import java.util.Locale
 
 //TODO – add a save button, and have user enter a filename to save their drawing
 class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
-    private val drawViewModel: DrawViewModel by activityViewModels()
+    val repository = DrawRepository();
+    private val drawViewModel: DrawViewModel by activityViewModels() {VMFactory(DrawRepository())}
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
     override fun onCreateView(
@@ -74,8 +58,8 @@ class DrawFragment : Fragment() {
             // Only trigger size change logic after setup is complete
             Log.i("DrawFragment - KS", "3a onSizeChangeCallback set by fragment")
 
-                //Log.i("DrawFragment - KS", "3b configuration detected relaying canvas height and to view model to resize bitmap ")
-                drawViewModel.getOrCreateBitmap(width, height)
+            drawViewModel.respondToResizeEvent(width, height)
+
         }
         customDrawView.onResetCallback = {
             drawViewModel.clearBitmap()

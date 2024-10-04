@@ -15,7 +15,8 @@ import android.view.MotionEvent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import kotlin.random.Random
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 /**Data class to store all of our paint values, such as size, shape, and color.
  *
@@ -36,10 +37,16 @@ data class Drawing(
 )
 
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
-class DrawViewModel : ViewModel() {
-    private val _drawings = MutableLiveData<List<Drawing>>()
-    val drawings: LiveData<List<Drawing>> get() = _drawings
+class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
+    // Method to add a new drawing
+    private val _drawRepository = drawRepository
 
+//    private val _drawings = MutableLiveData<List<Drawing>>()
+//    val drawings: LiveData<List<Drawing>> get() = _drawings
+
+    val drawings : LiveData<List<Drawing>> = drawRepository.allDrawings
+
+    //selected Drawing is session based (ie selected drawing does not need to be tracked in database since you always have to pick you drawing through main app and that is a decision relative to the current instance not across app instances)
     private val _selectedDrawing = MutableLiveData<Drawing?>()
     val selectedDrawing: LiveData<Drawing?> get() = _selectedDrawing
 
@@ -47,55 +54,48 @@ class DrawViewModel : ViewModel() {
     private var _backendCanvas: Canvas? = null
     private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
 
-    // Initialize with some mock data or load from repository
-    init {
-        _drawings.value = generateTestDrawings()
-    }
 
-    // Method to select a drawing
+    // Method to select a drawing (ie local reference to the drawing the user picked from the main menu that they want to now modify)
     fun selectDrawing(drawing: Drawing) {
         _selectedDrawing.value = drawing
-        _backendCanvas = Canvas(drawing.bitmap)
-    }
-    // Method to add a new drawing
-    fun addNewDrawing(newDrawing: Drawing) {
-        val currentDrawings = _drawings.value ?: emptyList()
-        _drawings.value = currentDrawings + newDrawing
+        _backendCanvas = Canvas(drawing.bitmap) //hook up selected drawing to backend canvas used for modifying the bitmap
     }
 
-    // Inside your DrawViewModel
+    // Method to add a new drawing to the repository (aka appends new drawing to list of drawings)
+    private fun addNewDrawing(newDrawing: Drawing) {
+        viewModelScope.launch {
+            _drawRepository.addDrawing(newDrawing)
+        }
+    }
+
+    //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
     fun createNewDrawing() {
-        val newBitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888) // Create a blank bitmap
+        val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
         val newDrawing = Drawing(id = System.currentTimeMillis(), bitmap = newBitmap, fileName = "new_drawing")
 
-        val currentDrawings = _drawings.value ?: emptyList()
-        _drawings.value = currentDrawings + newDrawing
+        //adds new drawing to list backed by repo
+        addNewDrawing(newDrawing)
 
-        // Set the new drawing as the selected drawing
-        _selectedDrawing.value = newDrawing
+        // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
+        selectDrawing(newDrawing) //hooks up
     }
-    // Update the bitmap of the selected drawing
-    // Function to save the current drawing's bitmap
+
+    //when user navigates away from the draw screen or clicks save, this will take their drawing and save any changes they made (so then when gallery is rendered they see their most recent updates in the thumbnail of their drawing)
     fun saveCurrentDrawing(newBitmap: Bitmap) {
+        // takes the user drawing (that they modified) and saves the changes to the List of drawings
         _selectedDrawing.value?.let { drawing ->
             val updatedDrawing = drawing.copy(bitmap = newBitmap)
-            updateDrawingInList(updatedDrawing)
+            updateExistingDrawing(updatedDrawing)
         }
     }
 
-    fun updateDrawingInList(updatedDrawing: Drawing) {
-
-        val currentList = _drawings.value?.toMutableList() ?: mutableListOf() // //Retrieves the current list of drawings from _drawings (which is a LiveData object) and converts it to a mutable list (a list that can be changed).
-        //Find the drawing in the list that matches this index
-        val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
-
-        if (index != -1) { //make sure drawing with that index is in the list, returns negative if not present
-            // Replace the old drawing with the updated one
-            currentList[index] = updatedDrawing // Update the drawing in the list
-            _drawings.value = currentList // Update the LiveData list
+    //called when user selects a previous drawing they created (displayed in main menu) and now wants to make edits to it
+    private fun updateExistingDrawing(updatedDrawing: Drawing) {
+        //takes user modified drawing and reflects those changes in the full list of drawings
+        viewModelScope.launch {
+            _drawRepository.updateExistingDrawing(updatedDrawing)
         }
     }
-
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
@@ -107,34 +107,24 @@ class DrawViewModel : ViewModel() {
     // Flag to indicate whether the drawing should be reset
     private val _shouldReset = MutableLiveData<Boolean>()
 
-    fun getOrCreateBitmap(newWidth: Int, newHeight: Int) {
-        //get the bitmap on record
-        //val currentBitmap = _bitmap.value //before
-        val currentBitmap =  _selectedDrawing.value?.bitmap
-        //create new drawing for user
-        if (currentBitmap == null) {
-            Log.i("ViewModel", "4a new bitmap was created!")
-            // bitmap.value is null create a new one, make a new user bitmap to store a drawing, that matches the current height and
-            val createdBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
-            _backendCanvas = Canvas(createdBitmap)
-            Log.i("ViewModel", "4b load backend canvas with new bitmap")
-            //_bitmap.value = createdBitmap //before
-            _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = createdBitmap) //Val cannot be reassigned
-        }
-        //restore old user drawing (the bitmap) and resize if needed
-        else {
-                Log.i("ViewModel", "4c restore old bitmap")
-            if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
-                Log.i("ViewModel", "4d bitmap needs to be scaled!")
-                val scaledBitmap =
-                    Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
-                //_bitmap.value = scaledBitmap //before
-                _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = scaledBitmap) ////after
-                Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
-                _backendCanvas = Canvas(scaledBitmap) //
-            } else {
-                Log.i("ViewModel", "4f The existing bitmap was restored, no resizing needed")
-            }
+    fun respondToResizeEvent(newWidth: Int, newHeight: Int) {
+
+        val currentBitmap =  _selectedDrawing.value?.bitmap ?: return
+
+
+        Log.i("ViewModel", "New width: $newWidth, New height: $newHeight")
+        Log.i("ViewModel", "Current bitmap width: ${currentBitmap.width}, Current bitmap height: ${currentBitmap.height}")
+
+        Log.i("ViewModel", "4c restore old bitmap")
+        if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
+            Log.i("ViewModel", "4d bitmap needs to be scaled!")
+            val scaledBitmap = Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
+            //_bitmap.value = scaledBitmap //before
+            _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = scaledBitmap) ////after
+            Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
+            _backendCanvas = Canvas(scaledBitmap) //
+        } else {
+            Log.i("ViewModel", "4f no resizing needed")
         }
     }
 

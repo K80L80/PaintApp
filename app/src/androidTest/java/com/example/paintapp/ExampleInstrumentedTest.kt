@@ -24,7 +24,8 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
  */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
-    val vm = DrawViewModel()
+    val repository = DrawRepository();
+    val vm = DrawViewModel(repository)
     val lifeCycleOwner = TestLifecycleOwner()
     private lateinit var drawViewModel: DrawViewModel
 
