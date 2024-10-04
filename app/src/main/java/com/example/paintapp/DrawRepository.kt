@@ -2,12 +2,14 @@ package com.example.paintapp
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+
 //TODO: pass DOA 'private val drawDao: DrawDAO'
 //TODO: eventually turn this to 'val allDrawings = drawDao.getAllDrawings()' but for testing sake leave it as is
 //val allDrawings: LiveData<List<Drawing>> get() =  generateTestDrawingsAsLiveData()
 // For testing: replace with actual DAO later
 
-class DrawRepository() {
+class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
 
     private val _allDrawings = MutableLiveData<List<Drawing>>()
     val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
@@ -37,21 +39,20 @@ class DrawRepository() {
         //gives updates to those tracking live data
         _allDrawings.postValue(currentList)
     }
-
-    suspend fun getAllDrawings() {
-        //TODO: drawDao.delete(drawing)
-
-    }
-    suspend fun insertDrawing(drawing: Drawing) {
-        //TODO: drawDao.insert(drawing)
-    }
-
-    suspend fun updateDrawing(drawing: Drawing) {
-       //TODO: drawDao.update(drawing)
-    }
-
-    suspend fun deleteDrawing(drawing: Drawing) {
-       //TODO: drawDao.delete(drawing)
-    }
-
+//TODO: before uusing filesDir 'special private folder designated for app I need to setup app class so I can get the app context
+//    // Save bitmap to a file in the app's private folder
+//    private suspend fun saveBitmapToFile(drawing: Drawing): File {
+//        return withContext(Dispatchers.IO) {
+//            // This is the private folder designated for your app
+//            val directory = context.filesDir  //Unresolved reference: filesDir what import do I need?
+//            val file = File(directory, "${drawing.id}.png")
+//
+//            // Save the bitmap to the file
+//            val outputStream = file.outputStream()
+//            drawing.bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+//            outputStream.close()
+//
+//            file
+//        }
+//    }
 }

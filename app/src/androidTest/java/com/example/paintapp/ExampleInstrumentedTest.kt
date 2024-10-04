@@ -11,6 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.Assert.*
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.testing.TestLifecycleOwner
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
@@ -24,10 +25,10 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
  */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
-    val repository = DrawRepository();
-    val vm = DrawViewModel(repository)
+
+    private val vm: DrawViewModel by viewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
     val lifeCycleOwner = TestLifecycleOwner()
-    private lateinit var drawViewModel: DrawViewModel
+    //private lateinit var drawViewModel: DrawViewModel
 
 
     @Test

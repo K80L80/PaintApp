@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
 import yuku.ambilwarna.AmbilWarnaDialog
@@ -22,8 +23,9 @@ import yuku.ambilwarna.AmbilWarnaDialog
 class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
-    val repository = DrawRepository();
-    private val drawViewModel: DrawViewModel by activityViewModels() {VMFactory(DrawRepository())}
+
+    private val drawViewModel: DrawViewModel by viewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
+
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
     override fun onCreateView(
