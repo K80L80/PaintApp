@@ -70,7 +70,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
 
     //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
     fun createNewDrawing() {
-        val newBitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888) // Create a blank bitmap
+        val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
         val newDrawing = Drawing(id = System.currentTimeMillis(), bitmap = newBitmap, fileName = "new_drawing")
 
         //adds new drawing to list backed by repo
