@@ -110,8 +110,10 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.02"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.fragment:fragment-testing:1.5.7")// Or the latest version
 
     debugImplementation("androidx.fragment:fragment-testing-manifest:1.8.3")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.1")
+
 }

@@ -16,6 +16,8 @@ import androidx.lifecycle.testing.TestLifecycleOwner
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Before
 
 
 /**
@@ -26,10 +28,21 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
 
-    private val vm: DrawViewModel by viewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
-    val lifeCycleOwner = TestLifecycleOwner()
-    //private lateinit var drawViewModel: DrawViewModel
 
+    val lifeCycleOwner = TestLifecycleOwner()
+    private lateinit var vm: DrawViewModel
+    private lateinit var repository: DrawRepository
+
+    @Before
+    fun setup() {
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as DrawApp
+
+        // Here, you can use a real or mocked repository
+        repository = appContext.drawRepository
+
+        // Manually instantiate the ViewModel
+        vm = DrawViewModel(repository) // error under appContext Too many arguments for public constructor DrawViewModel(drawRepository: DrawRepository) defined in com.example.paintapp.DrawViewModel
+    }
 
     @Test
     fun startsCorrectly() {
@@ -56,7 +69,7 @@ class ExampleInstrumentedTest {
     @Test
     fun testNavigate() {
         // Launch the MainView fragment
-        val scenario = launchFragmentInContainer<MainScreen>()
+        val scenario = launchFragmentInContainer<MainScreen>() //Unresolved reference: launchFragmentInContainer
 
         scenario.onFragment { fragment ->
             Log.wtf("Fragment Test", "Current Fragment: ${fragment?.javaClass?.simpleName}")
@@ -66,7 +79,7 @@ class ExampleInstrumentedTest {
 
     @Test
     fun testNavigateMainButton() {
-        val scenario = launchFragmentInContainer<MainScreen>()
+        val scenario = launchFragmentInContainer<MainScreen>() //Unresolved reference: launchFragmentInContainer
         onView(withId(R.id.button2)).perform(click()).check(matches(isClickable()))
 
     }

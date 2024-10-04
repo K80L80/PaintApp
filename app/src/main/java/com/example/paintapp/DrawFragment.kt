@@ -24,7 +24,7 @@ class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
 
-    private val drawViewModel: DrawViewModel by viewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
+    private val drawViewModel: DrawViewModel by activityViewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
