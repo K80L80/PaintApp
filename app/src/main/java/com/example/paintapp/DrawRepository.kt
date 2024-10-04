@@ -1,8 +1,12 @@
 package com.example.paintapp
 
+import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 
 //TODO: pass DOA 'private val drawDao: DrawDAO'
 //TODO: eventually turn this to 'val allDrawings = drawDao.getAllDrawings()' but for testing sake leave it as is
@@ -39,20 +43,20 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         //gives updates to those tracking live data
         _allDrawings.postValue(currentList)
     }
-//TODO: before uusing filesDir 'special private folder designated for app I need to setup app class so I can get the app context
-//    // Save bitmap to a file in the app's private folder
-//    private suspend fun saveBitmapToFile(drawing: Drawing): File {
-//        return withContext(Dispatchers.IO) {
-//            // This is the private folder designated for your app
-//            val directory = context.filesDir  //Unresolved reference: filesDir what import do I need?
-//            val file = File(directory, "${drawing.id}.png")
-//
-//            // Save the bitmap to the file
-//            val outputStream = file.outputStream()
-//            drawing.bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-//            outputStream.close()
-//
-//            file
-//        }
-//    }
+//save bitmap data in special private folder designated for app paint app
+    // Save bitmap to a file in the app's private folder
+    private suspend fun saveBitmapToFile(drawing: Drawing): File {
+        return withContext(Dispatchers.IO) {
+            // This is the private folder designated for your app
+            val directory = context.filesDir  //before using filesDir 'special private folder had to setup app class so I can get the app context
+            val file = File(directory, "${drawing.id}.png")
+
+            // Save the bitmap to the file
+            val outputStream = file.outputStream()
+            drawing.bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            outputStream.close()
+
+            file
+        }
+    }
 }
