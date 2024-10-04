@@ -8,10 +8,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-
-class TesterVM : ViewModel() {
-
-}
 fun generateTestDrawings(): List<Drawing> {
     val drawings = mutableListOf<Drawing>()
 

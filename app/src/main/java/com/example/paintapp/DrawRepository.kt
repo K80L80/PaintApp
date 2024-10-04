@@ -24,6 +24,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     suspend fun addDrawing(newDrawing: Drawing){
+        //TODO: refactor to integrate doa
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
         currentList.add(newDrawing)
@@ -32,6 +33,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     suspend fun updateExistingDrawing(updatedDrawing: Drawing ){
+        //TODO: refactor to integrate doa
         val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
 
         //Find the drawing in the list that matches this index
@@ -43,12 +45,22 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         //gives updates to those tracking live data
         _allDrawings.postValue(currentList)
     }
-//save bitmap data in special private folder designated for app paint app
+    
+//    // When app starts up, transform filenames into Drawing objects with bitmaps
+//    suspend fun loadAllDrawings(): List<Drawing> {
+//        val drawingEntities = dao.getAllDrawings().value.orEmpty()
+//        return drawingEntities.map { entity ->
+//            val bitmap = loadBitmapFromFile(entity.fileName)
+//            Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName) //Type mismatch Required Bitmap Found: Bitmap?
+//        }
+//    }
+
+    //save bitmap data in special private folder designated for app
     // Save bitmap to a file in the app's private folder
     private suspend fun saveBitmapToFile(drawing: Drawing): File {
         return withContext(Dispatchers.IO) {
             // This is the private folder designated for your app
-            val directory = context.filesDir  //before using filesDir 'special private folder had to setup app class so I can get the app context
+            val directory = context.filesDir  //before using filesDir 'special private folder designated for app I need to setup app class so I can get the app context
             val file = File(directory, "${drawing.id}.png")
 
             // Save the bitmap to the file
@@ -57,6 +69,21 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             outputStream.close()
 
             file
+        }
+    }
+    private suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val file = File(context.filesDir, fileName)
+                if (file.exists()) {
+                    return@withContext BitmapFactory.decodeFile(file.absolutePath)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
         }
     }
 }
