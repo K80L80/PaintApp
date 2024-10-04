@@ -45,7 +45,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         //gives updates to those tracking live data
         _allDrawings.postValue(currentList)
     }
-    
+
 //    // When app starts up, transform filenames into Drawing objects with bitmaps
 //    suspend fun loadAllDrawings(): List<Drawing> {
 //        val drawingEntities = dao.getAllDrawings().value.orEmpty()

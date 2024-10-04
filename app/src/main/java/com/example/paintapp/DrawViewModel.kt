@@ -30,11 +30,6 @@ data class PaintTool(
     val currentShape: String = "free" // Default shape is "free draw"
     //TODO: Add mode? Free?
 )
-data class Drawing(
-    val id: Long, // Unique identifier for the drawing
-    val bitmap: Bitmap, // Bitmap for storing the drawing
-    val fileName: String
-)
 
 //'Backend canvas' in the ViewModel treated as a tool for updating the bitmap
 class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
