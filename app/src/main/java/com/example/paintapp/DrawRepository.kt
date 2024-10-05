@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,11 +23,20 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     init {
         // Initialize with some test data or empty list
         _allDrawings.value = generateTestDrawings()
+
     }
 
-//    // Directly expose the DAO's LiveData
-//    val allDrawings: LiveData<List<DrawEntity>> = dao.getAllDrawings()
-//
+    // When app starts up, transform filenames into Drawing objects with bitmaps
+    suspend fun loadAllDrawings() {
+        withContext(Dispatchers.IO) {
+            val drawingEntities = dao.getAllDrawings().value.orEmpty()
+            val drawings = drawingEntities.map { entity ->
+                val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
+                Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
+            }
+            _allDrawings.postValue(drawings)
+        }
+    }
 
     suspend fun addDrawing(newDrawing: Drawing){
         //TODO: refactor to integrate doa
@@ -38,7 +48,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     suspend fun updateExistingDrawing(updatedDrawing: Drawing ){
-        //TODO: refactor to integrate doa
+
         val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
 
         //Find the drawing in the list that matches this index
@@ -50,15 +60,6 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         //gives updates to those tracking live data
         _allDrawings.postValue(currentList)
     }
-
-//    // When app starts up, transform filenames into Drawing objects with bitmaps
-//    suspend fun loadAllDrawings(): List<Drawing> {
-//        val drawingEntities = dao.getAllDrawings().value.orEmpty()
-//        return drawingEntities.map { entity ->
-//            val bitmap = loadBitmapFromFile(entity.fileName)
-//            Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName) //Type mismatch Required Bitmap Found: Bitmap?
-//        }
-//    }
 
     //save bitmap data in special private folder designated for app
     // Save bitmap to a file in the app's private folder
@@ -91,4 +92,6 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             }
         }
     }
+
+    val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
 }
