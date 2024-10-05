@@ -62,7 +62,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Method to select a drawing (ie local reference to the drawing the user picked from the main menu that they want to now modify)
     fun selectDrawing(drawing: Drawing) {
         _selectedDrawing.value = drawing
-        _backendCanvas = Canvas(drawing.bitmap) //hook up selected drawing to backend canvas used for modifying the bitmap
+        _backendCanvas = Canvas(drawing.bitmap.copy(Bitmap.Config.ARGB_8888, true)) //hook up selected drawing to backend canvas used for modifying the bitmap
     }
 
     //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap

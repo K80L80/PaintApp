@@ -74,7 +74,7 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     fun updateBitmap(bitmap: Bitmap) {
         Log.i("CustomDrawView", "6a updateBitmap called in custom view")
         this.bitmap = bitmap //8a) the bitmap (associated with the canvas for displaying the user drawing)
-        this.userCanvas = Canvas(bitmap)
+        this.userCanvas = Canvas(bitmap.copy(Bitmap.Config.ARGB_8888, true))
         invalidate() //8b Since the bitmap was updated, this method call forces the view to redraw itself by triggering the onDraw method
     }
 
