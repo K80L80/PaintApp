@@ -79,12 +79,16 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
 
     //when user navigates away from the draw screen or clicks save, this will take their drawing and save any changes they made (so then when gallery is rendered they see their most recent updates in the thumbnail of their drawing)
     fun saveCurrentDrawing(newBitmap: Bitmap) {
+        println("View-Model: saving current bitmap")  // Debug print statement
+
         // takes the user drawing (that they modified) and saves the changes to the List of drawings
         _selectedDrawing.value?.let { drawing ->
+            println("View-Model: id:${drawing.id} file: ${drawing.fileName}")
             val updatedDrawing = drawing.copy(bitmap = newBitmap)
 
             //takes user modified drawing and reflects those changes in the full list of drawings
             viewModelScope.launch {
+                println("View-Model: id:${updatedDrawing.id} file: ${updatedDrawing.fileName}")
                 _drawRepository.updateExistingDrawing(updatedDrawing)
             }
         }

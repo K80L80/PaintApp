@@ -167,10 +167,11 @@ class DrawFragment : Fragment() {
         //save button, sets callback
         val saveButton: Button = view.findViewById(R.id.saveBtn)
         saveButton.setOnClickListener{
+            println("Draw Fragment: drawing save button clicked")  // Debug print statement
+
             customDrawView.getBitmap()?.let{
                 // Assume customDrawView provides this method
-                drawViewModel.saveCurrentDrawing(it) //Type mismatch.Required: Bitmap Found: Bitmap?
-                Log.i("DrawFragment - KS", "Bitmap saved to drawing list")
+                drawViewModel.saveCurrentDrawing(it)
             }
         }
 

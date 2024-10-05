@@ -2,11 +2,14 @@ package com.example.paintapp
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -29,23 +32,23 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     // When app starts up, transform filenames into Drawing objects with bitmaps
     suspend fun loadAllDrawings() {
         withContext(Dispatchers.IO) {
-            println("Repository: loadAllDrawings() - ViewModel scope launching")  // Debug print statement
-            val drawingEntities = dao.getAllDrawings().value.orEmpty()
-            println("Repository: Retrieved drawing entities: ${drawingEntities.size} entities found")  // Debug statement
-
-            //load in all bitmaps if there are any
-            if(drawingEntities.isNotEmpty()) {
-                val drawings = drawingEntities.map { entity ->
-                    println("Repository: Loading bitmap for file: ${entity.fileName}")  // Debug statement
-                    val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                    Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
+            Log.d("Repository", "loadAllDrawings() called")
+            val drawingEntities = dao.getAllDrawings().collect { drawingEntities->
+                Log.d("Repository", "Retrieved drawing entities: ${drawingEntities.size} entities found")
+                //load in all bitmaps if there are any
+                if (drawingEntities.isNotEmpty()) {
+                    val drawings = drawingEntities.map { entity ->
+                        println("Repository: Loading bitmap for file: ${entity.fileName}")  // Debug statement
+                        val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
+                        Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
+                    }
+                    _allDrawings.postValue(drawings)
                 }
-                _allDrawings.postValue(drawings)
-            }
-            //else no drawings have been created yet (empty gallary)
-            else{
-                println("Repository: No drawing entities found, posting empty list.")  // Debug statement
-                _allDrawings.postValue(emptyList())
+                //else no drawings have been created yet (empty gallary)
+                else {
+                    println("Repository: No drawing entities found, posting empty list.")  // Debug statement
+                    _allDrawings.postValue(emptyList())
+                }
             }
         }
     }
@@ -75,18 +78,33 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
 
-    suspend fun updateExistingDrawing(updatedDrawing: Drawing ){
+    suspend fun updateExistingDrawing(updatedDrawing: Drawing){
+
+        println("Repository: updateExistingDrawing")
 
         val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
+
+        println("Repository: currentList: ${currentList.size}")
 
         //Find the drawing in the list that matches this index
         val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
 
+        println("Repository: index: ${index} updatedDrawingId: ${updatedDrawing.id}")
         // Replace the old drawing with the updated one
         currentList[index] = updatedDrawing // Update the drawing in the list
 
-        //gives updates to those tracking live data
-        _allDrawings.postValue(currentList)
+        withContext(Dispatchers.IO) {
+            println("Repository: get file object associated with this file name")
+            val file = File(
+                context.filesDir,
+                updatedDrawing.fileName
+            ) //create an empty file file in 'fileDir' special private folder only for the paint app files
+            println("Repository: overide the old bitmap with the newly updated one")
+            saveBitmapToFile(updatedDrawing.bitmap, file)
+            //gives updates to those tracking live data
+            println("Repository:")
+            _allDrawings.postValue(currentList)
+        }
     }
 
     //save bitmap data in special private folder designated for app

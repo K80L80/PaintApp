@@ -3,6 +3,7 @@ package com.example.paintapp
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import androidx.room.Dao
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
@@ -17,5 +18,5 @@ interface DrawDAO {
     suspend fun deleteDrawing(drawingEntity: DrawEntity)
 
     @Query("SELECT * FROM drawings")
-    fun getAllDrawings(): LiveData<List<DrawEntity>>
+    fun getAllDrawings(): Flow<List<DrawEntity>>
 }
