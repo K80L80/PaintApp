@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
+import android.graphics.Typeface
 import android.util.Log
 import android.view.MotionEvent
 import androidx.lifecycle.LiveData
@@ -64,20 +65,16 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         _backendCanvas = Canvas(drawing.bitmap) //hook up selected drawing to backend canvas used for modifying the bitmap
     }
 
-    // Method to add a new drawing to the repository (aka appends new drawing to list of drawings)
-    private fun addNewDrawing(newDrawing: Drawing) {
-        viewModelScope.launch {
-            _drawRepository.addDrawing(newDrawing)
-        }
-    }
-
     //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
     fun createNewDrawing() {
         val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
-        val newDrawing = Drawing(id = System.currentTimeMillis(), bitmap = newBitmap, fileName = "new_drawing")
+
+        var newDrawing = defaultDrawing
 
         //adds new drawing to list backed by repo
-        addNewDrawing(newDrawing)
+        viewModelScope.launch {
+            newDrawing = _drawRepository.addDrawing(newBitmap)
+        }
 
         // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
         selectDrawing(newDrawing) //hooks up
@@ -452,7 +449,39 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 }
+fun createDefaultDrawing(id: Long, width: Int, height: Int, fileName: String): Drawing {
+    // Create an empty bitmap
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
+    // Initialize a canvas to draw on the bitmap
+    val canvas = Canvas(bitmap)
 
+    // Set background color
+    canvas.drawColor(Color.LTGRAY)
 
+    // Set up paint for text
+    val paint = Paint().apply {
+        color = Color.RED
+        textSize = 40f
+        typeface = Typeface.DEFAULT_BOLD
+        textAlign = Paint.Align.CENTER
+    }
+
+    // Draw the error message on the bitmap
+    val message = "Something went wrong with this drawing"
+    canvas.drawText(message, (width / 2).toFloat(), (height / 2).toFloat(), paint)
+
+    // Return a Drawing object with this bitmap and filename
+    return Drawing(
+        id = id,
+        bitmap = bitmap,
+        fileName = fileName
+    )
+}
+val defaultDrawing = createDefaultDrawing(
+    id = -1L, // Assign an invalid id or one that represents the default
+    width = 800, // Specify a default width
+    height = 600, // Specify a default height
+    fileName = "error_drawing.png"
+)
 

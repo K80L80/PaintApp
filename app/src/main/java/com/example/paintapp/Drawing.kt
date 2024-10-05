@@ -7,3 +7,4 @@ data class Drawing(
     val bitmap: Bitmap,   // In-memory bitmap used by the app
     val fileName: String  // Filename for reference
 )
+
