@@ -55,6 +55,8 @@ class MainScreen : Fragment() {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
         Log.i("MainScreen", "main screen created")
 
+        // Load all drawings when the fragment is opened
+        drawVM.loadAllDrawings()
 
         val navController = findNavController()
         // Add ComposeView to show a LazyColumn

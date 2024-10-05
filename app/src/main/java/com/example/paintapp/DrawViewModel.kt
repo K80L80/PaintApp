@@ -40,6 +40,14 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
 //    val drawings: LiveData<List<Drawing>> get() = _drawings
 
     val drawings : LiveData<List<Drawing>> = drawRepository.allDrawings
+    // Load all drawings once when the app starts or the menu is displayed
+
+    // Load all drawings once when the app starts or the menu is displayed
+    fun loadAllDrawings() {
+        viewModelScope.launch {
+            _drawRepository.loadAllDrawings()  // Trigger the repository to reload drawings and update LiveData
+        }
+    }
 
     //selected Drawing is session based (ie selected drawing does not need to be tracked in database since you always have to pick you drawing through main app and that is a decision relative to the current instance not across app instances)
     private val _selectedDrawing = MutableLiveData<Drawing?>()
