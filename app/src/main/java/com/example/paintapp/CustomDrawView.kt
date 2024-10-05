@@ -73,8 +73,8 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
     //8) This method was called by the fragment requesting the custom view to update its UI based on the fragment receiving word that the bitmap changed
     fun updateBitmap(bitmap: Bitmap) {
         Log.i("CustomDrawView", "6a updateBitmap called in custom view")
-        this.bitmap = bitmap //8a) the bitmap (associated with the canvas for displaying the user drawing)
-        this.userCanvas = Canvas(bitmap.copy(Bitmap.Config.ARGB_8888, true))
+        this.bitmap =  bitmap.copy(Bitmap.Config.ARGB_8888, true) //8a) the bitmap (associated with the canvas for displaying the user drawing)
+        this.userCanvas = Canvas()
         invalidate() //8b Since the bitmap was updated, this method call forces the view to redraw itself by triggering the onDraw method
     }
 
