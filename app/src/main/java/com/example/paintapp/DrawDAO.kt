@@ -8,7 +8,7 @@ import androidx.room.Dao
 @Dao
 interface DrawDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addDrawing(drawingEntity: DrawEntity)
+    suspend fun addDrawing(drawingEntity: DrawEntity) : Long //returns the id of the newly inserted record
 
     @Update
     suspend fun updateDrawing(drawingEntity: DrawEntity)

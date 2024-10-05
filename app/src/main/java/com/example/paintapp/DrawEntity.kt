@@ -9,5 +9,4 @@ import androidx.room.PrimaryKey
 data class DrawEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fileName: String, // This stores the path or name of the file
-    @Ignore val bitmap: Bitmap? = null //Bitmap ignored by Room, since that's not stored in database, but we need the field in memory still
 )

@@ -38,6 +38,22 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         }
     }
 
+    //Saves the bitmap data in a file to disk, and saves the path to it in the room database
+    suspend fun addDrawing(bitmap: Bitmap, fileName: String = "${System.currentTimeMillis()}.png"): Drawing{
+
+        //Save bitmap to disk
+        val file = File(context.filesDir, fileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
+        saveBitmapToFile(bitmap, file) //Add the bitmap data to this file
+
+        //Save path in room database
+        val drawEntity = DrawEntity(fileName = file.absolutePath) //Create a record (ie drawing record), with the absolute path as its field
+        val id = dao.addDrawing(drawEntity) //insert into database
+
+        //Return the Drawing object, now including the generated ID, file path, and bitmap
+        val drawing = Drawing(id = id, bitmap = bitmap, fileName= drawEntity.fileName)
+        return drawing
+    }
+
     suspend fun addDrawing(newDrawing: Drawing){
         //TODO: refactor to integrate doa
         //Get the current list, adds the new drawing to the end of the list, updates the live data
@@ -63,20 +79,12 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
     //save bitmap data in special private folder designated for app
     // Save bitmap to a file in the app's private folder
-    private suspend fun saveBitmapToFile(drawing: Drawing): File {
-        return withContext(Dispatchers.IO) {
-            // This is the private folder designated for your app
-            val directory = context.filesDir  //before using filesDir 'special private folder designated for app I need to setup app class so I can get the app context
-            val file = File(directory, "${drawing.id}.png")
-
-            // Save the bitmap to the file
-            val outputStream = file.outputStream()
-            drawing.bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-            outputStream.close()
-
-            file
+    private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
+        file.outputStream().use {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
     }
+
     private suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
         return withContext(Dispatchers.IO) {
             try {
