@@ -57,6 +57,8 @@ class MainScreen : Fragment() {
 
         // Load all drawings when the fragment is opened
         drawVM.loadAllDrawings()
+        println("MainScreen: loadAllDrawings() called")  // Debug print statement
+
 
         val navController = findNavController()
         // Add ComposeView to show a LazyColumn
@@ -70,7 +72,11 @@ class MainScreen : Fragment() {
         //this is the button that moves to the draw screen
         binding.button2.setOnClickListener {
             //creates a new bitmap and adds it to drawing list
+            println("Main Menu: new drawing button clicked  ")  // Debug print statement
+
             drawVM.createNewDrawing()
+            println("Main Menu: drawing created")  // Debug print statement
+
             navController.navigate(R.id.action_mainScreen_to_drawFragment)
             Log.d("KT MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
         }

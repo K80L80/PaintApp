@@ -29,12 +29,24 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     // When app starts up, transform filenames into Drawing objects with bitmaps
     suspend fun loadAllDrawings() {
         withContext(Dispatchers.IO) {
+            println("Repository: loadAllDrawings() - ViewModel scope launching")  // Debug print statement
             val drawingEntities = dao.getAllDrawings().value.orEmpty()
-            val drawings = drawingEntities.map { entity ->
-                val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
+            println("Repository: Retrieved drawing entities: ${drawingEntities.size} entities found")  // Debug statement
+
+            //load in all bitmaps if there are any
+            if(drawingEntities.isNotEmpty()) {
+                val drawings = drawingEntities.map { entity ->
+                    println("Repository: Loading bitmap for file: ${entity.fileName}")  // Debug statement
+                    val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
+                    Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
+                }
+                _allDrawings.postValue(drawings)
             }
-            _allDrawings.postValue(drawings)
+            //else no drawings have been created yet (empty gallary)
+            else{
+                println("Repository: No drawing entities found, posting empty list.")  // Debug statement
+                _allDrawings.postValue(emptyList())
+            }
         }
     }
 
@@ -55,6 +67,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
         currentList.add(newDrawing)
+
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
         _allDrawings.postValue(currentList )// uses post value to ensure thread safe if its called from background thread
 

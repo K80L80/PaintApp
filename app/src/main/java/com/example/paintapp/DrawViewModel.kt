@@ -69,15 +69,12 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     fun createNewDrawing() {
         val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
 
-        var newDrawing = defaultDrawing
-
         //adds new drawing to list backed by repo
         viewModelScope.launch {
-            newDrawing = _drawRepository.addDrawing(newBitmap)
+            val newDrawing = _drawRepository.addDrawing(newBitmap)
+            // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
+            selectDrawing(newDrawing) //hooks up
         }
-
-        // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
-        selectDrawing(newDrawing) //hooks up
     }
 
     //when user navigates away from the draw screen or clicks save, this will take their drawing and save any changes they made (so then when gallery is rendered they see their most recent updates in the thumbnail of their drawing)
