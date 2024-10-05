@@ -69,7 +69,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
-        currentList.add(newDrawing)
+        currentList[newDrawing.id.toInt()]
 
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
         _allDrawings.postValue(currentList )// uses post value to ensure thread safe if its called from background thread
@@ -91,19 +91,18 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         println("Repository: index: ${index} updatedDrawingId: ${updatedDrawing.id}")
         // Replace the old drawing with the updated one
-        currentList[index] = updatedDrawing // Update the drawing in the list
+        currentList[updatedDrawing.id.toInt()] = updatedDrawing // Update the drawing in the list
+        println("Repository:")
+        _allDrawings.postValue(currentList)
 
         withContext(Dispatchers.IO) {
-            println("Repository: get file object associated with this file name")
+            println("Repository: get file object associated with this file name updated: ${updatedDrawing.fileName}")
             val file = File(
-                context.filesDir,
                 updatedDrawing.fileName
             ) //create an empty file file in 'fileDir' special private folder only for the paint app files
             println("Repository: overide the old bitmap with the newly updated one")
             saveBitmapToFile(updatedDrawing.bitmap, file)
             //gives updates to those tracking live data
-            println("Repository:")
-            _allDrawings.postValue(currentList)
         }
     }
 
