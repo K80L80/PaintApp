@@ -79,7 +79,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
 
     suspend fun updateExistingDrawing(updatedDrawing: Drawing){
-
+        withContext(Dispatchers.IO){
         println("Repository: updateExistingDrawing")
 
         val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
@@ -91,18 +91,17 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         println("Repository: index: ${index} updatedDrawingId: ${updatedDrawing.id}")
         // Replace the old drawing with the updated one
-        currentList[updatedDrawing.id.toInt()] = updatedDrawing // Update the drawing in the list
+        currentList[updatedDrawing.id.toInt()-1] = updatedDrawing // Update the drawing in the list
         println("Repository:")
         _allDrawings.postValue(currentList)
 
-        withContext(Dispatchers.IO) {
-            println("Repository: get file object associated with this file name updated: ${updatedDrawing.fileName}")
-            val file = File(
-                updatedDrawing.fileName
-            ) //create an empty file file in 'fileDir' special private folder only for the paint app files
-            println("Repository: overide the old bitmap with the newly updated one")
-            saveBitmapToFile(updatedDrawing.bitmap, file)
-            //gives updates to those tracking live data
+        println("Repository: get file object associated with this file name updated: ${updatedDrawing.fileName}")
+        val file = File(
+            updatedDrawing.fileName
+        ) //create an empty file file in 'fileDir' special private folder only for the paint app files
+        println("Repository: overide the old bitmap with the newly updated one")
+        saveBitmapToFile(updatedDrawing.bitmap, file)
+        //gives updates to those tracking live data
         }
     }
 

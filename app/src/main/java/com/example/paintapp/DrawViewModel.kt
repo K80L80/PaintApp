@@ -51,7 +51,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
 
     //selected Drawing is session based (ie selected drawing does not need to be tracked in database since you always have to pick you drawing through main app and that is a decision relative to the current instance not across app instances)
-    private val _selectedDrawing = MutableLiveData<Drawing?>()
+    private var _selectedDrawing = MutableLiveData<Drawing?>()
     val selectedDrawing: LiveData<Drawing?> get() = _selectedDrawing
 
     // Backend canvas to modify the bitmap
