@@ -69,7 +69,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
-        currentList[newDrawing.id.toInt()]
+        currentList.add(newDrawing)
 
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
         _allDrawings.postValue(currentList )// uses post value to ensure thread safe if its called from background thread
@@ -117,9 +117,9 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     private suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
         return withContext(Dispatchers.IO) {
             try {
-                val file = File(context.filesDir, fileName)
+                val file = File(fileName)
                 if (file.exists()) {
-                    return@withContext BitmapFactory.decodeFile(file.absolutePath)
+                    BitmapFactory.decodeFile(file.absolutePath)
                 } else {
                     null
                 }
