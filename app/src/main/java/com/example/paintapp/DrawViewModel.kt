@@ -85,15 +85,11 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         // takes the user drawing (that they modified) and saves the changes to the List of drawings
         _selectedDrawing.value?.let { drawing ->
             val updatedDrawing = drawing.copy(bitmap = newBitmap)
-            updateExistingDrawing(updatedDrawing)
-        }
-    }
 
-    //called when user selects a previous drawing they created (displayed in main menu) and now wants to make edits to it
-    private fun updateExistingDrawing(updatedDrawing: Drawing) {
-        //takes user modified drawing and reflects those changes in the full list of drawings
-        viewModelScope.launch {
-            _drawRepository.updateExistingDrawing(updatedDrawing)
+            //takes user modified drawing and reflects those changes in the full list of drawings
+            viewModelScope.launch {
+                _drawRepository.updateExistingDrawing(updatedDrawing)
+            }
         }
     }
 
