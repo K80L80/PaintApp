@@ -49,19 +49,18 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         val drawEntity = DrawEntity(fileName = file.absolutePath) //Create a record (ie drawing record), with the absolute path as its field
         val id = dao.addDrawing(drawEntity) //insert into database
 
-        //Return the Drawing object, now including the generated ID, file path, and bitmap
-        val drawing = Drawing(id = id, bitmap = bitmap, fileName= drawEntity.fileName)
-        return drawing
+        //Create a Drawing object, now including the generated ID, file path, and bitmap
+        val newDrawing = Drawing(id = id, bitmap = bitmap, fileName= drawEntity.fileName)
+
+        //Get the current list, adds the new drawing to the end of the list, updates the live data
+        val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
+        currentList.add(newDrawing)
+        //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
+        _allDrawings.postValue(currentList )// uses post value to ensure thread safe if its called from background thread
+
+        return newDrawing
     }
 
-//    suspend fun addDrawing(newDrawing: Drawing){
-//        //TODO: refactor to integrate doa
-//        //Get the current list, adds the new drawing to the end of the list, updates the live data
-//        val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
-//        currentList.add(newDrawing)
-//        //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
-//        _allDrawings.postValue(currentList )// uses post value to ensure thread safe if its called from background thread
-//    }
 
     suspend fun updateExistingDrawing(updatedDrawing: Drawing ){
 
