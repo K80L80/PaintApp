@@ -75,7 +75,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
-        currentList[newDrawing.id.toInt()]
+        currentList.add(newDrawing)
 
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
         _allDrawings.postValue(currentList )// uses post value to ensure thread safe if its called from background thread
@@ -85,31 +85,25 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
 
     suspend fun updateExistingDrawing(updatedDrawing: Drawing){
-        withContext(Dispatchers.IO){
-            println("Repository: updateExistingDrawing")
-
+        //updates the list the viewer sees immediately on the main thread, this means that their modifications are immediately reflected in the list they see (ie giving the illusion of an instantaneous save even though it might take time to finish saving in the background)
+        withContext(Dispatchers.Main) {
             val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
-
-            println("Repository: currentList: ${currentList.size}")
 
             //Find the drawing in the list that matches this index
             val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
 
-            println("Repository: index: ${index} updatedDrawingId: ${updatedDrawing.id}")
             // Replace the old drawing with the updated one
-            currentList[index]= updatedDrawing // Update the drawing in the list
+            currentList[index] = updatedDrawing // Update the drawing in the list
 
-            println("In list repo tracks ${currentList[index]} ")
             _allDrawings.postValue(currentList)
-
-            println("Repository: get file object associated with this file name updated: ${updatedDrawing.fileName}")
+        }
+        //saving of the file to disk continues on a background thread
+        withContext(Dispatchers.IO){
             val file = File(
                 updatedDrawing.fileName
             ) //create an empty file file in 'fileDir' special private folder only for the paint app files
-            println("Repository: overide the old bitmap with the newly updated one")
             saveBitmapToFile(updatedDrawing.bitmap, file)
             //gives updates to those tracking live data
-            println("Repository: overide the old bitmap with the newly updated one")
         }
     }
 
