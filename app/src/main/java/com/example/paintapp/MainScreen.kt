@@ -55,18 +55,13 @@ class MainScreen : Fragment() {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
         Log.i("MainScreen", "main screen created")
 
-        // Load all drawings when the fragment is opened
-        drawVM.loadAllDrawings()
-        println("MainScreen: loadAllDrawings() called")  // Debug print statement
-
-
         val navController = findNavController()
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
             //load in all drawings from the view model and display is gallary
             val drawings by drawVM.drawings.observeAsState(emptyList())
+            Log.e("MainMenu", "set conetnt of compose view: drawings ${drawings}")
             GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
-            //LazyGrid(testDrawings)
         }
 
         //this is the button that moves to the draw screen
@@ -118,6 +113,8 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
             //user clicks on the drawing they want to modify
             .clickable {
                 //Use jetpack navigation and load in picture into custom draw
+                Log.e("MainMenu", "Thumbnail imgage was clicked!")
+                Log.e("MainMenu", "id: ${drawing.id}")
                 vm.selectDrawing(drawing)
                 navController.navigate(R.id.action_mainScreen_to_drawFragment)
         },
