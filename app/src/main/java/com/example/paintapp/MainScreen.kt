@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -87,15 +88,20 @@ class MainScreen : Fragment() {
 
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:DrawViewModel) {
+fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController, vm: DrawViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+
     ) {
         items(drawings) { drawing ->
-            FileGridItem(drawing,navController, vm)
+            // Adding a delay before loading each drawing
+            LaunchedEffect(drawing) {
+                kotlinx.coroutines.delay(100) // 100 ms delay, adjust as needed
+            }
+            FileGridItem(drawing, navController, vm)
         }
     }
 }

@@ -36,24 +36,21 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     suspend fun loadAllDrawings() {
         withContext(Dispatchers.IO) {
             Log.d("Repository", "loadAllDrawings() called")
-            //val drawingEntities = dao.getAllDrawings().collect { drawingEntities->
 
-           // Using .first() instead of collect() in a Kotlin coroutine flow means that the flow will emit only the first value and then stop listening to further updates. This is useful when you only need a one-time retrieval of data rather than continuous updates.
-            val drawingEntities = dao.getAllDrawings().first()
-            Log.d("Repository", ": ${drawingEntities.size} entities found")
-            //load in all bitmaps if there are any
-            if (drawingEntities.isNotEmpty()) {
-                val drawings = drawingEntities.map { entity ->
-                    val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                    Log.d("Repository","loading all drawings id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}")
-                    Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
+            dao.getAllDrawings().collect { drawingEntities ->
+                Log.d("Repository", "${drawingEntities.size} entities found")
+
+                if (drawingEntities.isNotEmpty()) {
+                    val drawings = drawingEntities.map { entity ->
+                        val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
+                        Log.d("Repository", "loading id = ${entity.id}, bitmap = $bitmap, fileName = ${entity.fileName}")
+                        Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
+                    }
+                    _allDrawings.postValue(drawings)
+                } else {
+                    Log.d("Repository", "No drawing entities found, posting empty list.")
+                    _allDrawings.postValue(emptyList())
                 }
-                _allDrawings.postValue(drawings)
-            }
-            //else no drawings have been created yet (empty gallary)
-            else {
-                println("Repository: No drawing entities found, posting empty list.")  // Debug statement
-                _allDrawings.postValue(emptyList())
             }
         }
     }
@@ -119,9 +116,10 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         return withContext(Dispatchers.IO) {
             try {
                 val file = File(fileName)
-                if (file.exists()) {
+                if (file.exists() && file.isFile) {
                     BitmapFactory.decodeFile(file.absolutePath)
                 } else {
+                    Log.e("Repository", "File does not exist: $fileName")
                     null
                 }
             } catch (e: Exception) {
