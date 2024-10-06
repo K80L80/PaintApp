@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 
 //TODO: pass DOA 'private val drawDao: DrawDAO'
 //TODO: eventually turn this to 'val allDrawings = drawDao.getAllDrawings()' but for testing sake leave it as is
@@ -45,7 +46,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             if (drawingEntities.isNotEmpty()) {
                 val drawings = drawingEntities.map { entity ->
                     val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                    Log.d("Repository","loading all drawings id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}")
+                    Log.d("Repository","loading all drawings, on thread ${Thread.currentThread().name}, id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}\n")
                     Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
                 }
                 _allDrawings.postValue(drawings)
@@ -120,7 +121,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             try {
                 val file = File(fileName)
                 if (file.exists()) {
-                    BitmapFactory.decodeFile(file.absolutePath)
+                    BitmapFactory.decodeFile(file.absolutePath)?.copy(Bitmap.Config.ARGB_8888, true)
                 } else {
                     null
                 }
@@ -132,4 +133,29 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
+
+    fun printLiveDataDrawings(liveData: MutableLiveData<List<Drawing>>) {
+        liveData.observeForever { drawings ->
+            if (drawings.isNullOrEmpty()) {
+                Log.d("LiveData", "No drawings found in LiveData.")
+                return@observeForever
+            }
+
+            val header = String.format("%-10s%-30s", "ID", "Name")
+            val divider = "-".repeat(90)
+
+            Log.d("LiveData", header)
+            Log.d("LiveData", divider)
+
+            for (drawing in drawings) {
+                val formattedRow = String.format(
+                    Locale.US,
+                    "%-10d%-30s",
+                    drawing.id,
+                    drawing.fileName,
+                )
+                Log.d("LiveData", formattedRow)
+            }
+        }
+    }
 }

@@ -69,9 +69,11 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
     fun createNewDrawing() {
         val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
+        Log.d("DrawingDebug", "Creating a new blank bitmap${newBitmap}")
 
         //adds new drawing to list backed by repo
         viewModelScope.launch {
+            Log.d("DrawingDebug", "Launching coroutine to add new drawing to repository${newBitmap}")
             val newDrawing = _drawRepository.addDrawing(newBitmap)
             // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
             selectDrawing(newDrawing) //hooks up

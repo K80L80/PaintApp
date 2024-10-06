@@ -64,10 +64,10 @@ class MainScreen : Fragment() {
             GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
         }
 
-        //this is the button that moves to the draw screen
+        //create new drawing button
         binding.button2.setOnClickListener {
             //creates a new bitmap and adds it to drawing list
-            Log.d("KT MainScreen", "Main Menu: new drawing button clicked  ")  // Debug print statement
+            Log.d("KT MainScreen", "new drawing button clicked!!!")  // Debug print statement
 
             drawVM.createNewDrawing()
             Log.d("KT MainScreen", "Main Menu: drawing created")  // Debug print statement
@@ -130,7 +130,6 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
 fun Drawing(bitmap: Bitmap,  aspectRatio: Float) {
     // Convert Bitmap to ImageBitmap to use in Compose
     val imageBitmap = bitmap.asImageBitmap()
-
     // Display the Bitmap as an Image
     Image(
         bitmap = imageBitmap,
