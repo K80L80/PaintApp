@@ -1,25 +1,16 @@
 package com.example.paintapp
-
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
-
-//TODO: pass DOA 'private val drawDao: DrawDAO'
-//TODO: eventually turn this to 'val allDrawings = drawDao.getAllDrawings()' but for testing sake leave it as is
-//val allDrawings: LiveData<List<Drawing>> get() =  generateTestDrawingsAsLiveData()
-// For testing: replace with actual DAO later
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
 
@@ -46,7 +37,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             if (drawingEntities.isNotEmpty()) {
                 val drawings = drawingEntities.map { entity ->
                     val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                    Log.d("Repository","loading all drawings, on thread ${Thread.currentThread().name}, id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}\n")
+                    Log.d("Repository","loading all drawings,id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}\n")
                     Drawing(id = entity.id, bitmap = bitmap, fileName = entity.fileName)
                 }
                 _allDrawings.postValue(drawings)

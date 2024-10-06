@@ -67,21 +67,16 @@ class MainScreen : Fragment() {
         //create new drawing button
         binding.button2.setOnClickListener {
             //creates a new bitmap and adds it to drawing list
-            Log.d("KT MainScreen", "new drawing button clicked!!!")  // Debug print statement
+            Log.d("MainScreen", "new drawing button clicked!!!")  // Debug print statement
 
             drawVM.createNewDrawing()
-            Log.d("KT MainScreen", "Main Menu: drawing created")  // Debug print statement
+            Log.d("MainScreen", "Main Menu: drawing created")  // Debug print statement
 
             navController.navigate(R.id.action_mainScreen_to_drawFragment)
-            Log.d("KT MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
+            Log.d("MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
         }
         return binding.root
 
-    }
-    // Mock function to get a list of file names (you should replace it with real data source)
-    fun getFileNames(): List<String> {
-        // In real application, fetch the list of files from Room or file storage
-        return listOf("Drawing1", "Drawing2", "Drawing3") // Example file names
     }
 }
 
