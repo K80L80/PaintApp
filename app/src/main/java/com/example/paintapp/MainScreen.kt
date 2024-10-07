@@ -67,13 +67,13 @@ class MainScreen : Fragment() {
         //create new drawing button
         binding.button2.setOnClickListener {
             //creates a new bitmap and adds it to drawing list
-            Log.d("MainScreen", "new drawing button clicked!!!")  // Debug print statement
+            Log.e("MainScreen", "new drawing button clicked!!!")  // Debug print statement
 
             drawVM.createNewDrawing()
-            Log.d("MainScreen", "Main Menu: drawing created")  // Debug print statement
+            Log.e("MainScreen", "Main Menu: drawing done being created")  // Debug print statement
 
             navController.navigate(R.id.action_mainScreen_to_drawFragment)
-            Log.d("MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
+            Log.e("MainScreen", "navigate to draw screen")
         }
         return binding.root
 
@@ -83,6 +83,7 @@ class MainScreen : Fragment() {
 // Composable function to display the file list using LazyColumn
 @Composable
 fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:DrawViewModel) {
+    Log.e("GalleryOfDrawings", "Rendering gallery with ${drawings.size} drawings")
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -90,6 +91,7 @@ fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:D
             .padding(16.dp)
     ) {
         items(drawings) { drawing ->
+            Log.d("GalleryOfDrawings", "Drawing ID: ${drawing.id}, Bitmap: ${drawing.bitmap}")
             FileGridItem(drawing,navController, vm)
         }
     }
@@ -116,6 +118,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
     ){
         //displays drawing
         Drawing(drawing.bitmap, aspectRatio)
+        Log.d("GalleryOfDrawings", "Drawing ID: ${drawing.id}, Bitmap: ${drawing.bitmap}")
         //displays file name
         Text(text = drawing.fileName)
     }

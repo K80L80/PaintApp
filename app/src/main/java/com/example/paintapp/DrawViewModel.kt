@@ -69,11 +69,11 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
     fun createNewDrawing() {
         val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
-        Log.d("DrawingDebug", "Creating a new blank bitmap${newBitmap}")
+        Log.e("ViewModel", "Creating a new blank bitmap${newBitmap}")
 
         //adds new drawing to list backed by repo
         viewModelScope.launch {
-            Log.d("DrawingDebug", "Launching coroutine to add new drawing to repository${newBitmap}")
+            Log.e("ViewModel", "Launching coroutine to add new drawing to repository${newBitmap}")
             val newDrawing = _drawRepository.addDrawing(newBitmap)
             // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
             selectDrawing(newDrawing) //hooks up
@@ -82,16 +82,16 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
 
     //when user navigates away from the draw screen or clicks save, this will take their drawing and save any changes they made (so then when gallery is rendered they see their most recent updates in the thumbnail of their drawing)
     fun saveCurrentDrawing(newBitmap: Bitmap) {
-        println("View-Model: saving current bitmap")  // Debug print statement
+        Log.e("ViewModel" ,"view-model recieved neww ${newBitmap}")  // Debug print statement
 
         // takes the user drawing (that they modified) and saves the changes to the List of drawings
         _selectedDrawing.value?.let { drawing ->
-            println("View-Model: id:${drawing.id} file: ${drawing.fileName}")
-            val updatedDrawing = drawing.copy(bitmap = newBitmap)
-
-            //takes user modified drawing and reflects those changes in the full list of drawings
+            Log.e("ViewModel", "grabbing selected bitmap (old bitmap) ${drawing.bitmap}")
+            val copiedDrawing = drawing.copy(bitmap = newBitmap)
+            Log.e("ViewModel", "creating copy using the (new bitmap) ${copiedDrawing.bitmap}")
+            val updatedDrawing = copiedDrawing
             viewModelScope.launch {
-                println("View-Model: id:${updatedDrawing.id} file: ${updatedDrawing.fileName}")
+                Log.e("ViewModel", "launching using on updated bitmap: ${updatedDrawing.bitmap}")
                 _drawRepository.updateExistingDrawing(updatedDrawing)
             }
         }
@@ -108,23 +108,17 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     private val _shouldReset = MutableLiveData<Boolean>()
 
     fun respondToResizeEvent(newWidth: Int, newHeight: Int) {
+        Log.i("ViewModel", "respond to resize event${_selectedDrawing.value?.bitmap}")
 
         val currentBitmap =  _selectedDrawing.value?.bitmap ?: return
 
-
-        Log.i("ViewModel", "New width: $newWidth, New height: $newHeight")
-        Log.i("ViewModel", "Current bitmap width: ${currentBitmap.width}, Current bitmap height: ${currentBitmap.height}")
-
-        Log.i("ViewModel", "4c restore old bitmap")
         if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
-            Log.i("ViewModel", "4d bitmap needs to be scaled!")
             val scaledBitmap = Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
-            //_bitmap.value = scaledBitmap //before
             _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = scaledBitmap) ////after
-            Log.i("ViewModel", "4e load backend canvas with scaled bitmap ")
-            _backendCanvas = Canvas(scaledBitmap) //
+            Log.i("ViewModel", "rescaled bitmap ${_selectedDrawing.value?.bitmap}")
+            _backendCanvas = Canvas(scaledBitmap)
         } else {
-            Log.i("ViewModel", "4f no resizing needed")
+            Log.i("ViewModel", " no resizing needed bitmap is: ${_selectedDrawing.value?.bitmap}")
         }
     }
 
@@ -235,11 +229,6 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // The ViewModel checks the currentShape property (which could be RECTANGLE, DIAMOND, or LINE) and calls the corresponding method to draw the shape.
     fun onUserDraw(x: Float, y: Float, event: MotionEvent) {
         val shape = _paintTool.value?.currentShape
-        Log.i(
-            "DrawViewModel",
-            "3 - determines which drawing logic: $shape x: $x, y: $y event: ${event.action} "
-        )
-
         //if its just a normal shape
         if (shape != "free" && (event.action == MotionEvent.ACTION_DOWN || event.action == MotionEvent.ACTION_MOVE)) {
             Log.i("DrawViewModel", "$x, y: $y, event type: ${event.classification}")
@@ -264,13 +253,9 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     //Drawing on the Bitmap: Each drawing method (e.g., drawRectangle(x, y, event)) modifies the bitmap based on the touch interaction.
     private fun drawSquare(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for rectangle on the bitmap
-        Log.i("DrawViewModel", "drawing a square")
-        // Drawing logic for rectangle on the bitmap
-
         val width: Float = this.getSize() ?: 30f //gets stroke width
         val height: Float = this.getSize() ?: 30f //gets stroke width
 
-        Log.i("DrawViewModel", "4a - (touch) drawing a random color")
         _paintTool.value?.let {
             _backendCanvas?.drawRect(
                 x + width / 2,
@@ -288,9 +273,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     private fun drawCircle(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for rectangle on the bitmap
         val radius: Float = this.getSize() ?: 30f
-        Log.i("DrawViewModel", "drawing a circle")
         _paintTool.value?.let {
-            Log.i("DrawViewModel", "drawing a circle")
             _backendCanvas?.drawCircle(x, y, radius, it.paint)
             _selectedDrawing.value?.bitmap?.let { bitmap ->
                 _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
@@ -304,7 +287,6 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         val height: Float = this.getSize() ?: 30f //gets stroke width
 
         val scaledUpHeight = height * 2
-        Log.i("DrawViewModel", "drawing a rectangle")
         _paintTool.value?.let {
             _backendCanvas?.drawRect(
                 x + width / 2,
@@ -365,7 +347,6 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     //must use path for non-uniform shapes (ie circle, rectangle)
     private fun drawDiamond(x: Float, y: Float, event: MotionEvent) {
         // Drawing logic for diamond on the bitmap
-        Log.i("DrawViewModel", "drawing a diamond")
 
         // Size of the diamond
         val size: Float = this.getSize() ?: 30f

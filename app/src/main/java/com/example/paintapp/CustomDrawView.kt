@@ -34,7 +34,6 @@ class CustomDrawView(context: Context, attrs: AttributeSet) : View(context, attr
      */
     override fun onTouchEvent(event: MotionEvent): Boolean { ////User touches custom view and android triggers the 'onTouchEvent' method supplying us with the event which captured the x and y coordinates and the event itself
         // onShapeDrawAction property (lambda variable) is invoked.This lambda was assigned in the fragment,  it actually calls the logic defined in the fragment
-        Log.i("CustomDrawView", "1 - touch detected, responds by calling the logic the fragment previously set relay x and y")
         onShapeDrawAction?.invoke(event.x, event.y, event)  // Callback to Fragment
         return true
     }

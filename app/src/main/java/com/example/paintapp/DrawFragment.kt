@@ -55,6 +55,7 @@ class DrawFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        Log.i("DrawFragment", "Drawing Screen Created")
         super.onViewCreated(view, savedInstanceState)
 
         //observe the drawing picked by the user (ie., earliery by clicking thumbnail)
@@ -67,7 +68,6 @@ class DrawFragment : Fragment() {
 
         //observing color changes
         drawViewModel.paintTool.observe(viewLifecycleOwner){
-            Log.i("DrawFragment - KS", "fragment observing a change to paint tool!!")
             //TODO: eventually want the paint tool and color to display on screen??
         }
 
@@ -136,10 +136,10 @@ class DrawFragment : Fragment() {
         //save button, sets callback
         val saveButton: Button = view.findViewById(R.id.saveBtn)
         saveButton.setOnClickListener{
-            println("Draw Fragment: drawing save button clicked")  // Debug print statement
-
+            Log.e("DrawFragment - KS","custom view.getBitmap: ${customDrawView.getBitmap()}")
             customDrawView.getBitmap()?.let{
                 // Assume customDrawView provides this method
+                Log.e("DrawFragment - KS","dvm.saveCurrentDrawing(it): $it")  // Debug print statement
                 drawViewModel.saveCurrentDrawing(it)
             }
         }
@@ -149,14 +149,14 @@ class DrawFragment : Fragment() {
             if (destination.id != R.id.drawFragment) { // Replace with your fragment ID
                 // Save the current bitmap when navigating away
                 customDrawView.getBitmap()?.let { currentBitmap ->
+                    Log.e("DrawFragment - KS", "navigating away !!!")
+                    Log.e("DrawFragment - KS", "sending this to view-model to be save: {$currentBitmap}")
                     drawViewModel.saveCurrentDrawing(currentBitmap)
-                    Log.i("DrawFragment", "Bitmap saved via back navigation")
                 } ?: run {
-                    Log.e("DrawFragment", "Failed to save: Bitmap is null")
+                    Log.e("DrawFragment - KS", "Failed to save: Bitmap is null")
                 }
             }
         }
-        Log.i("DrawFragment - KS", "1c (setup) - onViewCreated() ENDED")
     }
 
     /**Saves the bitmap for rotation
@@ -164,7 +164,7 @@ class DrawFragment : Fragment() {
      */
     override fun onPause() {
         super.onPause()
-        Log.d("DrawFragment - KS", "on pause() called because of rotation, fragment asks view to save drawing data")
+        Log.d("DrawFragment - KS", "on pause() called because of rotation, fragment asks view to save drawing data botmap: ${customDrawView.getBitmap()}")
         drawViewModel.setBitmap(customDrawView.getBitmap())
     }
 

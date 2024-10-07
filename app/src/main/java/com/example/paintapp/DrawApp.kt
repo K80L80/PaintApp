@@ -20,6 +20,13 @@ class DrawApp : Application() {
         super.onCreate()
         // Print the table contents when the app starts
         scope.launch {
+//            val success = deleteAllFilesFromFilesDir(applicationContext)
+//            if (success) {
+//                Log.d("FileDeletion", "All files deleted successfully.")
+//            } else {
+//                Log.e("FileDeletion", "Failed to delete some files.")
+//            }
+//            clearDatabase()
             printDrawingTable(db.drawDao())
         }
     }
@@ -41,27 +48,27 @@ class DrawApp : Application() {
 //        }
 //    }
 //
-//    private suspend fun clearDatabase() {
-//        // Clear all tables in the Room database
-//        db.clearAllTables()
-//    }
-//
-//    private fun deleteAllFilesFromFilesDir(context: Context): Boolean {
-//        val filesDir = context.filesDir
-//        if (filesDir.isDirectory) {
-//            val files = filesDir.listFiles()
-//            if (files != null) {
-//                for (file in files) {
-//                    if (!file.delete()) {
-//                        // If a file could not be deleted, return false
-//                        return false
-//                    }
-//                }
-//            }
-//        }
-//        // Return true if all files were successfully deleted
-//        return true
-//    }
+    private suspend fun clearDatabase() {
+        // Clear all tables in the Room database
+        db.clearAllTables()
+    }
+
+    private fun deleteAllFilesFromFilesDir(context: Context): Boolean {
+        val filesDir = context.filesDir
+        if (filesDir.isDirectory) {
+            val files = filesDir.listFiles()
+            if (files != null) {
+                for (file in files) {
+                    if (!file.delete()) {
+                        // If a file could not be deleted, return false
+                        return false
+                    }
+                }
+            }
+        }
+        // Return true if all files were successfully deleted
+        return true
+    }
 
 }
 
