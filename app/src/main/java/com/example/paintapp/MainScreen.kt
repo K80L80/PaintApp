@@ -9,26 +9,19 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,16 +30,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 
@@ -55,15 +44,15 @@ class MainScreen : Fragment() {
 
     private var buttonFunction: (() -> Unit)? = null
 
-    private val drawVM : DrawViewModel  by activityViewModels() {VMFactory(DrawRepository())}
-
+    //makes the view-model accessible in the fragment
+    private val drawVM: DrawViewModel by activityViewModels {
+        VMFactory((requireActivity().application as DrawApp).drawRepository)
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
-        Log.i("MainScreen", "main screen created")
-
 
         val navController = findNavController()
         // Add ComposeView to show a LazyColumn
@@ -71,23 +60,16 @@ class MainScreen : Fragment() {
             //load in all drawings from the view model and display is gallary
             val drawings by drawVM.drawings.observeAsState(emptyList())
             GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
-            //LazyGrid(testDrawings)
         }
 
-        //this is the button that moves to the draw screen
+        //create new drawing button
         binding.button2.setOnClickListener {
             //creates a new bitmap and adds it to drawing list
             drawVM.createNewDrawing()
             navController.navigate(R.id.action_mainScreen_to_drawFragment)
-            Log.d("KT MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
         }
         return binding.root
 
-    }
-    // Mock function to get a list of file names (you should replace it with real data source)
-    fun getFileNames(): List<String> {
-        // In real application, fetch the list of files from Room or file storage
-        return listOf("Drawing1", "Drawing2", "Drawing3") // Example file names
     }
 }
 
@@ -134,7 +116,6 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
 fun Drawing(bitmap: Bitmap,  aspectRatio: Float) {
     // Convert Bitmap to ImageBitmap to use in Compose
     val imageBitmap = bitmap.asImageBitmap()
-
     // Display the Bitmap as an Image
     Image(
         bitmap = imageBitmap,
