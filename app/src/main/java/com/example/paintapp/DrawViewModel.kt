@@ -17,6 +17,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 /**Data class to store all of our paint values, such as size, shape, and color.
@@ -74,9 +75,9 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         //adds new drawing to list backed by repo
         viewModelScope.launch {
             Log.e("ViewModel", "Launching coroutine to add new drawing to repository${newBitmap}")
-            val newDrawing = _drawRepository.addDrawing(newBitmap)
+            val newDrawing = async {_drawRepository.addDrawing(newBitmap)}
             // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
-            selectDrawing(newDrawing) //hooks up
+            selectDrawing(newDrawing.await()) //hooks up
         }
     }
 

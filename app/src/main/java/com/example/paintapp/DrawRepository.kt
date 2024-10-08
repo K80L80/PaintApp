@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -37,10 +39,13 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             //load in all bitmaps if there are any
             if (drawingEntities.isNotEmpty()) {
                 val drawings = drawingEntities.map { entity ->
-                    val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                    Log.d("Repository","loading all drawings,id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}\n")
-                    Drawing(id = entity.id, bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true), fileName = entity.fileName)
-                }
+                    async(Dispatchers.IO) {
+                        val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
+                        Log.d("Repository", "loading all drawings,id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}\n")
+                        Drawing(id = entity.id, bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true), fileName = entity.fileName)
+                    }
+                }.awaitAll()
+                Log.d("Repository", "ALL DRAWINGS LOADED!")
                 _allDrawings.postValue(drawings)
             }
             //else no drawings have been created yet (empty gallary)

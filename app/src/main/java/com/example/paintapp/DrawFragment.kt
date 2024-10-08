@@ -15,6 +15,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
 import yuku.ambilwarna.AmbilWarnaDialog
@@ -27,6 +28,8 @@ class DrawFragment : Fragment() {
     private val drawViewModel: DrawViewModel by activityViewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
+
+    private var listener: NavController.OnDestinationChangedListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -145,7 +148,7 @@ class DrawFragment : Fragment() {
         }
 
         // Listen for when the fragment is navigated away from
-        findNavController().addOnDestinationChangedListener { _, destination, _ ->
+        listener = NavController.OnDestinationChangedListener { _, destination, _ ->
             if (destination.id != R.id.drawFragment) { // Replace with your fragment ID
                 // Save the current bitmap when navigating away
                 customDrawView.getBitmap()?.let { currentBitmap ->
@@ -157,6 +160,13 @@ class DrawFragment : Fragment() {
                 }
             }
         }
+        // Register the listener
+        listener?.let {findNavController().addOnDestinationChangedListener(it)}
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        listener?.let { findNavController().removeOnDestinationChangedListener(it) } // Unregister the listener if necessary
     }
 
     /**Saves the bitmap for rotation
@@ -198,4 +208,6 @@ class DrawFragment : Fragment() {
             }
         }).show()
     }
+
+
 }
