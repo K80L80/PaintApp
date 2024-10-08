@@ -20,60 +20,10 @@ class DrawApp : Application() {
         super.onCreate()
         // Print the table contents when the app starts
         scope.launch {
-//            val success = deleteAllFilesFromFilesDir(applicationContext)
-//            if (success) {
-//                Log.d("FileDeletion", "All files deleted successfully.")
-//            } else {
-//                Log.e("FileDeletion", "Failed to delete some files.")
-//            }
-//            clearDatabase()
             printDrawingTable(db.drawDao())
         }
     }
-
-
-//    override fun onCreate() {
-//        super.onCreate()
-//
-//        // Perform both file and database cleanup
-//        scope.launch {
-//            // Delay to ensure app components are ready
-//            delay(5000)
-//
-//            // Clear the Room database
-//            clearDatabase()
-//
-//            // Delete all files in the filesDir
-//            deleteAllFilesFromFilesDir(this@DrawApp)
-//        }
-//    }
-//
-    private suspend fun clearDatabase() {
-        // Clear all tables in the Room database
-        db.clearAllTables()
-    }
-
-    private fun deleteAllFilesFromFilesDir(context: Context): Boolean {
-        val filesDir = context.filesDir
-        if (filesDir.isDirectory) {
-            val files = filesDir.listFiles()
-            if (files != null) {
-                for (file in files) {
-                    if (!file.delete()) {
-                        // If a file could not be deleted, return false
-                        return false
-                    }
-                }
-            }
-        }
-        // Return true if all files were successfully deleted
-        return true
-    }
-
 }
-
-
-
 
 //Notes: //In Android, every app has a default Application object created automatically by the system.
 //// This object represents the entire app's global state and is accessible from any part of the app using applicationContext.

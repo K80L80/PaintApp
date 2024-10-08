@@ -14,13 +14,11 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
 import yuku.ambilwarna.AmbilWarnaDialog
 
-//TODO – add a save button, and have user enter a filename to save their drawing
 class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
@@ -58,7 +56,6 @@ class DrawFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.i("DrawFragment", "Drawing Screen Created")
         super.onViewCreated(view, savedInstanceState)
 
         //observe the drawing picked by the user (ie., earliery by clicking thumbnail)
@@ -83,7 +80,6 @@ class DrawFragment : Fragment() {
         // Below handles all of the size button and slider functionality.
         val buttonChangeSize: Button = view.findViewById(R.id.buttonChangeSize)
         buttonChangeSize.setOnClickListener {
-            Log.i("DrawFragment - KS", "(button click) size changed button clicked")
             //get all of the layout pieces
             val dialogView = layoutInflater.inflate(R.layout.draw_bar_dialogue, null)
             val slider: Slider = dialogView.findViewById(R.id.sizeSlider)
@@ -114,7 +110,6 @@ class DrawFragment : Fragment() {
         // Set shape button
         val buttonChangeShape: Button = view.findViewById(R.id.buttonChangeShape)
         buttonChangeShape.setOnClickListener {
-            Log.i("DrawFragment", "button clicked")
             val shapes = arrayOf("free", "line", "circle", "square", "rectangle", "diamond")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Shape")
@@ -139,10 +134,8 @@ class DrawFragment : Fragment() {
         //save button, sets callback
         val saveButton: Button = view.findViewById(R.id.saveBtn)
         saveButton.setOnClickListener{
-            Log.e("DrawFragment - KS","custom view.getBitmap: ${customDrawView.getBitmap()}")
             customDrawView.getBitmap()?.let{
                 // Assume customDrawView provides this method
-                Log.e("DrawFragment - KS","dvm.saveCurrentDrawing(it): $it")  // Debug print statement
                 drawViewModel.saveCurrentDrawing(it)
             }
         }
@@ -152,11 +145,7 @@ class DrawFragment : Fragment() {
             if (destination.id != R.id.drawFragment) { // Replace with your fragment ID
                 // Save the current bitmap when navigating away
                 customDrawView.getBitmap()?.let { currentBitmap ->
-                    Log.e("DrawFragment - KS", "navigating away !!!")
-                    Log.e("DrawFragment - KS", "sending this to view-model to be save: {$currentBitmap}")
                     drawViewModel.saveCurrentDrawing(currentBitmap)
-                } ?: run {
-                    Log.e("DrawFragment - KS", "Failed to save: Bitmap is null")
                 }
             }
         }

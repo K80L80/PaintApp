@@ -38,9 +38,6 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Method to add a new drawing
     private val _drawRepository = drawRepository
 
-//    private val _drawings = MutableLiveData<List<Drawing>>()
-//    val drawings: LiveData<List<Drawing>> get() = _drawings
-
     val drawings : LiveData<List<Drawing>> = drawRepository.allDrawings
     // Load all drawings once when the app starts or the menu is displayed
 
@@ -51,7 +48,6 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Backend canvas to modify the bitmap
     private var _backendCanvas: Canvas? = null
     private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
-
 
     // Method to select a drawing (ie local reference to the drawing the user picked from the main menu that they want to now modify)
     fun selectDrawing(drawing: Drawing) {

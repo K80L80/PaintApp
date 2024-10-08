@@ -53,27 +53,20 @@ class MainScreen : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
-        Log.i("MainScreen", "main screen created")
 
         val navController = findNavController()
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
             //load in all drawings from the view model and display is gallary
             val drawings by drawVM.drawings.observeAsState(emptyList())
-            Log.e("MainMenu", "set conetnt of compose view: drawings ${drawings}")
             GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
         }
 
         //create new drawing button
         binding.button2.setOnClickListener {
             //creates a new bitmap and adds it to drawing list
-            Log.e("MainScreen", "new drawing button clicked!!!")  // Debug print statement
-
             drawVM.createNewDrawing()
-            Log.e("MainScreen", "Main Menu: drawing done being created")  // Debug print statement
-
             navController.navigate(R.id.action_mainScreen_to_drawFragment)
-            Log.e("MainScreen", "navigate to draw screen")
         }
         return binding.root
 
@@ -83,7 +76,6 @@ class MainScreen : Fragment() {
 // Composable function to display the file list using LazyColumn
 @Composable
 fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:DrawViewModel) {
-    Log.e("GalleryOfDrawings", "Rendering gallery with ${drawings.size} drawings")
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -91,7 +83,6 @@ fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController,vm:D
             .padding(16.dp)
     ) {
         items(drawings) { drawing ->
-            Log.d("GalleryOfDrawings", "Drawing ID: ${drawing.id}, Bitmap: ${drawing.bitmap}")
             FileGridItem(drawing,navController, vm)
         }
     }
@@ -110,15 +101,12 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
             //user clicks on the drawing they want to modify
             .clickable {
                 //Use jetpack navigation and load in picture into custom draw
-                Log.e("MainMenu", "Thumbnail imgage was clicked!")
-                Log.e("MainMenu", "id: ${drawing.id}")
                 vm.selectDrawing(drawing)
                 navController.navigate(R.id.action_mainScreen_to_drawFragment)
         },
     ){
         //displays drawing
         Drawing(drawing.bitmap, aspectRatio)
-        Log.d("GalleryOfDrawings", "Drawing ID: ${drawing.id}, Bitmap: ${drawing.bitmap}")
         //displays file name
         Text(text = drawing.fileName)
     }

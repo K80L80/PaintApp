@@ -8,12 +8,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.Locale
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
 
@@ -28,112 +26,99 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     // When app starts up, transform filenames into Drawing objects with bitmaps
-    suspend fun loadAllDrawings() {
+    private suspend fun loadAllDrawings() {
         withContext(Dispatchers.IO) {
-            Log.d("Repository", "loadAllDrawings() called")
-            //val drawingEntities = dao.getAllDrawings().collect { drawingEntities->
-
-           // Using .first() instead of collect() in a Kotlin coroutine flow means that the flow will emit only the first value and then stop listening to further updates. This is useful when you only need a one-time retrieval of data rather than continuous updates.
+            // Using .first() instead of collect() in a Kotlin coroutine flow means that the flow will emit only the first value and then stop listening to further updates. This is useful when you only need a one-time retrieval of data rather than continuous updates.
             val drawingEntities = dao.getAllDrawings().first()
-            Log.d("Repository", ": ${drawingEntities.size} entities found")
             //load in all bitmaps if there are any
             if (drawingEntities.isNotEmpty()) {
                 val drawings = drawingEntities.map { entity ->
                     async(Dispatchers.IO) {
                         val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                        Log.d("Repository", "loading all drawings,id = ${entity.id}, bitmap = ${bitmap}, fileName = ${entity.fileName}\n")
-                        Drawing(id = entity.id, bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true), fileName = entity.fileName)
+                        Drawing(
+                            id = entity.id,
+                            bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
+                            fileName = entity.fileName
+                        )
                     }
                 }.awaitAll()
-                Log.d("Repository", "ALL DRAWINGS LOADED!")
                 _allDrawings.postValue(drawings)
             }
             //else no drawings have been created yet (empty gallary)
             else {
-                println("Repository: No drawing entities found, posting empty list.")  // Debug statement
                 _allDrawings.postValue(emptyList())
             }
         }
     }
 
     //Saves the bitmap data in a file to disk, and saves the path to it in the room database
-    suspend fun addDrawing(bitmap: Bitmap, fileName: String = "${System.currentTimeMillis()}.png"): Drawing{
-        Log.e("Repository", "${bitmap}, filName${fileName}")
+    suspend fun addDrawing(
+        bitmap: Bitmap,
+        fileName: String = "${System.currentTimeMillis()}.png"
+    ): Drawing {
         //Save bitmap to disk
-        val file = File(context.filesDir, fileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
+        val file = File(
+            context.filesDir,
+            fileName
+        ) //create an empty file file in 'fileDir' special private folder only for the paint app files
         saveBitmapToFile(bitmap, file) //Add the bitmap data to this file
 
         //Save path in room database
-        val drawEntity = DrawEntity(fileName = file.absolutePath) //Create a record (ie drawing record), with the absolute path as its field
+        val drawEntity =
+            DrawEntity(fileName = file.absolutePath) //Create a record (ie drawing record), with the absolute path as its field
         val id = dao.addDrawing(drawEntity) //insert into database
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
-        val newDrawing = Drawing(id = id, bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true), fileName= drawEntity.fileName)
+        val newDrawing = Drawing(
+            id = id,
+            bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
+            fileName = drawEntity.fileName
+        )
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
-        val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
+        val currentList = _allDrawings.value.orEmpty()
+            .toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
         currentList.add(newDrawing)
 
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
-        _allDrawings.postValue(currentList )// uses post value to ensure thread safe if its called from background thread
+        _allDrawings.postValue(currentList)// uses post value to ensure thread safe if its called from background thread
 
         return newDrawing
     }
 
 
-    suspend fun updateExistingDrawing(updatedDrawing: Drawing){
+    suspend fun updateExistingDrawing(updatedDrawing: Drawing) {
         //updates the list the viewer sees immediately on the main thread, this means that their modifications are immediately reflected in the list they see (ie giving the illusion of an instantaneous save even though it might take time to finish saving in the background)
-        Log.e("Repository", "got this bitmap: ${updatedDrawing.bitmap}")
         withContext(Dispatchers.Main) {
             val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
 
             //Find the drawing in the list that matches this index
             val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
 
-            Log.e("Repository", "current[${index}] = bitmap: ${updatedDrawing.bitmap}")
             // Replace the old drawing with the updated one
             val updatedBitmap = updatedDrawing.bitmap.copy(Bitmap.Config.ARGB_8888, true)
             currentList[index] = updatedDrawing.copy(bitmap = updatedBitmap)
-           //currentList[index] = updatedDrawing // Update the drawing in the list
-
             _allDrawings.setValue(currentList)
         }
         //saving of the file to disk continues on a background thread
-        withContext(Dispatchers.IO){
-            Log.e("Repository","inside IO dispatcher: bitmap:  ${updatedDrawing.bitmap}")
+        withContext(Dispatchers.IO) {
             val file = File(
                 updatedDrawing.fileName
             ) //create an empty file file in 'fileDir' special private folder only for the paint app files
-            Log.e("Repository","right before saving bitmap to file bitmap:  ${updatedDrawing.bitmap}")
-            saveBitmapToFile(updatedDrawing.bitmap, file)
-            //gives updates to those tracking live data
+            saveBitmapToFile(
+                updatedDrawing.bitmap,
+                file
+            ) ///gives updates to those tracking live data
         }
     }
 
     //save bitmap data in special private folder designated for app
     // Save bitmap to a file in the app's private folder
     private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
-        Log.e("Repository","inside saveBitmapToFile method bitmap: ${bitmap}")
         file.outputStream().use {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
     }
-
-//    private suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
-//        return withContext(Dispatchers.IO) {
-//            try {
-//                val file = File(fileName)
-//                if (file.exists()) {
-//                    BitmapFactory.decodeFile(file.absolutePath)?.copy(Bitmap.Config.ARGB_8888, true)
-//                } else {
-//                    null
-//                }
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//                null
-//            }
-//        }
-//    }
 
     private suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
         return withContext(Dispatchers.IO) {
@@ -142,13 +127,8 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
                 if (file.exists()) {
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                     if (bitmap != null) {
-                        Log.d("BitmapDebug", "Successfully loaded bitmap from file: $fileName")
                         return@withContext bitmap.copy(Bitmap.Config.ARGB_8888, true)
-                    } else {
-                        Log.e("BitmapDebug", "Failed to decode bitmap from file: $fileName")
                     }
-                } else {
-                    Log.e("BitmapDebug", "File does not exist: $fileName")
                 }
             } catch (e: Exception) {
                 Log.e("BitmapDebug", "Error loading bitmap from file: $fileName", e)
@@ -156,30 +136,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             return@withContext null
         }
     }
-    val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
 
-    fun printLiveDataDrawings(liveData: MutableLiveData<List<Drawing>>) {
-        liveData.observeForever { drawings ->
-            if (drawings.isNullOrEmpty()) {
-                Log.d("LiveData", "No drawings found in LiveData.")
-                return@observeForever
-            }
-
-            val header = String.format("%-10s%-30s", "ID", "Name")
-            val divider = "-".repeat(90)
-
-            Log.d("LiveData", header)
-            Log.d("LiveData", divider)
-
-            for (drawing in drawings) {
-                val formattedRow = String.format(
-                    Locale.US,
-                    "%-10d%-30s",
-                    drawing.id,
-                    drawing.fileName,
-                )
-                Log.d("LiveData", formattedRow)
-            }
-        }
-    }
+    private val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
 }
+
