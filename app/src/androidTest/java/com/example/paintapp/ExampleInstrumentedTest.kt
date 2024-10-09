@@ -28,6 +28,7 @@ import androidx.navigation.Navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
@@ -168,16 +169,15 @@ class MainActivityTest {
     @Test
     fun testNavigation() {
         composeTestRule.setContent {
-            // Use your Navigation Graph
             val navController = rememberNavController()
             // Set the starting destination
             NavHost(navController, startDestination = "splash") {
                 // Define your composables here
                 composable("splash") { SplashScreenFragment() }
                 composable("mainScreen") { MainScreen() }
-                // Add other destinations here
             }
         }
+        composeTestRule.mainClock.advanceTimeBy(3500)
 
         // Assertion: Verify if the navigation happened
         composeTestRule.onNodeWithText("New Drawing").assertExists()
