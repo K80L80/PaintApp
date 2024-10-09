@@ -2,12 +2,16 @@ package com.example.paintapp
 
 import android.graphics.Color
 import android.util.Log
+import android.view.View
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.fragment.app.testing.FragmentScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -19,16 +23,24 @@ import org.junit.Assert.*
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.testing.TestLifecycleOwner
+import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.filters.MediumTest
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Before
 import org.junit.Rule
+import org.mockito.Mockito.*
+import org.mockito.kotlin.any
 
 
 /**
@@ -59,12 +71,35 @@ class testanimation {
     }
 
     @Test
-    fun testDisplay(){
-
+    fun testSplashScreenComposable() {
+        composeTestRule.setContent {
+            ShowSplashScreenAnimation {}
+        }
+        composeTestRule.onNodeWithText("Welcome to the Paint App!\nLet's start drawing ✌️!")
+            .assertIsDisplayed()
+        composeTestRule.mainClock.advanceTimeBy(1000)
+        composeTestRule.onNodeWithText("Welcome to the Paint App!\nLet's start drawing ✌️!")
+            .assertDoesNotExist()
     }
+    @Test
+    fun testSplashScreenNavigation() {
+        var isNavigated = false
+
+        composeTestRule.setContent {
+            ShowSplashScreenAnimation {
+                isNavigated = true
+            }
+        }
+
+        // After 2 seconds, the navigation should have triggered
+        composeTestRule.mainClock.advanceTimeBy(2000)
+
+        assertTrue(isNavigated)
+    }
+
 }
 @MediumTest
-class MainScreenAndDrawFragmentTest {
+class VmTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
@@ -122,21 +157,30 @@ class MainScreenAndDrawFragmentTest {
         }
         assert(drawViewModel.drawings.value?.isNotEmpty() == true)
     }
+}
+
+@MediumTest
+class MainActivityTest {
+
+    @get:Rule
+    val composeTestRule = createComposeRule()
 
     @Test
-    fun testNavigateToDrawFragment() {
+    fun testNavigation() {
         composeTestRule.setContent {
-            ShowSplashScreenAnimation {}
-            composeTestRule.mainClock.advanceTimeBy(4000)
+            // Use your Navigation Graph
+            val navController = rememberNavController()
+            // Set the starting destination
+            NavHost(navController, startDestination = "splash") {
+                // Define your composables here
+                composable("splash") { SplashScreenFragment() }
+                composable("mainScreen") { MainScreen() }
+                // Add other destinations here
+            }
         }
 
-        composeTestRule.onNodeWithText("New Drawing")
-            .performClick()
-
-        composeTestRule.onNodeWithText("New Drawing")
-            .assertExists()
-
-//        assert(navController.currentDestination?.id == R.id.drawFragment)
+        // Assertion: Verify if the navigation happened
+        composeTestRule.onNodeWithText("New Drawing").assertExists()
     }
 }
 
@@ -204,7 +248,7 @@ class MainScreenAndDrawFragmentTest {
 //    @Test
 //    fun testNavigate() {
 //        // Launch the MainView fragment
-//        val scenario = launchFragmentInContainer<MainScreen>() //Unresolved reference: launchFragmentInContainer
+//        val scenario = launchFragmentInContainer<MainScreen>()
 //
 //        scenario.onFragment { fragment ->
 //            Log.wtf("Fragment Test", "Current Fragment: ${fragment?.javaClass?.simpleName}")
@@ -214,7 +258,7 @@ class MainScreenAndDrawFragmentTest {
 //
 //    @Test
 //    fun testNavigateMainButton() {
-//        val scenario = launchFragmentInContainer<MainScreen>() //Unresolved reference: launchFragmentInContainer
+//        val scenario = launchFragmentInContainer<MainScreen>()
 //        onView(withId(R.id.button2)).perform(click()).check(matches(isClickable()))
 //
 //    }

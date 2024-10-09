@@ -26,7 +26,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     // When app starts up, transform filenames into Drawing objects with bitmaps
-    private suspend fun loadAllDrawings() {
+     suspend fun loadAllDrawings() {
         withContext(Dispatchers.IO) {
             // Using .first() instead of collect() in a Kotlin coroutine flow means that the flow will emit only the first value and then stop listening to further updates. This is useful when you only need a one-time retrieval of data rather than continuous updates.
             val drawingEntities = dao.getAllDrawings().first()

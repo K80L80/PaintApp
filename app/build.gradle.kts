@@ -117,4 +117,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.1")
 
+    androidTestImplementation("org.mockito:mockito-core:4.6.1")
+    androidTestImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
+
 }

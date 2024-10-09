@@ -45,7 +45,7 @@ class MainScreen : Fragment() {
     private var buttonFunction: (() -> Unit)? = null
 
     //makes the view-model accessible in the fragment
-    private val drawVM: DrawViewModel by activityViewModels {
+     val drawVM: DrawViewModel by activityViewModels {
         VMFactory((requireActivity().application as DrawApp).drawRepository)
     }
     override fun onCreateView(
