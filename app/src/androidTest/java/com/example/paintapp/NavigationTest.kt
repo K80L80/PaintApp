@@ -1,48 +1,21 @@
 package com.example.paintapp
 
-import android.widget.Button
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.test.assert
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.Navigation
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.TimeSource
-import kotlin.time.measureTime
 
 //By using this technique, the NavController is available before onViewCreated() is called, allowing the fragment to use NavigationUI methods without crashing.
 @RunWith(AndroidJUnit4::class)
@@ -186,34 +159,38 @@ class TitleScreenTest {
         }
     }
 
-//
-//    //While on main menu does clicking 'new drawing' button take you to the drawing screen?
-//    @Test
-//    fun drawFragmentToMainMenu() {
-//        val scenario = launchFragmentInContainer {
-//            MainScreen().also { fragment ->
-//
-//                // In addition to returning a new instance of our Fragment,
-//                // get a callback whenever the fragment’s view is created
-//                // or destroyed so that we can set the NavController
-//                fragment.viewLifecycleOwnerLiveData.observeForever { viewLifecycleOwner ->
-//                    if (viewLifecycleOwner != null) {
-//                        // The fragment’s view has just been created
-//                        navController.setGraph(R.navigation.nav_graph)
-//                        Navigation.setViewNavController(fragment.requireView(), navController)
-//                    }
-//                }
-//            }
-//        }
-//        // Simulate the button click that should trigger navigation to DrawFragment
-//        scenario.onFragment { fragment ->
-//            // Find button2 and perform click
-//            val button2 = fragment.requireView().findViewById<Button>(R.id.button2)
-//            button2.performClick()
-//
-//            // Assert that the correct navigation action has been triggered
-//            assert(navController.currentDestination?.id == R.id.drawFragment)
-//        }
-//    }
 
+    //While on main menu does clicking 'new drawing' button take you to the drawing screen?
+    @Test
+    fun mainMenuToDrawFragment() {
+
+        val mainScreen = launchFragmentInContainer<MainScreen>()
+        // Step 3: Set up the mock NavController when the view is created
+
+        mainScreen.onFragment { fragment ->
+            fragment.viewLifecycleOwnerLiveData.observeForever { viewLifecycleOwner ->
+                val navController = TestNavHostController(fragment.requireContext())
+                navController.setGraph(R.navigation.nav_graph)
+
+                // Set the current destination to MainScreen manually
+                navController.setCurrentDestination(R.id.mainScreen)
+
+                // Attach the NavController to the fragment's view
+                Navigation.setViewNavController(fragment.requireView(), navController)
+                }
+            }
+
+
+        // Step 4: Simulate the button click that should trigger navigation to DrawFragment
+        onView(withId(R.id.button2)).perform(click())
+
+        // Use Espresso idle synchronization to ensure UI is idle before checking nav state
+        Espresso.onIdle()
+
+        // Introduce a delay to wait for the navigation to complete
+        mainScreen.onFragment { fragment ->
+            val navController = Navigation.findNavController(fragment.requireView())
+            assert(navController.currentDestination?.id == R.id.drawFragment)
+        }
+    }
 }

@@ -45,6 +45,12 @@ class MainScreen : Fragment() {
 
     private var buttonFunction: (() -> Unit)? = null
 
+    // Navigation handler, initialized to null
+    private var navigateToDrawFragment: () -> Unit  = { //ON STACK TRACE FAIL
+        val navController = findNavController()
+        navController.navigate(R.id.action_mainScreen_to_drawFragment) //ON STACK TRACE FAIL
+    }
+
     //makes the view-model accessible in the fragment
     private val drawVM: DrawViewModel by activityViewModels {
         VMFactory((requireActivity().application as DrawApp).drawRepository)
@@ -56,13 +62,13 @@ class MainScreen : Fragment() {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
         Log.i("MainScreen", "main screen created")
 
-        val navController = findNavController()
+
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
             //load in all drawings from the view model and display is gallary
             val drawings by drawVM.drawings.observeAsState(emptyList())
             Log.e("MainMenu", "set conetnt of compose view: drawings ${drawings}")
-            GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
+            GalleryOfDrawings(drawings,drawVM, navigateToDrawFragment) //Required: List<Drawing> Found: LiveData<List<Drawing>>
         }
 
         //this is the button that moves to the draw screen
@@ -73,22 +79,17 @@ class MainScreen : Fragment() {
             drawVM.createNewDrawing()
             Log.d("KT MainScreen", "Main Menu: drawing created")  // Debug print statement
 
-            navController.navigate(R.id.action_mainScreen_to_drawFragment)
+            navigateToDrawFragment.invoke() //FAILING HERE
             Log.d("KT MainScreen", "navigate using action pass arguments using view model instead of safe-args ")
         }
         return binding.root
 
     }
-    // Mock function to get a list of file names (you should replace it with real data source)
-    fun getFileNames(): List<String> {
-        // In real application, fetch the list of files from Room or file storage
-        return listOf("Drawing1", "Drawing2", "Drawing3") // Example file names
-    }
 }
 
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController, vm: DrawViewModel) {
+fun GalleryOfDrawings(drawings: List<Drawing>, vm: DrawViewModel, navigateToDrawFragment: (() -> Unit)) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -101,13 +102,13 @@ fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController, vm:
             LaunchedEffect(drawing) {
                 kotlinx.coroutines.delay(100) // 100 ms delay, adjust as needed
             }
-            FileGridItem(drawing, navController, vm)
+            FileGridItem(drawing, vm, navigateToDrawFragment)
         }
     }
 }
 
 @Composable
-fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewModel){
+fun FileGridItem(drawing: Drawing, vm: DrawViewModel,navigateToDrawFragment: (() -> Unit)){
     val aspectRatio = getAspectRatioForOrientation()
     //creates box effect holds drawing and file name
     Column (
@@ -127,7 +128,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
                 Log.e("MainMenu", "Thumbnail imgage was clicked!")
                 Log.e("MainMenu", "id: ${drawing.id}")
                 vm.selectDrawing(drawing)
-                navController.navigate(R.id.action_mainScreen_to_drawFragment)
+                navigateToDrawFragment.invoke()
             },
     ){
         //displays drawing
