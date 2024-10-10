@@ -89,6 +89,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.activity:activity-ktx:1.7.2")
     implementation("androidx.lifecycle:lifecycle-runtime-testing:2.8.6")
+    implementation("androidx.navigation:navigation-testing:2.8.2")
 
     // Room for persistence
     ksp("androidx.room:room-compiler:2.6.1")

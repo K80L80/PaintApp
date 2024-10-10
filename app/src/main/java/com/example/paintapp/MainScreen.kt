@@ -115,7 +115,12 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
         modifier = Modifier
             .fillMaxWidth() // Adjust the width of each column
             .padding(8.dp)  // Add padding between grid items
-            .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
+            .border(
+                BorderStroke(
+                    2.dp,
+                    Color.Gray
+                )
+            ) // Add a border with 2dp thickness and gray color
             //user clicks on the drawing they want to modify
             .clickable {
                 //Use jetpack navigation and load in picture into custom draw
@@ -123,7 +128,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
                 Log.e("MainMenu", "id: ${drawing.id}")
                 vm.selectDrawing(drawing)
                 navController.navigate(R.id.action_mainScreen_to_drawFragment)
-        },
+            },
     ){
         //displays drawing
         Drawing(drawing.bitmap, aspectRatio)
