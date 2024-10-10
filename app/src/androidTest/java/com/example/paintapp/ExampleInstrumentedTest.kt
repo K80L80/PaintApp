@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.View
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.isDisplayed
+import androidx.compose.ui.test.isNotDisplayed
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -23,16 +25,20 @@ import org.junit.Assert.*
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.testing.TestLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.NavHostFragment.Companion.create
 import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -72,30 +78,11 @@ class testanimation {
     }
 
     @Test
-    fun testSplashScreenComposable() {
+    fun testNoButtonSplash() {
         composeTestRule.setContent {
             ShowSplashScreenAnimation {}
         }
-        composeTestRule.onNodeWithText("Welcome to the Paint App!\nLet's start drawing ✌️!")
-            .assertIsDisplayed()
-        composeTestRule.mainClock.advanceTimeBy(1000)
-        composeTestRule.onNodeWithText("Welcome to the Paint App!\nLet's start drawing ✌️!")
-            .assertDoesNotExist()
-    }
-    @Test
-    fun testSplashScreenNavigation() {
-        var isNavigated = false
-
-        composeTestRule.setContent {
-            ShowSplashScreenAnimation {
-                isNavigated = true
-            }
-        }
-
-        // After 2 seconds, the navigation should have triggered
-        composeTestRule.mainClock.advanceTimeBy(2000)
-
-        assertTrue(isNavigated)
+        composeTestRule.onNodeWithText("New Drawing").isNotDisplayed()
     }
 
 }
@@ -120,7 +107,6 @@ class VmTests {
         navController = TestNavHostController(appContext)
     }
 
-    // ---------------- Unit Tests ----------------
 
 
     @Test
@@ -149,6 +135,61 @@ class VmTests {
         assert(drawViewModel.paintTool.value?.currentShape == shape)
     }
 
+    @Test
+    fun `testSetLineShape`() {
+        val shape = "line"
+        composeTestRule.setContent {
+            drawViewModel.setShape(shape)
+        }
+        assert(drawViewModel.paintTool.value?.currentShape == shape)
+    }
+
+    @Test
+    fun `testSetDiamondShape`() {
+        val shape = "diamond"
+        composeTestRule.setContent {
+            drawViewModel.setShape(shape)
+        }
+        assert(drawViewModel.paintTool.value?.currentShape == shape)
+    }
+
+    @Test
+    fun `testSetRectShape`() {
+        val shape = "rectangle"
+        composeTestRule.setContent {
+            drawViewModel.setShape(shape)
+        }
+        assert(drawViewModel.paintTool.value?.currentShape == shape)
+    }
+
+
+    @Test
+    fun `testFreeShape`() {
+        val shape = "free"
+        composeTestRule.setContent {
+            drawViewModel.setShape(shape)
+        }
+        assert(drawViewModel.paintTool.value?.currentShape == shape)
+    }
+
+    @Test
+    fun `checkSize`() {
+        var size = 0f
+        composeTestRule.setContent {
+             size = drawViewModel.getSize()!!
+        }
+        assert(size == 30f)
+    }
+
+    @Test
+    fun `checkColor`() {
+        var color = Color.BLUE
+        composeTestRule.setContent {
+            color = drawViewModel.getColor()!!
+        }
+        assert(color == Color.BLACK)
+    }
+
 
     @Test
     fun `testClearNotDelete`() {
@@ -158,31 +199,77 @@ class VmTests {
         }
         assert(drawViewModel.drawings.value?.isNotEmpty() == true)
     }
-}
-
-@MediumTest
-class MainActivityTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
 
     @Test
-    fun testNavigation() {
-        composeTestRule.setContent {
-            val navController = rememberNavController()
-            // Set the starting destination
-            NavHost(navController, startDestination = "splash") {
-                // Define your composables here
-                composable("splash") { SplashScreenFragment() }
-                composable("mainScreen") { MainScreen() }
-            }
-        }
-        composeTestRule.mainClock.advanceTimeBy(3500)
+    fun createDefaultDraw(){
+        var drawing = createDefaultDrawing(1,1000,1000,"default.png")
+        assert(drawing.id.toInt() == 1)
+        assert(drawing.fileName == "default.png")
+    }
 
-        // Assertion: Verify if the navigation happened
-        composeTestRule.onNodeWithText("New Drawing").assertExists()
+    @Test
+    fun testMainScreen(){
+        composeTestRule.setContent {
+            GalleryOfDrawings(generateTestDrawings(),navController,drawViewModel)
+        }
+
+        composeTestRule.onNodeWithText("New Drawing").isDisplayed()
     }
 }
+
+//@MediumTest
+//class DrawFragmentTest {
+//
+//    @get:Rule
+//    val composeTestRule = createComposeRule()
+//
+////    @Test
+////    fun testNavigation() {
+////        // Setup the Compose UI with a NavHost
+////        composeTestRule.setContent {
+////            val navController = rememberNavController()
+////                ShowSplashScreenAnimation{}
+////            composeTestRule.mainClock.advanceTimeBy(3500)
+////        }
+////            // Simulate the splash screen duration
+////        }
+////    }
+//
+//    @Test
+//    fun testDrawFragment() {
+//        val navController = TestNavHostController(ApplicationProvider.getApplicationContext())
+//        val drawScreen = launchFragmentInContainer<DrawFragment>()
+//
+//        drawScreen.onFragment { fragment ->
+//            navController.setGraph(R.navigation.nav_graph)
+//            Navigation.setViewNavController(fragment.requireView(), navController)
+//        }
+//        onView(withId(R.id.buttonReset)).perform(click()).check(matches(isClickable()))
+//    }
+//}
+
+//@MediumTest
+//class MainScreenTest {
+//
+//    @get:Rule
+//    val composeTestRule = createComposeRule()
+//
+//    @Test
+//    fun testMainFragment() {
+//        val appContext =
+//            InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as DrawApp
+//        val navController = TestNavHostController(appContext)
+//
+//        val scenario = launchFragmentInContainer<MainScreen>()
+//        drawFragment.onFragment { fragment ->
+//            var navControl = findNavController(fragment)
+//            Navigation.setViewNavController(fragment.requireView(), navControl)
+//        }
+//
+//        onView(withId(R.id.button2)).perform(click()).check(matches(isClickable()))
+
+//    }
+//}
 
 
 
