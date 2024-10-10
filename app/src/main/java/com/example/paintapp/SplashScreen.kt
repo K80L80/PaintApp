@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.FragmentSplashScreenBinding
 import kotlinx.coroutines.delay
@@ -40,6 +41,11 @@ class SplashScreenFragment : Fragment() {
 
     private val binding get() = _binding!!
 
+    val navigateToMainMenu = {
+        // Only call this when it's safe, e.g., after animation or button click
+        findNavController().navigate(R.id.action_splash_to_mainScreen2)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSplashScreenBinding.inflate(inflater, container, false)
         return binding.root
@@ -49,7 +55,7 @@ class SplashScreenFragment : Fragment() {
         binding.composeView.setContent {
             ShowSplashScreenAnimation{
                 //after splash screen finishes uses nav graph action to navigate from splash screen to mainscren2
-                findNavController().navigate(R.id.action_splash_to_mainScreen2)
+               navigateToMainMenu.invoke()
             }
         }
     }
