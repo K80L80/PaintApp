@@ -56,6 +56,8 @@ import org.mockito.kotlin.any
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
+
+
 @MediumTest
 class testanimation {
 
@@ -84,6 +86,8 @@ class testanimation {
         }
         composeTestRule.onNodeWithText("New Drawing").isNotDisplayed()
     }
+
+
 
 }
 @MediumTest
@@ -225,13 +229,11 @@ class VmTests {
 //
 ////    @Test
 ////    fun testNavigation() {
-////        // Setup the Compose UI with a NavHost
 ////        composeTestRule.setContent {
 ////            val navController = rememberNavController()
 ////                ShowSplashScreenAnimation{}
 ////            composeTestRule.mainClock.advanceTimeBy(3500)
 ////        }
-////            // Simulate the splash screen duration
 ////        }
 ////    }
 //
@@ -276,7 +278,7 @@ class VmTests {
 /**Previous tests below this point no longer work with changed functionality.
  *
  */
-//class ExampleInstrumentedTest {
+//class instrumentedTest {
 //
 //
 //    val lifeCycleOwner = TestLifecycleOwner()
@@ -286,11 +288,8 @@ class VmTests {
 //    @Before
 //    fun setup() {
 //        val appContext = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as DrawApp
-//
-//        // Here, you can use a real or mocked repository
 //        repository = appContext.drawRepository
 //
-//        // Manually instantiate the ViewModel
 //        vm = DrawViewModel(repository) // error under appContext Too many arguments for public constructor DrawViewModel(drawRepository: DrawRepository) defined in com.example.paintapp.DrawViewModel
 //    }
 //
