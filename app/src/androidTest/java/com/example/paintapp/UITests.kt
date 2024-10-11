@@ -44,4 +44,21 @@ class TestAnimation {
         }
         composeTestRule.onNodeWithText("New Drawing").isNotDisplayed()
     }
-}
+
+    //By using this technique, the NavController is available before onViewCreated() is called, allowing the fragment to use NavigationUI methods without crashing.
+    @RunWith(AndroidJUnit4::class)
+    class SplashScreenTests {
+
+        @get:Rule
+        val composeTestRule = createComposeRule()
+        @Test
+        fun testSplashScreenComposable() {
+            composeTestRule.setContent {
+                ShowSplashScreenAnimation {}
+            }
+            composeTestRule.mainClock.advanceTimeBy(1000)
+            composeTestRule.onNodeWithText("Welcome to the Paint App!\nLet's start drawing ✌️!")
+                .assertDoesNotExist()
+        }
+
+    }
