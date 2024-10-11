@@ -124,6 +124,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         return withContext(Dispatchers.IO) {
             try {
                 val file = File(fileName)
+
                 if (file.exists()) {
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                     if (bitmap != null) {

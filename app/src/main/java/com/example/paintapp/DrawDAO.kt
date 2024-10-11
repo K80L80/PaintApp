@@ -15,7 +15,7 @@ import java.util.Locale
 
 @Dao
 interface DrawDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     suspend fun addDrawing(drawingEntity: DrawEntity) : Long //returns the id of the newly inserted record
 
     @Update
@@ -24,8 +24,13 @@ interface DrawDAO {
     @Delete
     suspend fun deleteDrawing(drawingEntity: DrawEntity)
 
-    @Query("SELECT * FROM drawings")
+    @Query("SELECT * FROM drawings WHERE id IN (SELECT MAX(id) FROM drawings GROUP BY fileName) ORDER BY id DESC")
     fun getAllDrawings(): Flow<List<DrawEntity>>
+
+
+    @Query("SELECT * FROM drawings WHERE fileName = :fileName LIMIT 1")
+    suspend fun getDrawingByFileName(fileName: String): DrawEntity?
+
 }
 
 // Function to print the contents of the Drawing table
