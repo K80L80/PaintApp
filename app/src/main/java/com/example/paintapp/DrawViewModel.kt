@@ -97,7 +97,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
         // Use postValue to ensure it's safe for background threads
-        value = PaintTool()
+       postValue(PaintTool())
     }
     val paintTool: LiveData<PaintTool> get() = _paintTool
 
