@@ -14,6 +14,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
@@ -27,7 +29,16 @@ class DrawFragment : Fragment() {
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
+    //Handles back navigation
     private var listener: NavController.OnDestinationChangedListener? = null
+    //registers the navigation listener
+    private var addNavigationListener: (() -> Unit)? = {
+            listener?.let { findNavController().addOnDestinationChangedListener(it) }
+        }
+    //removes the navigation
+    private var removeNavigationListener: (() -> Unit)? = {
+        listener?.let { findNavController().removeOnDestinationChangedListener(it) }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -149,14 +160,28 @@ class DrawFragment : Fragment() {
                 }
             }
         }
-        // Register the listener
-        listener?.let {findNavController().addOnDestinationChangedListener(it)}
+        // Ensure the listener is added once the fragment is resumed
+        viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                addNavigationListener?.invoke() // Only call findNavController when necessary
+            }
+
+            override fun onDestroy(owner: LifecycleOwner) {
+                removeNavigationListener?.invoke() // Clean up listener on destroy
+            }
+        })
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        listener?.let { findNavController().removeOnDestinationChangedListener(it) } // Unregister the listener if necessary
-    }
+
+//    override fun onDestroyView() {
+//        super.onDestroyView()
+//        removeNavigationListener?.invoke() // Clean up listener on destroy
+//    }
+//
+//    override fun onResume() {
+//        super.onResume()
+//        addNavigationListener?.invoke() // Only call findNavController when necessary
+//    }
 
     /**Saves the bitmap for rotation
      *
