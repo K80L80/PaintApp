@@ -28,7 +28,6 @@ import org.junit.Before
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
 
-
     val lifeCycleOwner = TestLifecycleOwner()
     private lateinit var vm: DrawViewModel
     private lateinit var repository: DrawRepository

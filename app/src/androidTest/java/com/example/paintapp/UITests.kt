@@ -51,6 +51,7 @@ class TestAnimation {
 
         @get:Rule
         val composeTestRule = createComposeRule()
+
         @Test
         fun testSplashScreenComposable() {
             composeTestRule.setContent {
@@ -60,5 +61,5 @@ class TestAnimation {
             composeTestRule.onNodeWithText("Welcome to the Paint App!\nLet's start drawing ✌️!")
                 .assertDoesNotExist()
         }
-
     }
+}
