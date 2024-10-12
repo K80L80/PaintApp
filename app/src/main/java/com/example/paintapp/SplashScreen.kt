@@ -39,7 +39,9 @@ class SplashScreenFragment : Fragment() {
     private var _binding: FragmentSplashScreenBinding? = null
 
     private val binding get() = _binding!!
-
+    private val navigationCallback: (() -> Unit) = {
+        findNavController().navigate(R.id.action_splash_to_mainScreen2)
+    }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSplashScreenBinding.inflate(inflater, container, false)
         return binding.root
@@ -49,7 +51,7 @@ class SplashScreenFragment : Fragment() {
         binding.composeView.setContent {
             ShowSplashScreenAnimation{
                 //after splash screen finishes uses nav graph action to navigate from splash screen to mainscren2
-                findNavController().navigate(R.id.action_splash_to_mainScreen2)
+              navigationCallback.invoke()
             }
         }
     }

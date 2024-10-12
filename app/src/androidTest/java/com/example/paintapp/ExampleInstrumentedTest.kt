@@ -13,6 +13,8 @@ import org.junit.Assert.*
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.testing.TestLifecycleOwner
+import androidx.navigation.Navigation
+import androidx.navigation.testing.TestNavHostController
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -79,13 +81,26 @@ class ExampleInstrumentedTest {
     @Test
     fun testNavigateMainButton() {
         val scenario = launchFragmentInContainer<MainScreen>() //Unresolved reference: launchFragmentInContainer
+        scenario.onFragment{ fragment->
+            //Set the test navigator for the fragment
+            val navController = TestNavHostController(fragment.requireContext())
+            navController.setGraph(R.navigation.nav_graph)
+            navController.setCurrentDestination(R.id.mainScreen)
+            Navigation.setViewNavController(fragment.requireView(), navController)
+        }
         onView(withId(R.id.button2)).perform(click()).check(matches(isClickable()))
-
     }
 
     @Test
         fun testColorChangeRed() {
         val scenario = launchFragmentInContainer<DrawFragment>()
+        scenario.onFragment{ fragment->
+            //Set the test navigator for the fragment
+            val navController = TestNavHostController(fragment.requireContext())
+            navController.setGraph(R.navigation.nav_graph)
+            navController.setCurrentDestination(R.id.drawFragment)
+            Navigation.setViewNavController(fragment.requireView(), navController)
+        }
             // Click on color button
             onView(withId(R.id.buttonChangeColor)).perform(click())
 
@@ -138,7 +153,13 @@ class ExampleInstrumentedTest {
     fun testColorSizeChange() {
         // Launch the DrawFragment in a container
         val scenario = launchFragmentInContainer<DrawFragment>()
-
+        scenario.onFragment{ fragment->
+            //Set the test navigator for the fragment
+            val navController = TestNavHostController(fragment.requireContext())
+            navController.setGraph(R.navigation.nav_graph)
+            navController.setCurrentDestination(R.id.drawFragment)
+            Navigation.setViewNavController(fragment.requireView(), navController)
+        }
         // Click on the size button to show the slider
         onView(withId(R.id.buttonChangeSize)).check(matches(isDisplayed()))
 
@@ -153,7 +174,13 @@ class ExampleInstrumentedTest {
         @Test
     fun testShapeChange1() {
         val scenario = launchFragmentInContainer<DrawFragment>()
-
+            scenario.onFragment{ fragment->
+                //Set the test navigator for the fragment
+                val navController = TestNavHostController(fragment.requireContext())
+                navController.setGraph(R.navigation.nav_graph)
+                navController.setCurrentDestination(R.id.drawFragment)
+                Navigation.setViewNavController(fragment.requireView(), navController)
+            }
         // Click on shape button
         onView(withId(R.id.buttonChangeShape)).perform(click())
 
@@ -214,7 +241,13 @@ class ExampleInstrumentedTest {
     @Test
     fun testShapeChangeMulti() {
         val scenario = launchFragmentInContainer<DrawFragment>()
-
+        scenario.onFragment{ fragment->
+            //Set the test navigator for the fragment
+            val navController = TestNavHostController(fragment.requireContext())
+            navController.setGraph(R.navigation.nav_graph)
+            navController.setCurrentDestination(R.id.drawFragment)
+            Navigation.setViewNavController(fragment.requireView(), navController)
+        }
         // Click on shape button
         onView(withId(R.id.buttonChangeShape)).perform(click())
 

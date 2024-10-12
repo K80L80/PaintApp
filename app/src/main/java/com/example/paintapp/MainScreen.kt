@@ -43,8 +43,10 @@ import com.example.paintapp.databinding.ActivityMainScreenBinding
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 class MainScreen : Fragment() {
 
-    private var buttonFunction: (() -> Unit)? = null
-
+    private val navigationCallback: (() -> Unit) = {
+        val navController = findNavController()
+        navController.navigate(R.id.action_mainScreen_to_drawFragment)
+    }
     //makes the view-model accessible in the fragment
     private val drawVM: DrawViewModel by activityViewModels {
         VMFactory((requireActivity().application as DrawApp).drawRepository)
@@ -55,28 +57,26 @@ class MainScreen : Fragment() {
     ): View {
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
 
-        val navController = findNavController()
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
             //load in all drawings from the view model and display is gallary
             val drawings by drawVM.drawings.observeAsState(emptyList())
-            GalleryOfDrawings(drawings,navController,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
+            GalleryOfDrawings(drawings,navigationCallback,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
         }
 
         //create new drawing button
         binding.button2.setOnClickListener {
             //creates a new bitmap and adds it to drawing list
             drawVM.createNewDrawing()
-            navController.navigate(R.id.action_mainScreen_to_drawFragment)
+            navigationCallback.invoke()
         }
         return binding.root
-
     }
 }
 
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController, vm: DrawViewModel) {
+fun GalleryOfDrawings(drawings: List<Drawing>, navigationCallback: (() -> Unit), vm: DrawViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -89,13 +89,13 @@ fun GalleryOfDrawings(drawings: List<Drawing>, navController: NavController, vm:
             LaunchedEffect(drawing) {
                 kotlinx.coroutines.delay(100) // 100 ms delay, adjust as needed
             }
-            FileGridItem(drawing, navController, vm)
+            FileGridItem(drawing, navigationCallback, vm)
         }
     }
 }
 
 @Composable
-fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewModel){
+fun FileGridItem(drawing: Drawing,navigationCallback: (() -> Unit), vm: DrawViewModel){
     val aspectRatio = getAspectRatioForOrientation()
     //creates box effect holds drawing and file name
     Column (
@@ -108,7 +108,7 @@ fun FileGridItem(drawing: Drawing,navController: NavController, vm: DrawViewMode
             .clickable {
                 //Use jetpack navigation and load in picture into custom draw
                 vm.selectDrawing(drawing)
-                navController.navigate(R.id.action_mainScreen_to_drawFragment)
+                navigationCallback.invoke()
         },
     ){
         //displays drawing

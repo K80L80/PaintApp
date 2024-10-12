@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -29,16 +30,11 @@ class DrawFragment : Fragment() {
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
-    //Handles back navigation
-    private var listener: NavController.OnDestinationChangedListener? = null
     //registers the navigation listener
-    private var addNavigationListener: (() -> Unit)? = {
-            listener?.let { findNavController().addOnDestinationChangedListener(it) }
-        }
-    //removes the navigation
-    private var removeNavigationListener: (() -> Unit)? = {
-        listener?.let { findNavController().removeOnDestinationChangedListener(it) }
+    private var onNavigation: (() -> Unit)? = {
+        findNavController().popBackStack()
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -151,25 +147,14 @@ class DrawFragment : Fragment() {
             }
         }
 
-        // Listen for when the fragment is navigated away from
-        listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            if (destination.id != R.id.drawFragment) { // Replace with your fragment ID
-                // Save the current bitmap when navigating away
-                customDrawView.getBitmap()?.let { currentBitmap ->
-                    drawViewModel.saveCurrentDrawing(currentBitmap)
-                }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            //save bitmap to viewmodel
+            customDrawView.getBitmap()?.let { currentBitmap ->
+                drawViewModel.saveCurrentDrawing(currentBitmap)
+                // Navigate back after the data has been saved
+                onNavigation?.invoke()
             }
         }
-        // Ensure the listener is added once the fragment is resumed
-        viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onResume(owner: LifecycleOwner) {
-                addNavigationListener?.invoke() // Only call findNavController when necessary
-            }
-
-            override fun onDestroy(owner: LifecycleOwner) {
-                removeNavigationListener?.invoke() // Clean up listener on destroy
-            }
-        })
     }
 
 

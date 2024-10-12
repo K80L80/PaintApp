@@ -1,7 +1,9 @@
 package com.example.paintapp
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.Navigation
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
@@ -11,6 +13,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -18,10 +21,11 @@ import org.junit.runner.RunWith
 
 //By using this technique, the NavController is available before onViewCreated() is called, allowing the fragment to use NavigationUI methods without crashing.
 @RunWith(AndroidJUnit4::class)
-class TitleScreenTest {
+class NavigationTests {
     private lateinit var navController: TestNavHostController
     private lateinit var repository: DrawRepository
     private lateinit var drawViewModel: DrawViewModel
+    private var scenario: FragmentScenario<SplashScreenFragment>? = null
 
     @Before
     fun setUp() {
@@ -33,39 +37,42 @@ class TitleScreenTest {
         navController = TestNavHostController(appContext)
     }
 
-    //Test that after the splash animation you arrive on the main screen
-    @RunWith(AndroidJUnit4::class)
-    class SplashScreenFragmentTest {
+    @After
+    fun destroyFragment() {
+            scenario?.moveToState(Lifecycle.State.DESTROYED)
+    }
 
-        @get:Rule
-        val composeTestRule = createAndroidComposeRule<MainActivity>() // Any host activity
+    @get:Rule
+    val composeTestRule = createAndroidComposeRule<MainActivity>() // Any host activity
 
-        @Test
-        fun testSplashScreenAnimationTriggersNavigation() {
-            // Initialize the NavController
-            val navController = TestNavHostController(ApplicationProvider.getApplicationContext())
+    @Test
+    fun testSplashScreenAnimationTriggersNavigation() {
+        // Initialize the NavController
+        val navController = TestNavHostController(ApplicationProvider.getApplicationContext())
 
-            // Launch the SplashFragment in the container
-            val scenario = launchFragmentInContainer<SplashScreenFragment>()
+        // Launch the SplashFragment in the container
+        val scenario = launchFragmentInContainer<SplashScreenFragment>()
 
-            scenario.onFragment { fragment ->
-                fragment.viewLifecycleOwnerLiveData.observeForever {
+        scenario.onFragment { fragment ->
+            fragment.viewLifecycleOwnerLiveData.observeForever {
+                if (fragment.view != null) {
                     // Set up the NavController with the navigation graph
                     navController.setGraph(R.navigation.nav_graph)
                     Navigation.setViewNavController(fragment.requireView(), navController)
                 }
             }
-
-            // Wait for idle state to ensure the fragment and composables are set up
-            composeTestRule.waitForIdle()
-
-            // Simulate the passage of time to let the animation complete (2 seconds: 1 sec fade-in + 1 sec hold)
-            composeTestRule.mainClock.advanceTimeBy(2000)
-
-            // Assert that the NavController navigated to the expected destination after animation completes
-            assert(navController.currentDestination?.id == R.id.mainScreen)
         }
+
+        // Wait for idle state to ensure the fragment and composables are set up
+        composeTestRule.waitForIdle()
+
+        // Simulate the passage of time to let the animation complete (2 seconds: 1 sec fade-in + 1 sec hold)
+        composeTestRule.mainClock.advanceTimeBy(2000)
+
+        // Assert that the NavController navigated to the expected destination after animation completes
+        assert(navController.currentDestination?.id == R.id.mainScreen)
     }
+
 
     @Test
     fun assertNavControllerIsAttached() {
@@ -77,17 +84,14 @@ class TitleScreenTest {
             SplashScreenFragment().also { fragment ->
                 // Observe the view lifecycle to attach the NavController before the fragment is resumed
                 fragment.viewLifecycleOwnerLiveData.observeForever { viewLifecycleOwner ->
+                    if (fragment.view != null) {
                         // The fragment’s view has just been created
                         navController.setGraph(R.navigation.nav_graph) // Use your actual navigation graph
                         Navigation.setViewNavController(fragment.requireView(), navController)
+                        assert(Navigation.findNavController(fragment.requireView()) == navController)
+                    }
                 }
             }
-        }
-
-        // Now you can perform navigation tests
-        scenario.onFragment { fragment ->
-            // Assert that the NavController is properly attached
-            assert(Navigation.findNavController(fragment.requireView()) == navController)
         }
     }
 
@@ -103,8 +107,10 @@ class TitleScreenTest {
                 // Observe the view lifecycle to attach the NavController before the fragment is resumed
                 fragment.viewLifecycleOwnerLiveData.observeForever {
                     // The fragment’s view has just been created
-                    navController.setGraph(R.navigation.nav_graph) // Use your actual navigation graph
-                    Navigation.setViewNavController(fragment.requireView(), navController)
+                    if (fragment.view != null) {
+                        navController.setGraph(R.navigation.nav_graph) // Use your actual navigation graph
+                        Navigation.setViewNavController(fragment.requireView(), navController)
+                    }
                 }
             }
         }
@@ -121,14 +127,16 @@ class TitleScreenTest {
         val mainScreen = launchFragmentInContainer<MainScreen>()
         mainScreen.onFragment { fragment ->
             fragment.viewLifecycleOwnerLiveData.observeForever { viewLifecycleOwner ->
-                val navController = TestNavHostController(fragment.requireContext())
-                navController.setGraph(R.navigation.nav_graph)
+                if (fragment.view != null) {
+                    val navController = TestNavHostController(fragment.requireContext())
+                    navController.setGraph(R.navigation.nav_graph)
 
-                // Set the current destination to MainScreen manually
-                navController.setCurrentDestination(R.id.mainScreen)
+                    // Set the current destination to MainScreen manually
+                    navController.setCurrentDestination(R.id.mainScreen)
 
-                // Attach the NavController to the fragment's view
-                Navigation.setViewNavController(fragment.requireView(), navController)
+                    // Attach the NavController to the fragment's view
+                    Navigation.setViewNavController(fragment.requireView(), navController)
+                }
             }
         }
         //Simulate the button click that should trigger navigation to DrawFragment
