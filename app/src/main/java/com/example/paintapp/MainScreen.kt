@@ -84,11 +84,8 @@ fun GalleryOfDrawings(drawings: List<Drawing>, navigationCallback: (() -> Unit),
             .padding(16.dp)
 
     ) {
-        items(drawings) { drawing ->
+        items(drawings.reversed()) { drawing ->
             // Adding a delay before loading each drawing
-            LaunchedEffect(drawing) {
-                kotlinx.coroutines.delay(100) // 100 ms delay, adjust as needed
-            }
             FileGridItem(drawing, navigationCallback, vm)
         }
     }

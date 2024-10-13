@@ -24,7 +24,7 @@ interface DrawDAO {
     @Delete
     suspend fun deleteDrawing(drawingEntity: DrawEntity)
 
-    @Query("SELECT * FROM drawings WHERE id IN (SELECT MAX(id) FROM drawings GROUP BY fileName) ORDER BY id DESC")
+    @Query("SELECT * FROM drawings ORDER BY fileName ASC")
     fun getAllDrawings(): Flow<List<DrawEntity>>
 
 
