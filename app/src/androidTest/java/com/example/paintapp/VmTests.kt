@@ -2,26 +2,16 @@ package com.example.paintapp
 
 import android.graphics.Color
 import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.testing.TestLifecycleOwner
-import androidx.navigation.Navigation
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.testing.TestNavHostController
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
@@ -148,7 +138,7 @@ class VmTests {
     @Test
     fun testMainScreen() {
         composeTestRule.setContent {
-            GalleryOfDrawings(generateTestDrawings(), {}, drawViewModel)
+            TitleGallary(generateTestDrawings(), {}, drawViewModel)
         }
         composeTestRule.onNodeWithText("New Drawing").isDisplayed()
     }

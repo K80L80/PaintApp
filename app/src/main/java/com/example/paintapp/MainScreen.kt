@@ -9,12 +9,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +26,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -36,18 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 
@@ -83,7 +76,7 @@ class MainScreen : Fragment() {
             val drawings by drawVM.drawings.observeAsState(emptyList())
 
             //setup all the callbacks to handle user interactinon
-            GalleryOfDrawings(drawings, actions)
+            TitleGallary(drawings, actions)
         }
 
         //create new drawing button
@@ -118,7 +111,7 @@ class MainScreen : Fragment() {
 
 // Composable function to display the file list using LazyColumn
 @Composable
-fun GalleryOfDrawings(drawings: List<Drawing>, actions: DrawingActions) {
+fun TitleGallary(drawings: List<Drawing>, actions: DrawingActions) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -128,13 +121,13 @@ fun GalleryOfDrawings(drawings: List<Drawing>, actions: DrawingActions) {
     ) {
         items(drawings.reversed()) { drawing ->
             // Adding a delay before loading each drawing
-            FileGridItem(drawing,actions)
+            Tile(drawing,actions)
         }
     }
 }
-
+//The parent owns the state?
 @Composable
-fun FileGridItem(drawing: Drawing, actions: DrawingActions){
+fun Tile(drawing: Drawing, actions: DrawingActions){
     val aspectRatio = getAspectRatioForOrientation()
     //creates box effect holds drawing and file name
     Column (
@@ -166,6 +159,7 @@ fun FileGridItem(drawing: Drawing, actions: DrawingActions){
     }
 }
 //Composable to display the file name
+//The composable can manage local state for focus and edit mode, but the final updates should be propagated back to the ViewModel only when necessary (e.g., when the user completes editing).
 @Composable
 fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
     // Track whether the TextField is in edit mode
@@ -176,26 +170,23 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
         // Simple TextField for editing mode
         TextField(
             value = localFileName,
-            onValueChange = { localFileName = it },
+            onValueChange = { localFileName = it},
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = {
                 isEditing = false
                 onFileNameChange(localFileName) // Save the new name
             }),
-            modifier = Modifier
-                .fillMaxWidth()
+
         )
     } else {
         // Display the file name as text when not editing
         Text(
-            text = fileName,
+            text = localFileName,
             modifier = Modifier
-                .fillMaxWidth()
                 .clickable {
                     isEditing = true // Enter edit mode on click
                 }
-                .padding(8.dp)
         )
     }
 }
