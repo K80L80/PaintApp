@@ -65,29 +65,29 @@ dependencies {
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
     // Lifecycle, ViewModel, and LiveData
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
 
     // Jetpack Compose
-    implementation("androidx.compose.ui:ui:1.7.1")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.1")
-    implementation("androidx.compose.material:material:1.7.1")
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.1")
-    implementation("androidx.compose.material3:material3:1.1.1")
-    implementation(platform("androidx.compose:compose-bom:2024.09.02"))
+    implementation("androidx.compose.ui:ui:1.7.3")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.3")
+    implementation("androidx.compose.material:material:1.7.3")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.3")
+    implementation("androidx.compose.material3:material3:1.3.0")
+    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
 
     // Navigation
-    implementation("androidx.navigation:navigation-ui-ktx:2.8.0")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.8.0")
-    implementation("androidx.navigation:navigation-compose:2.5.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.8.2")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.8.2")
+    implementation("androidx.navigation:navigation-compose:2.8.2")
 
     // Fragment and Activity KTX
-    implementation("androidx.fragment:fragment-ktx:1.6.1")
-    implementation("androidx.activity:activity-compose:1.7.2")
-    implementation("androidx.activity:activity-ktx:1.7.2")
+    implementation("androidx.fragment:fragment-ktx:1.8.4")
+    implementation("androidx.activity:activity-compose:1.9.2")
+    implementation("androidx.activity:activity-ktx:1.9.2")
     implementation("androidx.lifecycle:lifecycle-runtime-testing:2.8.6")
 
     // Room for persistence
@@ -103,18 +103,18 @@ dependencies {
 
     // Testing dependencies
     testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.fragment:fragment-ktx:1.6.1")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
+    testImplementation("androidx.fragment:fragment-ktx:1.8.4")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.02"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.03"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    androidTestImplementation("androidx.fragment:fragment-testing:1.5.7")// Or the latest version
+    androidTestImplementation("androidx.fragment:fragment-testing:1.8.4")// Or the latest version
 
-    debugImplementation("androidx.fragment:fragment-testing-manifest:1.8.3")
+    debugImplementation("androidx.fragment:fragment-testing-manifest:1.8.4")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.1")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.3")
 
     val nav_version = "2.8.2"
 
@@ -122,8 +122,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:$nav_version")
 
     // Views/Fragments integration
-    implementation("androidx.navigation:navigation-fragment:$nav_version")
-    implementation("androidx.navigation:navigation-ui:$nav_version")
+    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
+    implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
 
     // Feature module support for Fragments
     implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
