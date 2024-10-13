@@ -117,7 +117,16 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
     // Update only the file name of a specific drawing by its ID
     suspend fun updateDrawingFileName(drawingId: Long, newFileName: String) {
-        dao.updateFileName(drawingId, newFileName) // Directly update the database record
+        //Optimistically update UI with new name
+        val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
+        //Find the drawing in the list that matches this index
+        val index = currentList.indexOfFirst { it.id == drawingId }
+
+        //save to database in the background
+        withContext(Dispatchers.IO) {
+            currentList[index].userChosenFileName = newFileName
+            dao.updateFileName(drawingId, newFileName) // Directly update the database record
+        }
     }
 
     //save bitmap data in special private folder designated for app
