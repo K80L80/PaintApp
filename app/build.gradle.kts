@@ -130,6 +130,9 @@ dependencies {
 
     // Testing Navigation
     androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
+
+    //tracing library
+    implementation ("androidx.tracing:tracing:1.2.0")
 }
 
 

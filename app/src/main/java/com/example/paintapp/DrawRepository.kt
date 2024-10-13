@@ -38,7 +38,8 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
                         Drawing(
                             id = entity.id,
                             bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
-                            fileName = entity.fileName
+                            fileName = entity.fileName,
+                            userChosenFileName = entity.userChosenFileName
                         )
                     }
                 }.awaitAll()
@@ -65,14 +66,15 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         //Save path in room database
         val drawEntity =
-            DrawEntity(fileName = file.absolutePath) //Create a record (ie drawing record), with the absolute path as its field
+            DrawEntity(fileName = file.absolutePath, userChosenFileName = "empty") //Create a record (ie drawing record), with the absolute path as its field
         val id = dao.addDrawing(drawEntity) //insert into database
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
         val newDrawing = Drawing(
             id = id,
             bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
-            fileName = drawEntity.fileName
+            fileName = drawEntity.fileName,
+            userChosenFileName = drawEntity.userChosenFileName
         )
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
@@ -110,6 +112,12 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
                 file
             ) ///gives updates to those tracking live data
         }
+    }
+
+
+    // Update only the file name of a specific drawing by its ID
+    suspend fun updateDrawingFileName(drawingId: Long, newFileName: String) {
+        dao.updateFileName(drawingId, newFileName) // Directly update the database record
     }
 
     //save bitmap data in special private folder designated for app

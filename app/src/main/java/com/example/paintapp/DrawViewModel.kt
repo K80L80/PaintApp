@@ -87,6 +87,14 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
+    // Update the file name and refresh the UI
+    fun updateDrawingFileName(drawingId: Long, newFileName: String) {
+        viewModelScope.launch {
+            // Update the database in the background
+            _drawRepository.updateDrawingFileName(drawingId, newFileName)
+        }
+    }
+
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
         // Use postValue to ensure it's safe for background threads
@@ -446,7 +454,8 @@ fun createDefaultDrawing(id: Long, width: Int, height: Int, fileName: String): D
     return Drawing(
         id = id,
         bitmap = bitmap,
-        fileName = fileName
+        fileName = fileName,
+        userChosenFileName = "untitled"
     )
 }
 val defaultDrawing = createDefaultDrawing(

@@ -31,6 +31,9 @@ interface DrawDAO {
     @Query("SELECT * FROM drawings WHERE fileName = :fileName LIMIT 1")
     suspend fun getDrawingByFileName(fileName: String): DrawEntity?
 
+    // Update only the userChosenFileName for a specific drawing by its ID
+    @Query("UPDATE drawings SET userChosenFileName = :newFileName WHERE id = :drawingId")
+    suspend fun updateFileName(drawingId: Long, newFileName: String)
 }
 
 // Function to print the contents of the Drawing table

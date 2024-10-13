@@ -9,4 +9,5 @@ import androidx.room.PrimaryKey
 data class DrawEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fileName: String, // This stores the path or name of the file
+    val userChosenFileName: String
 )
