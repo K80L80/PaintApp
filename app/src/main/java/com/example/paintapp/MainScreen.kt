@@ -219,7 +219,6 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
     var localFileName by remember { mutableStateOf(fileName) }
     val focusRequester = FocusRequester()
     // Lambda for handling focus changes passed after click
-    var onFocusChangeLambda by remember { mutableStateOf<(Boolean) -> Unit>({}) }
 
     //File name dit mode
     if (isVisible) {
@@ -235,7 +234,14 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
             }),
             modifier = Modifier.focusRequester(focusRequester)
                 .onFocusChanged { focusState ->
-                    onFocusChangeLambda.invoke(focusState.isFocused)
+                    if (!focusState.isFocused) {
+                        Log.d("MainScreen", "turing off edit mode")
+                        isVisible = false // Exit edit mode when focus is lost
+                        onFileNameChange(localFileName)
+                    }
+                    else if(focusState.isFocused){
+                        isVisible = true
+                    }
                 }
         )
         // Automatically request focus when the TextField becomes visible (this allows the user to not have do an extra click to start typing they immediately start typing)
@@ -252,18 +258,6 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
                 .clickable {
                     Log.d("MainScreen", "Text clicked, entering editing mode")
                     isVisible = true // Enter edit mode on click
-                    // Pass in logic for what to do on focus change dynamically
-                    onFocusChangeLambda = { isFocused ->
-                        Log.d("MainScreen", "focus changed!")
-                        if (!isFocused) {
-                            Log.d("MainScreen", "turing off edit mode")
-                            isVisible = false // Exit edit mode when focus is lost
-                            onFileNameChange(localFileName)
-                        }
-                        else if(isFocused){
-                            isVisible = true
-                        }
-                    }
                 }
         )
     }
