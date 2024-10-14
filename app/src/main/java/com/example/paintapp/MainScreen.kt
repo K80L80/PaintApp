@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -40,17 +38,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 import android.app.AlertDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 data class DrawingActions(
@@ -149,11 +158,17 @@ class MainScreen : Fragment() {
 // Composable function to display the file list using LazyColumn
 @Composable
 fun TitleGallary(drawings: List<Drawing>, actions: DrawingActions) {
+    val focusManager = LocalFocusManager.current
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .clickable {
+                // Clear focus when clicking anywhere outside the tiles
+                focusManager.clearFocus()
+            }
 
     ) {
         items(drawings.reversed()) { drawing ->
@@ -200,38 +215,35 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
 @Composable
 fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
     // Track whether the TextField is in edit mode
-    var isEditing by remember { mutableStateOf(false) }
+    var isVisible by remember { mutableStateOf(false) }
     var localFileName by remember { mutableStateOf(fileName) }
-
     val focusRequester = FocusRequester()
-    // Display File name in edit mode
-    if (isEditing) {
-        // Automatically request focus when the TextField becomes visible
+    // Lambda for handling focus changes passed after click
+    var onFocusChangeLambda by remember { mutableStateOf<(Boolean) -> Unit>({}) }
+
+    //File name dit mode
+    if (isVisible) {
         Log.d("MainScreen", "in editing mode")
-        LaunchedEffect(Unit) {
-            Log.d("MainScreen", "Text Field requesting focus")
-            focusRequester.requestFocus()
-        }
-        TextField(
-            modifier = Modifier
-                .focusRequester(focusRequester) //register focus requester
-                .onFocusChanged { focusState->
-                    if (focusState.isFocused){
-                        Log.d("MainScreen", "TextField Focused changed Active")
-                    } else {
-                        Log.d("MainScreen", "TextField Focused changed Inactive")
-                    }
-                },
+        BasicTextField(
             value = localFileName,
-            onValueChange = { localFileName = it},
+            onValueChange = { localFileName = it },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = {
-                isEditing = false
                 onFileNameChange(localFileName) // Save the new name
+                isVisible = false
             }),
-
+            modifier = Modifier.focusRequester(focusRequester)
+                .onFocusChanged { focusState ->
+                    onFocusChangeLambda.invoke(focusState.isFocused)
+                }
         )
+        // Automatically request focus when the TextField becomes visible (this allows the user to not have do an extra click to start typing they immediately start typing)
+        // Use DisposableEffect to request focus immediately when entering edit mode
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+            Log.e("MainMenu", "Requesting focus for text field immediately")
+        }
     } else {
         // Display the file name as text (display mode)
         Text(
@@ -239,7 +251,19 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
             modifier = Modifier
                 .clickable {
                     Log.d("MainScreen", "Text clicked, entering editing mode")
-                    isEditing = true // Enter edit mode on click
+                    isVisible = true // Enter edit mode on click
+                    // Pass in logic for what to do on focus change dynamically
+                    onFocusChangeLambda = { isFocused ->
+                        Log.d("MainScreen", "focus changed!")
+                        if (!isFocused) {
+                            Log.d("MainScreen", "turing off edit mode")
+                            isVisible = false // Exit edit mode when focus is lost
+                            onFileNameChange(localFileName)
+                        }
+                        else if(isFocused){
+                            isVisible = true
+                        }
+                    }
                 }
         )
     }
@@ -302,6 +326,7 @@ fun PopUpExample() {
                 dismissButton = {
                     TextButton(onClick = { showDialog = false }) {
                         Text("Cancel")
+
                     }
                 },
                 title = { Text("Pop-up Title") },
@@ -310,7 +335,49 @@ fun PopUpExample() {
         }
     }
 }
+@Composable
+fun ColorPickerWithFocus() {
+    var isPickerVisible by remember { mutableStateOf(false) }
+    var selectedColor by remember { mutableStateOf(Color.Gray) }
+    val colors = listOf(Color.Red, Color.Green, Color.Blue)
 
+    Column {
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .background(selectedColor, CircleShape)
+                .clickable {
+                    isPickerVisible = !isPickerVisible
+                }
+        )
+
+
+        if (isPickerVisible) {
+            Column(
+                modifier = Modifier
+                    .width(100.dp)
+            ) {
+                colors.forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(color, CircleShape)
+                            .clickable {
+                                selectedColor = color
+                                isPickerVisible = false
+                            }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewColorPickerWithFocus() {
+    ColorPickerWithFocus()
+}
 
 //
 //package com.example.paintapp
