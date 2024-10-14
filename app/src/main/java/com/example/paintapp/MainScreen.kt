@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -23,7 +24,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,20 +40,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
+import android.app.AlertDialog
 
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 data class DrawingActions(
     val onFileNameChange: (Long, String) -> Unit,
     val onDrawingSelect: (Drawing) -> Unit,
-    val navigationCallback: (() -> Unit),
-    val onClickNewDrawing: () -> Unit // Callback for creating a new drawing
+    val navigateToDrawScreen: (() -> Unit),
+    val onClickNewDrawingBtn: (String) -> Unit // Callback for creating a new drawing
 )
 
 class MainScreen : Fragment() {
@@ -58,15 +62,20 @@ class MainScreen : Fragment() {
     private val drawVM: DrawViewModel by activityViewModels {
         VMFactory((requireActivity().application as DrawApp).drawRepository)
     }
+
     //setup all the callbacks to handle user interactinon
     val actions = DrawingActions(
         onFileNameChange = ::onFileNameChange, //callback to let user re-name their file
         onDrawingSelect = ::onDrawingSelect, //callback to let user user to 'select' a drawing to edit
-        navigationCallback = ::navigationCallback, //callback to navigate from here gallary to draw screen
-        onClickNewDrawing = ::onClickNewDrawing// Callback for creating a new drawing
+        navigateToDrawScreen = ::navigateToDrawScreen, //callback to navigate from here gallary to draw screen
+        onClickNewDrawingBtn = ::onClickNewDrawingBtn// Callback for creating a new drawing
     )
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
 
@@ -81,34 +90,58 @@ class MainScreen : Fragment() {
 
         //create new drawing button
         binding.button2.setOnClickListener {
-            //creates a new bitmap and adds it to drawing list
-            drawVM.createNewDrawing()
-            actions.navigationCallback.invoke()
+            // Show the dialog and handle the file name entered by the user
+            showNewDrawingDialog{ enteredFileName ->
+                onClickNewDrawingBtn(enteredFileName)
+            }
         }
         return binding.root
     }
 
     //callback to navigate from gallary to draw screen
-    private fun navigationCallback(){
+    private fun navigateToDrawScreen() {
         val navController = findNavController()
         navController.navigate(R.id.action_mainScreen_to_drawFragment)
     }
 
-    //callback to let user rename the
+    //callback to let user rename the file
     private fun onFileNameChange(drawingId: Long, newFileName: String) {
         drawVM.updateDrawingFileName(drawingId, newFileName)
     }
 
     //called when user clicks a specific drawing tile from the gallary
-    private fun onDrawingSelect(drawing :Drawing) {
+    private fun onDrawingSelect(drawing: Drawing) {
         drawVM.selectDrawing(drawing)
     }
 
-    private fun onClickNewDrawing() {
-        drawVM.createNewDrawing() // Call to ViewModel to create a new drawing
+    //When the user clicks 'new drawing button'
+    private fun onClickNewDrawingBtn(fileName :String?){
+        drawVM.createNewDrawing(fileName)   //creates a new bitmap and adds it to drawing list
+        actions.navigateToDrawScreen.invoke()
+    }
+
+    // Method to show the dialog
+    private fun showNewDrawingDialog(onFileNameEntered: (String?) -> Unit) {
+        // Create an EditText for user input
+        val input = EditText(requireContext())
+        input.hint = "Enter file name"
+
+        // Create an AlertDialog with the EditText
+        AlertDialog.Builder(requireContext())
+            .setTitle("Enter File Name")
+            .setView(input) // Set the EditText into the dialog
+            .setPositiveButton("OK") { dialog, _ ->
+                val fileName = input.text.toString()
+                // Pass the file name to your ViewModel or handle it
+                onFileNameEntered(fileName) //Failing here but why do I need to do any sort of check if it is empty or null it should be handled already right?
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+            .show()
     }
 }
-
 // Composable function to display the file list using LazyColumn
 @Composable
 fun TitleGallary(drawings: List<Drawing>, actions: DrawingActions) {
@@ -145,7 +178,7 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
                 Log.d("GalleryOfDrawings", "Bitmap clicked for drawing: ${drawing.id}")
                 //Use jetpack navigation and load in picture into custom draw
                 actions.onDrawingSelect(drawing) //Need to refactor this doesn't have access to drawing just bitmap
-                actions.navigationCallback()
+                actions.navigateToDrawScreen()
             }
         )
         //displays file name
@@ -220,6 +253,43 @@ fun getAspectRatioForOrientation(): Float {
         16f / 9f // Landscape aspect ratio
     }
 }
+
+@Composable
+fun PopUpExample() {
+    // State to control the visibility of the pop-up
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Layout with a button
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Button(onClick = {
+            showDialog = true // Show pop-up when button is clicked
+        }) {
+            Text("Show Pop-up")
+        }
+
+        // Show AlertDialog (Pop-up) when showDialog is true
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false }, // Close when clicking outside or back
+                confirmButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+                title = { Text("Pop-up Title") },
+                text = { Text("This is a pop-up message!") }
+            )
+        }
+    }
+}
+
 
 //
 //package com.example.paintapp

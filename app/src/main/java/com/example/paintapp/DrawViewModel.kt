@@ -19,6 +19,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**Data class to store all of our paint values, such as size, shape, and color.
  *
@@ -64,14 +66,13 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
 
     //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
-    fun createNewDrawing() {
+    fun createNewDrawing(fileName: String?) {
         val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
-        Log.e("ViewModel", "Creating a new blank bitmap${newBitmap}")
 
         //adds new drawing to list backed by repo
         viewModelScope.launch {
-            Log.e("ViewModel", "Launching coroutine to add new drawing to repository${newBitmap}")
-            val newDrawing = async {_drawRepository.addDrawing(newBitmap)}
+            val  userChosenFileName =  fileName ?: "untitled"
+            val newDrawing = async {_drawRepository.addDrawing(newBitmap,userChosenFileName)}
             // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
             selectDrawing(newDrawing.await()) //hooks up
         }

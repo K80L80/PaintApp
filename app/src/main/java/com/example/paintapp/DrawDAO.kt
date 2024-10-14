@@ -27,7 +27,6 @@ interface DrawDAO {
     @Query("SELECT * FROM drawings ORDER BY fileName ASC")
     fun getAllDrawings(): Flow<List<DrawEntity>>
 
-
     @Query("SELECT * FROM drawings WHERE fileName = :fileName LIMIT 1")
     suspend fun getDrawingByFileName(fileName: String): DrawEntity?
 

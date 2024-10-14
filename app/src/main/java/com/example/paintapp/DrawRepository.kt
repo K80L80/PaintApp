@@ -53,20 +53,15 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     //Saves the bitmap data in a file to disk, and saves the path to it in the room database
-    suspend fun addDrawing(
-        bitmap: Bitmap,
-        fileName: String = "${System.currentTimeMillis()}.png"
-    ): Drawing {
+    suspend fun addDrawing(bitmap: Bitmap, userChosenFileName: String): Drawing {
         //Save bitmap to disk
-        val file = File(
-            context.filesDir,
-            fileName
-        ) //create an empty file file in 'fileDir' special private folder only for the paint app files
+        val backendFileName = System.currentTimeMillis().toString()
+
+        val file = File(context.filesDir, backendFileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
         saveBitmapToFile(bitmap, file) //Add the bitmap data to this file
 
         //Save path in room database
-        val drawEntity =
-            DrawEntity(fileName = file.absolutePath, userChosenFileName = "empty") //Create a record (ie drawing record), with the absolute path as its field
+        val drawEntity = DrawEntity(fileName = file.absolutePath, userChosenFileName = userChosenFileName) //Create a record (ie drawing record), with the absolute path as its field
         val id = dao.addDrawing(drawEntity) //insert into database
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
@@ -78,8 +73,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         )
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
-        val currentList = _allDrawings.value.orEmpty()
-            .toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
+        val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
         currentList.add(newDrawing)
 
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
@@ -87,7 +81,6 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         return newDrawing
     }
-
 
     suspend fun updateExistingDrawing(updatedDrawing: Drawing) {
         //updates the list the viewer sees immediately on the main thread, this means that their modifications are immediately reflected in the list they see (ie giving the illusion of an instantaneous save even though it might take time to finish saving in the background)

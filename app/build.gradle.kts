@@ -89,6 +89,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation("androidx.activity:activity-ktx:1.9.2")
     implementation("androidx.lifecycle:lifecycle-runtime-testing:2.8.6")
+    implementation("androidx.test.espresso:espresso-core:3.6.1")
 
     // Room for persistence
     ksp("androidx.room:room-compiler:2.6.1")
