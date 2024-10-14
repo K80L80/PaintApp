@@ -47,6 +47,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 import android.app.AlertDialog
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 data class DrawingActions(
@@ -199,9 +203,25 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
     var isEditing by remember { mutableStateOf(false) }
     var localFileName by remember { mutableStateOf(fileName) }
 
+    val focusRequester = FocusRequester()
+    // Display File name in edit mode
     if (isEditing) {
-        // Simple TextField for editing mode
+        // Automatically request focus when the TextField becomes visible
+        Log.d("MainScreen", "in editing mode")
+        LaunchedEffect(Unit) {
+            Log.d("MainScreen", "Text Field requesting focus")
+            focusRequester.requestFocus()
+        }
         TextField(
+            modifier = Modifier
+                .focusRequester(focusRequester) //register focus requester
+                .onFocusChanged { focusState->
+                    if (focusState.isFocused){
+                        Log.d("MainScreen", "TextField Focused changed Active")
+                    } else {
+                        Log.d("MainScreen", "TextField Focused changed Inactive")
+                    }
+                },
             value = localFileName,
             onValueChange = { localFileName = it},
             singleLine = true,
@@ -213,11 +233,12 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
 
         )
     } else {
-        // Display the file name as text when not editing
+        // Display the file name as text (display mode)
         Text(
             text = localFileName,
             modifier = Modifier
                 .clickable {
+                    Log.d("MainScreen", "Text clicked, entering editing mode")
                     isEditing = true // Enter edit mode on click
                 }
         )
