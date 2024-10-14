@@ -60,6 +60,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 data class DrawingActions(
@@ -70,11 +73,7 @@ data class DrawingActions(
 )
 
 class MainScreen : Fragment() {
-
-    //makes the view-model accessible in the fragment
-    private val drawVM: DrawViewModel by activityViewModels {
-        VMFactory((requireActivity().application as DrawApp).drawRepository)
-    }
+    private lateinit var menuVM: MainMenuViewModel
 
     //setup all the callbacks to handle user interactinon
     val actions = DrawingActions(
@@ -89,13 +88,16 @@ class MainScreen : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val app = requireActivity().application as DrawApp
+        val factory = MainMenuVMFactory(app.drawRepository)
+        menuVM = ViewModelProvider(this, factory).get(MainMenuViewModel::class.java) //Expecting member declaratio
 
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
 
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
             //load in all drawings from the view model and display is gallary
-            val drawings by drawVM.drawings.observeAsState(emptyList())
+            val drawings by menuVM.drawings.observeAsState(emptyList())
 
             //setup all the callbacks to handle user interactinon
             TitleGallary(drawings, actions)
@@ -117,19 +119,25 @@ class MainScreen : Fragment() {
         navController.navigate(R.id.action_mainScreen_to_drawFragment)
     }
 
+    fun onDrawingSelected(drawing: Drawing) {
+        menuVM.selectDrawing(drawing)
+        val navController = findNavController()
+        navController.navigate(R.id.action_mainScreen_to_drawFragment)
+    }
+
     //callback to let user rename the file
     private fun onFileNameChange(drawingId: Long, newFileName: String) {
-        drawVM.updateDrawingFileName(drawingId, newFileName)
+        menuVM.updateDrawingFileName(drawingId, newFileName)
     }
 
     //called when user clicks a specific drawing tile from the gallary
     private fun onDrawingSelect(drawing: Drawing) {
-        drawVM.selectDrawing(drawing)
+        menuVM.selectDrawing(drawing)
     }
 
     //When the user clicks 'new drawing button'
     private fun onClickNewDrawingBtn(fileName :String?){
-        drawVM.createNewDrawing(fileName)   //creates a new bitmap and adds it to drawing list
+        menuVM.createNewDrawing(fileName)   //creates a new bitmap and adds it to drawing list
         actions.navigateToDrawScreen.invoke()
     }
 

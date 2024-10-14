@@ -15,8 +15,10 @@ import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
@@ -26,7 +28,7 @@ class DrawFragment : Fragment() {
 
     private lateinit var customDrawView: CustomDrawView
 
-    private val drawViewModel: DrawViewModel by activityViewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
+    private lateinit var drawViewModel: DrawViewModel
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
@@ -41,8 +43,13 @@ class DrawFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
+        val app = requireActivity().application as DrawApp
+        val factory = VMFactory(app.drawRepository)
+        drawViewModel = ViewModelProvider(this, factory).get(DrawViewModel::class.java) //Expecting member declaratio
+
         val view = inflater.inflate(R.layout.fragment_draw, container, false)
         customDrawView = view.findViewById(R.id.customDrawView)
+        drawViewModel.loadSelectedDrawing()
 
         // Fragment: Relaying Touch to ViewModel
         customDrawView.onShapeDrawAction = { x, y, event -> ////The view's member variable of type lambda ('onShapDrawAction') in the custom view class is assigned here in fragment, so when it’s invoked (inside the on touchEvent in the view) it actually calls the logic defined in the fragment, which in turn notifies the ViewModel.

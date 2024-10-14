@@ -18,12 +18,25 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     private val _allDrawings = MutableLiveData<List<Drawing>>()
     val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
 
+    private var selectedDrawing: Drawing? = null
+
+    // Method to get the selected drawing
+    fun getSelectedDrawing(): Drawing? {
+        return selectedDrawing
+    }
+
+    // Method to set the selected drawing
+    fun setSelectedDrawing(drawing: Drawing) {
+        selectedDrawing = drawing
+    }
+
     //Load in all drawings at the start of the app, instead during fragment creation
     init {
         scope.launch {
             loadAllDrawings()
         }
     }
+
 
     // When app starts up, transform filenames into Drawing objects with bitmaps
     private suspend fun loadAllDrawings() {

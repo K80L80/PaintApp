@@ -51,50 +51,6 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     private var _backendCanvas: Canvas? = null
     private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
 
-    // Method to select a drawing (ie local reference to the drawing the user picked from the main menu that they want to now modify)
-    fun selectDrawing(drawing: Drawing) {
-        // Only copy the bitmap to mutable once, if it's not already mutable
-        val mutableBitmap = if (!drawing.bitmap.isMutable) {
-            drawing.bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        } else {
-            drawing.bitmap
-        }
-
-        // Set the mutable bitmap to the selected drawing and backend canvas
-        _selectedDrawing.value = drawing.copy(bitmap = mutableBitmap)//hook up selected drawing to backend canvas used for modifying the bitmap
-        _backendCanvas = Canvas(mutableBitmap)
-    }
-
-    //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
-    fun createNewDrawing(fileName: String?) {
-        val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
-
-        //adds new drawing to list backed by repo
-        viewModelScope.launch {
-            val  userChosenFileName =  fileName ?: "untitled"
-            val newDrawing = async {_drawRepository.addDrawing(newBitmap,userChosenFileName)}
-            // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
-            selectDrawing(newDrawing.await()) //hooks up
-        }
-    }
-
-    //when user navigates away from the draw screen or clicks save, this will take their drawing and save any changes they made (so then when gallery is rendered they see their most recent updates in the thumbnail of their drawing)
-    fun saveCurrentDrawing(newBitmap: Bitmap) {
-        // takes the user drawing (that they modified) and saves the changes to the List of drawings
-        _selectedDrawing.value?.let { drawing ->
-            viewModelScope.launch {
-                _drawRepository.updateExistingDrawing(drawing.copy(bitmap = newBitmap))
-            }
-        }
-    }
-
-    // Update the file name and refresh the UI
-    fun updateDrawingFileName(drawingId: Long, newFileName: String) {
-        viewModelScope.launch {
-            // Update the database in the background
-            _drawRepository.updateDrawingFileName(drawingId, newFileName)
-        }
-    }
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
@@ -106,6 +62,27 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Flag to indicate whether the drawing should be reset
     private val _shouldReset = MutableLiveData<Boolean>()
 
+    // Load the selected drawing from the repository
+    fun loadSelectedDrawing() {
+        val drawing = _drawRepository.getSelectedDrawing()
+        _selectedDrawing.value = drawing
+        drawing?.let {
+            _backendCanvas = Canvas(it.bitmap) //hook up selected drawing to backend canvas used for modifying the bitmap
+        }
+    }
+
+    //when user navigates away from the draw screen or clicks save, this will take their drawing and save any changes they made (so then when gallery is rendered they see their most recent updates in the thumbnail of their drawing)
+    fun saveCurrentDrawing(newBitmap: Bitmap) {
+        // takes the user drawing (that they modified) and saves the changes to the List of drawings
+        _selectedDrawing.value?.let { drawing ->
+            val updatedDrawing = drawing.copy(bitmap = newBitmap)
+            _selectedDrawing.value = updatedDrawing
+
+            viewModelScope.launch {
+                _drawRepository.updateExistingDrawing(updatedDrawing)
+            }
+        }
+    }
     fun respondToResizeEvent(newWidth: Int, newHeight: Int) {
         Log.i("ViewModel", "respond to resize event${_selectedDrawing.value?.bitmap}")
 
