@@ -63,6 +63,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 data class DrawingActions(
@@ -138,7 +141,11 @@ class MainScreen : Fragment() {
     //When the user clicks 'new drawing button'
     private fun onClickNewDrawingBtn(fileName :String?){
         menuVM.createNewDrawing(fileName)   //creates a new bitmap and adds it to drawing list
-        actions.navigateToDrawScreen.invoke()
+       //TODO: fix this hacky solution (issue is that bitmap is null if you navigate right away, the draw screen recieves a null bitmap because it starts before the selected drawing is full set)
+        lifecycleScope.launch {
+            delay(500L)  //the integer does not conform to the expected type
+            actions.navigateToDrawScreen.invoke()  // Navigate after the delay
+        }
     }
 
     // Method to show the dialog
