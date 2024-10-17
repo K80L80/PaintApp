@@ -69,7 +69,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     //Saves the bitmap data in a file to disk, and saves the path to it in the room database
     suspend fun addDrawing(bitmap: Bitmap, userChosenFileName: String): Drawing {
         //Save bitmap to disk
-        val backendFileName = System.currentTimeMillis().toString()
+        val backendFileName = "${System.currentTimeMillis()}.png"
 
         val file = File(context.filesDir, backendFileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
         saveBitmapToFile(bitmap, file) //Add the bitmap data to this file
@@ -117,7 +117,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             saveBitmapToFile(
                 updatedDrawing.bitmap,
                 file
-            ) ///gives updates to those tracking live data
+            ) //gives updates to those tracking live data
         }
     }
 

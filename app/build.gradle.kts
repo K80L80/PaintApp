@@ -134,6 +134,8 @@ dependencies {
 
     //tracing library
     implementation ("androidx.tracing:tracing:1.2.0")
+
+    implementation ("com.google.android.material:material:1.12.0")
 }
 
 

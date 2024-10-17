@@ -1,8 +1,13 @@
 package com.example.paintapp
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.net.Uri
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
@@ -16,6 +21,9 @@ class MainMenuViewModel(drawRepository: DrawRepository) : ViewModel() {
 
     val drawings: LiveData<List<Drawing>> = drawRepository.allDrawings
     // Load all drawings once when the app starts or the menu is displayed
+
+    private val _shareIntent = MutableLiveData<Intent>()
+    val shareIntent: LiveData<Intent> get() = _shareIntent
 
     fun selectDrawing(drawing: Drawing) {
         _drawRepository.setSelectedDrawing(drawing)
@@ -50,4 +58,16 @@ class MainMenuViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
+    // for sharing a drawing,
+    fun shareDrawing(fileName: String) {//ViewModel prepares the sharing intent (e.g., using a file URI) and posts it to the LiveData.
+        val drawingUri = _drawRepository.getDrawingUri(fileName)
+        drawingUri?.let {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, drawingUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            _shareIntent.postValue(Intent.createChooser(intent, "Share Drawing"))
+        }
+    }
 }

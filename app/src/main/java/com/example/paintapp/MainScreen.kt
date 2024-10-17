@@ -44,6 +44,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -52,6 +54,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusRequester
@@ -61,6 +67,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -72,7 +80,8 @@ data class DrawingActions(
     val onFileNameChange: (Long, String) -> Unit,
     val onDrawingSelect: (Drawing) -> Unit,
     val navigateToDrawScreen: (() -> Unit),
-    val onClickNewDrawingBtn: (String) -> Unit // Callback for creating a new drawing
+    val onClickNewDrawingBtn: (String) -> Unit, // Callback for creating a new drawing
+    val  onShareClick: (String) -> Unit
 )
 
 class MainScreen : Fragment() {
@@ -83,7 +92,8 @@ class MainScreen : Fragment() {
         onFileNameChange = ::onFileNameChange, //callback to let user re-name their file
         onDrawingSelect = ::onDrawingSelect, //callback to let user user to 'select' a drawing to edit
         navigateToDrawScreen = ::navigateToDrawScreen, //callback to navigate from here gallary to draw screen
-        onClickNewDrawingBtn = ::onClickNewDrawingBtn// Callback for creating a new drawing
+        onClickNewDrawingBtn = ::onClickNewDrawingBtn,// Callback for creating a new drawing
+        onShareClick = ::onShareClick
     )
 
     override fun onCreateView(
@@ -101,6 +111,14 @@ class MainScreen : Fragment() {
         binding.composeView.setContent {
             //load in all drawings from the view model and display is gallary
             val drawings by menuVM.drawings.observeAsState(emptyList())
+
+            // Observe share intent
+            val shareIntent by menuVM.shareIntent.observeAsState()
+
+            // Trigger the share intent when it's available
+            shareIntent?.let {
+                context?.startActivity(it)
+            }
 
             //setup all the callbacks to handle user interactinon
             TitleGallary(drawings, actions)
@@ -146,6 +164,10 @@ class MainScreen : Fragment() {
             delay(500L)  //the integer does not conform to the expected type
             actions.navigateToDrawScreen.invoke()  // Navigate after the delay
         }
+    }
+
+    private fun onShareClick(fileName: String){
+        menuVM.shareDrawing(fileName)
     }
 
     // Method to show the dialog
@@ -223,9 +245,20 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
                 actions.onFileNameChange(drawing.id, newFileName)
             }
         )
+        ShareIconButton({
+            actions.onShareClick(drawing.fileName)
+        })
     }
 }
-//Composable to display the file name
+//universal looking share button
+@Composable
+fun ShareIconButton(onClick: () -> Unit) {
+    IconButton(onClick = { onClick() }) {
+        Icon(imageVector = Icons.Filled.Share, contentDescription = "Share")
+    }
+}
+
+//Composable to display the file     name
 //The composable can manage local state for focus and edit mode, but the final updates should be propagated back to the ViewModel only when necessary (e.g., when the user completes editing).
 @Composable
 fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
@@ -344,6 +377,7 @@ fun PopUpExample() {
         }
     }
 }
+
 @Composable
 fun ColorPickerWithFocus() {
     var isPickerVisible by remember { mutableStateOf(false) }
