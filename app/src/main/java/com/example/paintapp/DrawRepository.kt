@@ -121,7 +121,6 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         }
     }
 
-
     // Update only the file name of a specific drawing by its ID
     suspend fun updateDrawingFileName(drawingId: Long, newFileName: String) {
         //Optimistically update UI with new name

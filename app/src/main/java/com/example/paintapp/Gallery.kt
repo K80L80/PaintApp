@@ -26,7 +26,6 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -40,17 +39,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 import android.app.AlertDialog
-import android.content.Context
-import android.content.Intent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -58,18 +49,12 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
@@ -85,7 +70,7 @@ data class DrawingActions(
 )
 
 class MainScreen : Fragment() {
-    private lateinit var menuVM: MainMenuViewModel
+    private lateinit var menuVM: GalleryViewModel
 
     //setup all the callbacks to handle user interactinon
     val actions = DrawingActions(
@@ -103,7 +88,7 @@ class MainScreen : Fragment() {
     ): View {
         val app = requireActivity().application as DrawApp
         val factory = MainMenuVMFactory(app.drawRepository)
-        menuVM = ViewModelProvider(this, factory).get(MainMenuViewModel::class.java) //Expecting member declaratio
+        menuVM = ViewModelProvider(this, factory).get(GalleryViewModel::class.java) //Expecting member declaratio
 
         val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
 
@@ -377,183 +362,4 @@ fun PopUpExample() {
         }
     }
 }
-
-@Composable
-fun ColorPickerWithFocus() {
-    var isPickerVisible by remember { mutableStateOf(false) }
-    var selectedColor by remember { mutableStateOf(Color.Gray) }
-    val colors = listOf(Color.Red, Color.Green, Color.Blue)
-
-    Column {
-        Box(
-            modifier = Modifier
-                .size(50.dp)
-                .background(selectedColor, CircleShape)
-                .clickable {
-                    isPickerVisible = !isPickerVisible
-                }
-        )
-
-
-        if (isPickerVisible) {
-            Column(
-                modifier = Modifier
-                    .width(100.dp)
-            ) {
-                colors.forEach { color ->
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(color, CircleShape)
-                            .clickable {
-                                selectedColor = color
-                                isPickerVisible = false
-                            }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun PreviewColorPickerWithFocus() {
-    ColorPickerWithFocus()
-}
-
-//
-//package com.example.paintapp
-//import android.graphics.Bitmap
-//import android.os.Bundle
-//import android.util.Log
-//import android.view.LayoutInflater
-//import android.view.View
-//import android.view.ViewGroup
-//import androidx.activity.viewModels
-//import androidx.compose.foundation.BorderStroke
-//import androidx.compose.foundation.Image
-//import androidx.compose.foundation.border
-//import androidx.compose.foundation.clickable
-//import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.aspectRatio
-//import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.foundation.layout.fillMaxWidth
-//import androidx.compose.foundation.layout.padding
-//import androidx.compose.foundation.lazy.grid.GridCells
-//import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-//import androidx.compose.foundation.lazy.grid.items
-//import androidx.compose.material.Text
-//import androidx.compose.runtime.Composable
-//import androidx.compose.runtime.getValue
-//import androidx.compose.runtime.livedata.observeAsState
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.graphics.asImageBitmap
-//import androidx.compose.ui.platform.LocalConfiguration
-//import androidx.compose.ui.unit.dp
-//import androidx.fragment.app.Fragment
-//import androidx.fragment.app.activityViewModels
-//import androidx.fragment.app.viewModels
-//import androidx.navigation.NavController
-//import androidx.navigation.fragment.findNavController
-//import com.example.paintapp.databinding.ActivityMainScreenBinding
-//
-////Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
-//class MainScreen : Fragment() {
-//
-//    //makes the view-model accessible in the fragment
-//    private val drawVM: DrawViewModel by activityViewModels { VMFactory((requireActivity().application as DrawApp).drawRepository) }
-//
-//    private var navigateToDrawFragment: () -> Unit  = {
-//        val navController = findNavController()
-//        navController.navigate(R.id.action_mainScreen_to_drawFragment)
-//    }
-//    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-//
-//        val binding = ActivityMainScreenBinding.inflate(inflater, container, false)
-//
-//
-//        // Add ComposeView to show a LazyColumn
-//        binding.composeView.setContent {
-//            //load in all drawings from the view model and display is gallary
-//            val drawings by drawVM.drawings.observeAsState(emptyList())
-//            GalleryOfDrawings(drawings,navigateToDrawFragment,drawVM) //Required: List<Drawing> Found: LiveData<List<Drawing>>
-//        }
-//
-//        //create new drawing button
-//        binding.button2.setOnClickListener {
-//            //creates a new bitmap and adds it to drawing list
-//            drawVM.createNewDrawing()
-//            navigateToDrawFragment.invoke()
-//        }
-//        return binding.root
-//    }
-//}
-//
-//// Composable function to display the file list using LazyColumn
-//@Composable
-//fun GalleryOfDrawings(drawings: List<Drawing>, navigateToDrawFragment: () -> Unit,vm:DrawViewModel) {
-//    LazyVerticalGrid(
-//        columns = GridCells.Fixed(2),
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(16.dp)
-//    ) {
-//        items(drawings) { drawing ->
-//            FileGridItem(drawing,navigateToDrawFragment, vm)
-//        }
-//    }
-//}
-//
-//@Composable
-//fun FileGridItem(drawing: Drawing,navigateToDrawFragment: () -> Unit, vm: DrawViewModel){
-//    val aspectRatio = getAspectRatioForOrientation()
-//    //creates box effect holds drawing and file name
-//    Column (
-//        horizontalAlignment = Alignment.CenterHorizontally, // Center align content
-//        modifier = Modifier
-//            .fillMaxWidth() // Adjust the width of each column
-//            .padding(8.dp)  // Add padding between grid items
-//            .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
-//            //user clicks on the drawing they want to modify
-//            .clickable {
-//                //Use jetpack navigation and load in picture into custom draw
-//                vm.selectDrawing(drawing)
-//                navigateToDrawFragment.invoke()
-//            },
-//    ){
-//        //displays drawing
-//        Drawing(drawing.bitmap, aspectRatio)
-//        //displays file name
-//        Text(text = drawing.fileName)
-//    }
-//}
-//// Composable function to display a single file item
-//@Composable
-//fun Drawing(bitmap: Bitmap,  aspectRatio: Float) {
-//    // Convert Bitmap to ImageBitmap to use in Compose
-//    val imageBitmap = bitmap.asImageBitmap()
-//    // Display the Bitmap as an Image
-//    Image(
-//        bitmap = imageBitmap,
-//        contentDescription = "Drawing Thumbnail",
-//        modifier = Modifier
-//            .aspectRatio(aspectRatio) // Keep each item square
-//            .padding(8.dp)
-//            .border(BorderStroke(2.dp, Color.Gray))
-//    )
-//}
-//
-//@Composable
-//fun getAspectRatioForOrientation(): Float {
-//    val configuration = LocalConfiguration.current
-//    return if (configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
-//        9f / 16f // Portrait aspect ratio
-//    } else {
-//        16f / 9f // Landscape aspect ratio
-//    }
-//}
-
 
