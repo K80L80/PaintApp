@@ -1,7 +1,9 @@
 package com.example.paintapp
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
+import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +38,6 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             loadAllDrawings()
         }
     }
-
 
     // When app starts up, transform filenames into Drawing objects with bitmaps
     private suspend fun loadAllDrawings() {
@@ -80,7 +81,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         //Create a Drawing object, now including the generated ID, file path, and bitmap
         val newDrawing = Drawing(
             id = id,
-            bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
+            bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),//TODO: should I make this immutable?
             fileName = drawEntity.fileName,
             userChosenFileName = drawEntity.userChosenFileName
         )
@@ -158,6 +159,17 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
                 Log.e("BitmapDebug", "Error loading bitmap from file: $fileName", e)
             }
             return@withContext null
+        }
+    }
+
+    //used to help with the file sharing process
+    fun getDrawingUri(fullFilePath: String): Uri? {
+        val file = File(fullFilePath)
+        return if (file.exists()) {
+            //for sharing of files from your app to other apps securely
+            FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+        } else {
+            null
         }
     }
 

@@ -42,8 +42,6 @@ class MainMenuViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
-
-
     // Update the file name and refresh the UI
     fun updateDrawingFileName(drawingId: Long, newFileName: String) {
         viewModelScope.launch {
@@ -51,4 +49,5 @@ class MainMenuViewModel(drawRepository: DrawRepository) : ViewModel() {
             _drawRepository.updateDrawingFileName(drawingId, newFileName)
         }
     }
+
 }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Required for securely sharing files (ie drawings) with other apps-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android"> <!-- keep the xmlns:... in case we end up needing to use the android: namespace prefix-->
+    <files-path name="internal_files" path="." /><!-- The . means all files in filesDir are eligible for sharing.--> <!--This indicates you're sharing files from the internal filesDir.-->
+</paths>
