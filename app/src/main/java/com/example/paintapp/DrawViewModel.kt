@@ -4,6 +4,7 @@
  */
 package com.example.paintapp
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -51,6 +52,9 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     private var _backendCanvas: Canvas? = null
     private var freeDrawPath: Path = Path()  // Path to hold the freehand drawing
 
+    //for drawing sharing
+    private val _shareIntent = MutableLiveData<Intent>()
+    val shareIntent: LiveData<Intent> get() = _shareIntent
 
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
@@ -405,7 +409,21 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             _selectedDrawing.value = it  // Post the cleared bitmap
         }
     }
+
+    // for sharing a drawing,
+    fun shareDrawing() {//ViewModel prepares the sharing intent (e.g., using a file URI) and posts it to the LiveData.
+        val drawingUri = _selectedDrawing.value?.let { _drawRepository.getDrawingUri(it.fileName) }
+        drawingUri?.let {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, drawingUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            _shareIntent.postValue(Intent.createChooser(intent, "Share Drawing"))
+        }
+    }
 }
+
 fun createDefaultDrawing(id: Long, width: Int, height: Int, fileName: String): Drawing {
     // Create an empty bitmap
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)

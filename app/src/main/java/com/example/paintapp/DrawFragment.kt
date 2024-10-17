@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
@@ -73,6 +74,14 @@ class DrawFragment : Fragment() {
             }
         }
         fragmentSetupComplete = true
+
+        //share the drawing (listen for when view-model is done generating the intent)
+        drawViewModel.shareIntent.observe(viewLifecycleOwner) { intent ->
+            intent?.let {
+                // Now start the activity
+                startActivity(it)
+            }
+        }
 
         //observing color changes
         drawViewModel.paintTool.observe(viewLifecycleOwner){
@@ -146,6 +155,12 @@ class DrawFragment : Fragment() {
                 // Assume customDrawView provides this method
                 drawViewModel.saveCurrentDrawing(it)
             }
+        }
+
+        val shareButton: Button = view.findViewById(R.id.shareBtn)
+        shareButton.setOnClickListener{
+            //TODO: launch intent when button is clicked
+            drawViewModel.shareDrawing()
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
