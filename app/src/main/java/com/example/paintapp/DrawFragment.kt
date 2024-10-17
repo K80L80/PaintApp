@@ -14,12 +14,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
 import yuku.ambilwarna.AmbilWarnaDialog
@@ -36,7 +31,6 @@ class DrawFragment : Fragment() {
     private var onNavigation: (() -> Unit)? = {
         findNavController().popBackStack()
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -164,17 +158,6 @@ class DrawFragment : Fragment() {
         }
     }
 
-
-//    override fun onDestroyView() {
-//        super.onDestroyView()
-//        removeNavigationListener?.invoke() // Clean up listener on destroy
-//    }
-//
-//    override fun onResume() {
-//        super.onResume()
-//        addNavigationListener?.invoke() // Only call findNavController when necessary
-//    }
-
     /**Saves the bitmap for rotation
      *
      */
@@ -214,6 +197,4 @@ class DrawFragment : Fragment() {
             }
         }).show()
     }
-
-
 }
