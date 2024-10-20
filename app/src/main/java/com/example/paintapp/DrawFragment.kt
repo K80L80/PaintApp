@@ -5,6 +5,9 @@
 package com.example.paintapp
 
 import android.app.AlertDialog
+import android.content.Context.SENSOR_SERVICE
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,6 +28,9 @@ class DrawFragment : Fragment() {
     private lateinit var customDrawView: CustomDrawView
 
     private lateinit var drawViewModel: DrawViewModel
+    private lateinit var sensorManager: SensorManager
+    private lateinit var accelerometer: Sensor
+    private var shakeThreshold = 12f
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
@@ -66,6 +72,8 @@ class DrawFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        sensorManager = requireActivity().getSystemService(SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)!!
 
         //observe the drawing picked by the user (ie., earliery by clicking thumbnail)
         drawViewModel.selectedDrawing.observe(viewLifecycleOwner) { drawing ->
@@ -169,6 +177,13 @@ class DrawFragment : Fragment() {
                 drawViewModel.saveCurrentDrawing(currentBitmap)
                 // Navigate back after the data has been saved
                 onNavigation?.invoke()
+            }
+        }
+        //shake flow from sensors to know when to increase size
+        val shakingFlow = drawViewModel.shakeDetector(accelerometer, sensorManager)
+        shakingFlow.observe(viewLifecycleOwner) { shaking ->
+            if (shaking) {
+                drawViewModel.increaseSize()
             }
         }
     }

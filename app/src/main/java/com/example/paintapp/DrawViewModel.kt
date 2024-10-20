@@ -4,6 +4,7 @@
  */
 package com.example.paintapp
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -12,16 +13,25 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.Typeface
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.util.Log
 import android.view.MotionEvent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlinx.coroutines.flow.Flow
+
 
 /**Data class to store all of our paint values, such as size, shape, and color.
  *
@@ -40,6 +50,8 @@ data class PaintTool(
 class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Method to add a new drawing
     private val _drawRepository = drawRepository
+    private lateinit var sensorManager: SensorManager
+    private lateinit var accelerometer: Sensor
 
     val drawings : LiveData<List<Drawing>> = drawRepository.allDrawings
     // Load all drawings once when the app starts or the menu is displayed
@@ -420,6 +432,63 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             _shareIntent.postValue(Intent.createChooser(intent, "Share Drawing"))
+        }
+    }
+
+    /**Driver to send boolean of isShaking to the drawFragment
+     *
+     */
+    fun shakeDetector(accelerometer: Sensor, sensorManager: SensorManager): LiveData<Boolean> {
+        return liveData {
+            shakeDetectorFlow(accelerometer, sensorManager).collect { shaking ->
+                emit(shaking)
+            }
+        }
+    }
+
+    /**Method to check for changes in positionals for shaking
+     *
+     */
+    private fun shakeDetectorFlow(accelerometer: Sensor, sensorManager: SensorManager): Flow<Boolean> {
+        return channelFlow {
+            val listener = object : SensorEventListener {
+                val history = mutableListOf<FloatArray>()
+
+                override fun onSensorChanged(event: SensorEvent?) {
+                    if (event != null) {
+                        if (history.size > 10) {
+                            history.removeAt(0)
+                        }
+                        history.add(event.values.copyOf())
+
+                        val minDotProduct = history.minOf {
+                            it.zip(event.values).map { pair -> pair.first * pair.second }
+                                .reduce(Float::plus)
+                        }
+
+                        channel.trySend(minDotProduct < -2.0)
+                    }
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+            }
+
+            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+
+            awaitClose {
+                sensorManager.unregisterListener(listener)
+            }
+        }
+    }
+
+    /**Method to increase size
+     * Helper for shake
+     *
+     */
+    fun increaseSize() {
+        val currentSize = getSize() ?: 10f
+        if(currentSize < 45f) {
+            setSize(currentSize + 5f)
         }
     }
 }
