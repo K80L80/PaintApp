@@ -4,6 +4,7 @@
  */
 package com.example.paintapp
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -12,16 +13,25 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.Typeface
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.util.Log
 import android.view.MotionEvent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlinx.coroutines.flow.Flow
+
 
 /**Data class to store all of our paint values, such as size, shape, and color.
  *
@@ -31,7 +41,7 @@ data class PaintTool(
         color = Color.BLACK
         strokeWidth = 30f
     },
-   // val color: Int = Color.BLACK,
+    // val color: Int = Color.BLACK,
     val currentShape: String = "free" // Default shape is "free draw"
     //TODO: Add mode? Free?
 )
@@ -40,6 +50,8 @@ data class PaintTool(
 class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Method to add a new drawing
     private val _drawRepository = drawRepository
+    private lateinit var sensorManager: SensorManager
+    private lateinit var accelerometer: Sensor
 
     val drawings : LiveData<List<Drawing>> = drawRepository.allDrawings
     // Load all drawings once when the app starts or the menu is displayed
@@ -59,7 +71,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     // LiveData for the PaintTool object
     private val _paintTool = MutableLiveData<PaintTool>().apply {
         // Use postValue to ensure it's safe for background threads
-       postValue(PaintTool())
+        postValue(PaintTool())
     }
     val paintTool: LiveData<PaintTool> get() = _paintTool
 
@@ -106,7 +118,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
      *
      */
     fun setBitmap(bitmap: Bitmap?) {
-       // _bitmap.postValue(bitmap)
+        // _bitmap.postValue(bitmap)
         bitmap?.let {
             _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)//after
         }
@@ -407,6 +419,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             val canvas = Canvas(it.bitmap)
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)  // Clear the bitmap
             _selectedDrawing.value = it  // Post the cleared bitmap
+            
         }
     }
 
@@ -422,42 +435,98 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             _shareIntent.postValue(Intent.createChooser(intent, "Share Drawing"))
         }
     }
-}
 
-fun createDefaultDrawing(id: Long, width: Int, height: Int, fileName: String): Drawing {
-    // Create an empty bitmap
-    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-
-    // Initialize a canvas to draw on the bitmap
-    val canvas = Canvas(bitmap)
-
-    // Set background color
-    canvas.drawColor(Color.LTGRAY)
-
-    // Set up paint for text
-    val paint = Paint().apply {
-        color = Color.RED
-        textSize = 40f
-        typeface = Typeface.DEFAULT_BOLD
-        textAlign = Paint.Align.CENTER
+    /**Driver to send boolean of isShaking to the drawFragment
+     *
+     */
+    fun shakeDetector(accelerometer: Sensor, sensorManager: SensorManager): LiveData<Boolean> {
+        return liveData {
+            shakeDetectorFlow(accelerometer, sensorManager).collect { shaking ->
+                emit(shaking)
+            }
+        }
     }
 
-    // Draw the error message on the bitmap
-    val message = "Something went wrong with this drawing"
-    canvas.drawText(message, (width / 2).toFloat(), (height / 2).toFloat(), paint)
+    /**Method to check for changes in positionals for shaking
+     *
+     */
+    private fun shakeDetectorFlow(accelerometer: Sensor, sensorManager: SensorManager): Flow<Boolean> {
+        return channelFlow {
+            val listener = object : SensorEventListener {
+                val history = mutableListOf<FloatArray>()
 
-    // Return a Drawing object with this bitmap and filename
-    return Drawing(
-        id = id,
-        bitmap = bitmap,
-        fileName = fileName,
-        userChosenFileName = "untitled"
-    )
+                override fun onSensorChanged(event: SensorEvent?) {
+                    if (event != null) {
+                        if (history.size > 10) {
+                            history.removeAt(0)
+                        }
+                        history.add(event.values.copyOf())
+
+                        val minDotProduct = history.minOf {
+                            it.zip(event.values).map { pair -> pair.first * pair.second }
+                                .reduce(Float::plus)
+                        }
+
+                        channel.trySend(minDotProduct < -2.0)
+                    }
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+            }
+
+            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+
+            awaitClose {
+                sensorManager.unregisterListener(listener)
+            }
+        }
+    }
+
+    /**Method to increase size
+     * Helper for shake
+     *
+     */
+    fun increaseSize() {
+        val currentSize = getSize() ?: 10f
+        if(currentSize < 45f) {
+            setSize(currentSize + 5f)
+        }
+    }
 }
-val defaultDrawing = createDefaultDrawing(
-    id = -1L, // Assign an invalid id or one that represents the default
-    width = 800, // Specify a default width
-    height = 600, // Specify a default height
-    fileName = "error_drawing.png"
-)
 
+    fun createDefaultDrawing(id: Long, width: Int, height: Int, fileName: String): Drawing {
+        // Create an empty bitmap
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        // Initialize a canvas to draw on the bitmap
+        val canvas = Canvas(bitmap)
+
+        // Set background color
+        canvas.drawColor(Color.LTGRAY)
+
+        // Set up paint for text
+        val paint = Paint().apply {
+            color = Color.RED
+            textSize = 40f
+            typeface = Typeface.DEFAULT_BOLD
+            textAlign = Paint.Align.CENTER
+        }
+
+        // Draw the error message on the bitmap
+        val message = "Something went wrong with this drawing"
+        canvas.drawText(message, (width / 2).toFloat(), (height / 2).toFloat(), paint)
+
+        // Return a Drawing object with this bitmap and filename
+        return Drawing(
+            id = id,
+            bitmap = bitmap,
+            fileName = fileName,
+            userChosenFileName = "untitled"
+        )
+    }
+    val defaultDrawing = createDefaultDrawing(
+        id = -1L, // Assign an invalid id or one that represents the default
+        width = 800, // Specify a default width
+        height = 600, // Specify a default height
+        fileName = "error_drawing.png"
+    )

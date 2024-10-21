@@ -5,6 +5,12 @@
 package com.example.paintapp
 
 import android.app.AlertDialog
+import android.content.Context.SENSOR_SERVICE
+import android.graphics.PointF
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,7 +18,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.compose.ui.graphics.Path
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -25,6 +33,15 @@ class DrawFragment : Fragment() {
     private lateinit var customDrawView: CustomDrawView
 
     private lateinit var drawViewModel: DrawViewModel
+    private lateinit var sensorManager: SensorManager
+    private lateinit var accelerometer: Sensor
+    private lateinit var gravitySensor: Sensor
+    private var gravityListener: SensorEventListener? = null  // Save the sensor listener instance
+    private var isBallEnabled = false  // Used to mark whether ball movement is enabled
+    private lateinit var trailPath: Path
+    private lateinit var ballPosition: PointF
+
+    private var shakeThreshold = 12f
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
@@ -37,6 +54,9 @@ class DrawFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        trailPath = Path()
+        ballPosition = PointF(0f, 0f)  // Initial position is (0, 0)
+
 
         val app = requireActivity().application as DrawApp
         val factory = VMFactory(app.drawRepository)
@@ -66,7 +86,15 @@ class DrawFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        sensorManager = requireActivity().getSystemService(SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)!!
+        gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)!!
+        if (gravitySensor == null) {
+            // Prompts the user that the device does not support the gravity sensor
+            Toast.makeText(requireContext(), "Gravity sensor not available on this device", Toast.LENGTH_SHORT).show()
+        } else {
+            startListeningToSensor()
+        }
         //observe the drawing picked by the user (ie., earliery by clicking thumbnail)
         drawViewModel.selectedDrawing.observe(viewLifecycleOwner) { drawing ->
             drawing?.bitmap?.let { ///    //When the fragment receives word that the bitmap changed it calls on the view to update the UI (calling customDrawingView.updateBitmap(bitmap)
@@ -127,15 +155,28 @@ class DrawFragment : Fragment() {
         // Set shape button
         val buttonChangeShape: Button = view.findViewById(R.id.buttonChangeShape)
         buttonChangeShape.setOnClickListener {
-            val shapes = arrayOf("free", "line", "circle", "square", "rectangle", "diamond")
+            val shapes = arrayOf("free", "line", "circle", "square", "rectangle", "diamond", "ball")
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Shape")
                 .setItems(shapes) { _, which ->
                     val selectedShape = shapes[which]
                     drawViewModel.setShape(selectedShape)
+
+                    //  If "ball" is selected, enable the sensor movement logic
+                    if (selectedShape == "ball") {
+                        isBallEnabled = true
+                        customDrawView.setBallVisible(true)  // show ball
+                        trailPath.moveTo(ballPosition.x, ballPosition.y)  // Set the start point of the path
+                        startListeningToSensor()
+                    } else {
+                        isBallEnabled = false
+                        customDrawView.setBallVisible(false)  // hid the ball
+                        stopListeningToSensor()  // stop listening
+                    }
                 }
                 .show()
         }
+
 
         // Clear button
         val buttonReset: Button = view.findViewById(R.id.buttonReset)
@@ -146,14 +187,30 @@ class DrawFragment : Fragment() {
             }
             // After reset, tell ViewModel to reset the flag to avoid future resets
             drawViewModel.resetComplete()
+
+            // Clear track path
+            trailPath.reset()
+
+            //Reset the position of the ball
+            ballPosition.set(0f, 0f)
+
+            // hid the ball
+            isBallEnabled = false
+            customDrawView.setBallVisible(false)
+
+            // Stop sensor listening
+            stopListeningToSensor()
+
+            // Triggers view redrawing
+            customDrawView.invalidate()
         }
 
         //save button, sets callback
         val saveButton: Button = view.findViewById(R.id.saveBtn)
         saveButton.setOnClickListener{
-            customDrawView.getBitmap()?.let{
+            customDrawView.getBitmap()?.let{ updatedBitmap->
                 // Assume customDrawView provides this method
-                drawViewModel.saveCurrentDrawing(it)
+                drawViewModel.saveCurrentDrawing(updatedBitmap)
             }
         }
 
@@ -169,6 +226,13 @@ class DrawFragment : Fragment() {
                 drawViewModel.saveCurrentDrawing(currentBitmap)
                 // Navigate back after the data has been saved
                 onNavigation?.invoke()
+            }
+        }
+        //shake flow from sensors to know when to increase size
+        val shakingFlow = drawViewModel.shakeDetector(accelerometer, sensorManager)
+        shakingFlow.observe(viewLifecycleOwner) { shaking ->
+            if (shaking) {
+                drawViewModel.increaseSize()
             }
         }
     }
@@ -211,5 +275,51 @@ class DrawFragment : Fragment() {
                 drawViewModel.setColor(color)
             }
         }).show()
+    }
+
+    /**
+     * Start monitoring sensor data
+     */
+    private fun startListeningToSensor() {
+        gravityListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                if (event != null) {
+                    val gravity = event.values
+                    updateBallPosition(gravity)
+                }
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+
+        sensorManager.registerListener(
+            gravityListener,
+            gravitySensor,
+            SensorManager.SENSOR_DELAY_UI
+        )
+    }
+
+    /**
+     * Stop monitoring sensor data
+     */
+    private fun stopListeningToSensor() {
+        gravityListener?.let {
+            sensorManager.unregisterListener(it)  // Unregister the listener
+        }
+        gravityListener = null  // Reset monitor
+    }
+    /**
+     * Update the position of the ball
+     */
+    private fun updateBallPosition(gravity: FloatArray) {
+        val deltaX = -gravity[0] * 1  //Adjust to a smaller multiple to reduce the movement speed
+        val deltaY = gravity[1] * 1
+        trailPath.lineTo(ballPosition.x, ballPosition.y)  // Adds the current location to the path
+        customDrawView.updateBallPosition(deltaX, deltaY)//Updates the position of the ball in the CustomDrawView
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        stopListeningToSensor()
     }
 }
