@@ -41,7 +41,7 @@ class DrawFragment : Fragment() {
     private lateinit var trailPath: Path
     private lateinit var ballPosition: PointF
 
-    private var shakeThreshold = 12f
+    private var lastShake: Long = 0
 
     private var fragmentSetupComplete = false  // New flag to track if fragment setup is done
 
@@ -232,7 +232,12 @@ class DrawFragment : Fragment() {
         val shakingFlow = drawViewModel.shakeDetector(accelerometer, sensorManager)
         shakingFlow.observe(viewLifecycleOwner) { shaking ->
             if (shaking) {
-                drawViewModel.increaseSize()
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastShake > 1000) {
+                    drawViewModel.increaseSize()
+                    lastShake = currentTime
+                }
+
             }
         }
     }
