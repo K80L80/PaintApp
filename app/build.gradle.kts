@@ -2,7 +2,9 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21" //to serialize kotlin class
 }
+val ktor_version = "2.3.0"
 
 android {
     namespace = "com.example.paintapp"
@@ -136,6 +138,15 @@ dependencies {
     implementation ("androidx.tracing:tracing:1.2.0")
 
     implementation ("com.google.android.material:material:1.12.0")
+
+    //Client Side (android studio) Ktor stuff (Network requests and serialization)
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version") //This enables Ktor to handle content negotiation and serialization (like JSON) on the client-side.
+    implementation("io.ktor:ktor-client-android:$ktor_version") //Use Android-Specific Ktor
+    implementation("io.ktor:ktor-client-core:$ktor_version") //Ktor client core
+    implementation("org.slf4j:slf4j-simple:2.0.7") // Adjust version as needed
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version") // //Integrates Kotlinx Serialization into Ktor.
+    implementation("io.ktor:ktor-client-plugins:$ktor_version") ////Ktor plugins
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3") // // Core Kotlinx Serialization library– provides the actual logic to serialize/deserialize Kotlin objects to and from JSON.
 }
 
 

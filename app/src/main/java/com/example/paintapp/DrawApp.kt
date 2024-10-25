@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+//import io.ktor.client.HttpClient
 
 //-----------Application (Singleton Pattern)----------------//
 //Application class is used to create a global instance of objects like a repository or database, ensuring that only one instance is created and shared across the entire app.
@@ -23,6 +24,14 @@ class DrawApp : Application() {
             printDrawingTable(db.drawDao())
         }
     }
+
+//    object NetworkClient {
+//        val client = HttpClient {
+//            install(ContentNegotiation) {
+//                json()
+//            }
+//        }
+//    }
 }
 
 //Notes: //In Android, every app has a default Application object created automatically by the system.
