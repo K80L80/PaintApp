@@ -3,6 +3,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.window.application
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -16,6 +17,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
+
+    private val client = (context.applicationContext as DrawApp).client //No value passed for parameter 'content'
 
     private val _allDrawings = MutableLiveData<List<Drawing>>()
     val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
