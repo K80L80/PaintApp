@@ -4,6 +4,9 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -25,13 +28,13 @@ class DrawApp : Application() {
         }
     }
 
-//    object NetworkClient {
-//        val client = HttpClient {
-//            install(ContentNegotiation) {
-//                json()
-//            }
-//        }
-//    }
+    object NetworkClient {
+        val client = HttpClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+    }
 }
 
 //Notes: //In Android, every app has a default Application object created automatically by the system.
