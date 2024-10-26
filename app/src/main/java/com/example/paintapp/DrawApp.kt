@@ -20,7 +20,7 @@ class DrawApp : Application() {
     val db by lazy { DrawDatabase.getDatabase(applicationContext) }//lazy – defer database creation till you need it, applicationContext in Android refers to a global context tied to the entire lifecycle of the app (applicationContext isn't tied to any specific screen or component.)
     val drawRepository by lazy { DrawRepository(scope, db.drawDao(), applicationContext) } //lazy – defer repository creation till you need it
 
-    val client: HttpClient by lazy {
+    val httpClient: HttpClient by lazy {
         // sets up client which uses json objects
          HttpClient {
             install(ContentNegotiation) {

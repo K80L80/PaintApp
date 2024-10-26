@@ -23,9 +23,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -42,23 +40,59 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 import android.app.AlertDialog
+import android.widget.Toast
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share
+
+
+
+
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.utils.EmptyContent.contentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
+
+//Imports for Buttons
+//import androidx.compose.material.Button
+//import androidx.compose.material.TextButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
+
+//Imports for Materials
+//import androidx.compose.material.Icon
+//import androidx.compose.material.IconButton
+//import androidx.compose.material.icons.Icons
+//import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+
+
+//Text import
+import androidx.compose.material3.Text
+//import androidx.compose.material.Text
 
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 data class DrawingActions(
@@ -71,6 +105,11 @@ data class DrawingActions(
 
 class MainScreen : Fragment() {
     private lateinit var menuVM: GalleryViewModel
+
+    //TODO: move this to repository eventually??
+    private val httpClient by lazy {
+        (requireActivity().applicationContext as DrawApp).httpClient
+    }
 
     //setup all the callbacks to handle user interactinon
     val actions = DrawingActions(
@@ -99,6 +138,8 @@ class MainScreen : Fragment() {
 
             // Observe share intent
             val shareIntent by menuVM.shareIntent.observeAsState()
+
+            SendPostButton()
 
             // Trigger the share intent when it's available
             shareIntent?.let {
@@ -175,6 +216,50 @@ class MainScreen : Fragment() {
                 dialog.cancel()
             }
             .show()
+    }
+
+    // needed if you use kotlinx.serialization for JSON
+    @Serializable
+    class Book(val id: Int? = null)
+
+
+    @Composable
+    fun SendPostButton() {
+        val context = LocalContext.current
+        val book = Book(id = 1)
+
+        androidx.compose.material3.Button(onClick = {
+            Log.d("SendPostButton", "Button clicked. Starting coroutine...")
+            // Launching in a coroutine to avoid blocking the main thread
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    // Sending a POST request
+                    Log.d("SendPostButton", "Attempting to send POST request...")
+                    val response: HttpResponse =
+                        httpClient.post("http://10.0.2.2:8080/books") {
+                            contentType(io.ktor.http.ContentType.Application.Json) //Sets the content type of the request to JSON.
+                            setBody(book) //Serializes the Book object and sets it as the request body.
+                        }
+                    Log.d("SendPostButton", "POST request successful. Response: ${response.status}")
+                    // Display result or success message if needed
+                    withContext(Dispatchers.Main) {
+                        Log.d("SendPostButton", "POST sent! Response: ${response.status}")
+                        Toast.makeText(
+                            context,
+                            "POST sent! Response: ${response.status}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e("SendPostButton", "Error occurred during POST request: ${e.message}", e)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }) {
+            androidx.compose.material3.Text("Send POST Request")
+        }
     }
 }
 // Composable function to display the file list using LazyColumn
@@ -361,5 +446,6 @@ fun PopUpExample() {
             )
         }
     }
+
 }
 

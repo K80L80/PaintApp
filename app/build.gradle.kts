@@ -1,8 +1,9 @@
+//Module level gradle build file
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21" //to serialize kotlin class
+    id("org.jetbrains.kotlin.android") //Kotlin
+    id("com.google.devtools.ksp") //KSP
+    id("org.jetbrains.kotlin.plugin.serialization") //to serialize kotlin class
 }
 val ktor_version = "2.3.0"
 
@@ -53,7 +54,18 @@ android {
 
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            //Added this line to include "META-INF/INDEX.LIST
+            excludes += setOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/INDEX.LIST",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE.txt",
+                "META-INF/LICENSE",
+                "META-INF/DEPENDENCIES",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1")
         }
     }
 }
@@ -62,7 +74,6 @@ dependencies {
     // Core libraries
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
@@ -74,36 +85,41 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
 
     // Jetpack Compose
-    implementation("androidx.compose.ui:ui:1.7.3")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.3")
-    implementation("androidx.compose.material:material:1.7.3")
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.3")
-    implementation("androidx.compose.material3:material3:1.3.0")
-    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    implementation("androidx.compose.ui:ui:1.7.4")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.4")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
+//    implementation("androidx.compose.material3:material3:1.7.4")
+    implementation("androidx.compose.material3:material3-android:1.3.0")
+    implementation("androidx.compose.foundation:foundation-android:1.7.4")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.7.4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.4")
+    //implementation("androidx.coxmpose.ui:ui-desktop:1.7.4")
+    implementation("androidx.compose.material:material:1.7.4")
 
+    implementation("androidx.compose.material3:material3:1.3.0")
+    //implementation("com.google.android.material:material:1.12.0")
     // Navigation
-    implementation("androidx.navigation:navigation-ui-ktx:2.8.2")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.8.2")
-    implementation("androidx.navigation:navigation-compose:2.8.2")
+    implementation("androidx.navigation:navigation-ui-ktx:2.8.3")
+    implementation("androidx.navigation:navigation-compose:2.8.3")
 
     // Fragment and Activity KTX
     implementation("androidx.fragment:fragment-ktx:1.8.4")
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation("androidx.activity:activity-ktx:1.9.2")
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.lifecycle:lifecycle-runtime-testing:2.8.6")
     implementation("androidx.test.espresso:espresso-core:3.6.1")
-    implementation("androidx.compose.ui:ui-desktop:1.7.0")
 
     // Room for persistence
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-common:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-runtime:2.6.1")
 
     // Color wheel
     implementation("com.github.yukuku:ambilwarna:2.0.1")
 
     // Gson
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.11.0")
 
     // Testing dependencies
     testImplementation("junit:junit:4.13.2")
@@ -112,25 +128,19 @@ dependencies {
 
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.03"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.fragment:fragment-testing:1.8.4")// Or the latest version
 
     debugImplementation("androidx.fragment:fragment-testing-manifest:1.8.4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.3")
 
-    val nav_version = "2.8.2"
+
+    val nav_version = "2.8.3"
 
     // Jetpack Compose integration
-    implementation("androidx.navigation:navigation-compose:$nav_version")
 
     // Views/Fragments integration
     implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
-    implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
 
     // Feature module support for Fragments
-    implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
 
     // Testing Navigation
     androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
@@ -138,16 +148,15 @@ dependencies {
     //tracing library
     implementation ("androidx.tracing:tracing:1.2.0")
 
-    implementation ("com.google.android.material:material:1.12.0")
-
     //Client Side (android studio) Ktor stuff (Network requests and serialization)
-    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version") //This enables Ktor to handle content negotiation and serialization (like JSON) on the client-side.
-    implementation("io.ktor:ktor-client-android:$ktor_version") //Use Android-Specific Ktor
-    implementation("io.ktor:ktor-client-core:$ktor_version") //Ktor client core
-    implementation("org.slf4j:slf4j-simple:2.0.7") // Adjust version as needed
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version") // //Integrates Kotlinx Serialization into Ktor.
-    implementation("io.ktor:ktor-client-plugins:$ktor_version") ////Ktor plugins
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3") // // Core Kotlinx Serialization library– provides the actual logic to serialize/deserialize Kotlin objects to and from JSON.
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.0") //This enables Ktor to handle content negotiation and serialization (like JSON) on the client-side.
+    implementation("io.ktor:ktor-client-android:3.0.0") //Use Android-Specific Ktor
+    implementation("io.ktor:ktor-client-core:3.0.0") //Ktor client core
+    implementation("org.slf4j:slf4j-simple:2.0.16") // Adjust version as needed
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0") // //Integrates Kotlinx Serialization into Ktor.
+    implementation("io.ktor:ktor-client-plugins:3.0.0") ////Ktor plugins
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3") // // Core Kotlinx Serialization library– provides the actual logic to serialize/deserialize Kotlin objects to and from JSON // .
+
 }
 
 
