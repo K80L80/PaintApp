@@ -148,6 +148,9 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version") // //Integrates Kotlinx Serialization into Ktor.
     implementation("io.ktor:ktor-client-plugins:$ktor_version") ////Ktor plugins
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0") // // Core Kotlinx Serialization library– provides the actual logic to serialize/deserialize Kotlin objects to and from JSON.
+
+    //adding support for firebase (handles the authentication)
+    implementation ("com.google.firebase:firebase-auth:23.1.0")
 }
 
 
