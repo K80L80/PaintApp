@@ -147,7 +147,7 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.7") // Adjust version as needed
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version") // //Integrates Kotlinx Serialization into Ktor.
     implementation("io.ktor:ktor-client-plugins:$ktor_version") ////Ktor plugins
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3") // // Core Kotlinx Serialization library– provides the actual logic to serialize/deserialize Kotlin objects to and from JSON.
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0") // // Core Kotlinx Serialization library– provides the actual logic to serialize/deserialize Kotlin objects to and from JSON.
 }
 
 
