@@ -4,7 +4,6 @@
  */
 package com.example.paintapp
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -24,12 +23,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.async
+import com.example.paintapp.DrawRepository.DrawingTest
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
 import kotlinx.coroutines.flow.Flow
 
 
@@ -424,7 +421,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
 
     // for sharing a drawing,
-    fun shareDrawing() {//ViewModel prepares the sharing intent (e.g., using a file URI) and posts it to the LiveData.
+    fun exportDrawing() {//ViewModel prepares the sharing intent (e.g., using a file URI) and posts it to the LiveData.
         val drawingUri = _selectedDrawing.value?.let { _drawRepository.getDrawingUri(it.fileName) }
         drawingUri?.let {
             val intent = Intent(Intent.ACTION_SEND).apply {

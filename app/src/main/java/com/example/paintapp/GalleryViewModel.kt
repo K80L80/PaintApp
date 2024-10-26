@@ -17,8 +17,13 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     val drawings: LiveData<List<Drawing>> = drawRepository.allDrawings
     // Load all drawings once when the app starts or the menu is displayed
 
+    //Live data to share outside of app (ie messages or
     private val _shareIntent = MutableLiveData<Intent>()
     val shareIntent: LiveData<Intent> get() = _shareIntent
+
+    // LiveData to share within app to other paint drawing users
+    private val _sharedDrawing = MutableLiveData<Drawing>()
+    val sharedDrawing: LiveData<Drawing> get() = _sharedDrawing
 
     fun selectDrawing(drawing: Drawing) {
         _drawRepository.setSelectedDrawing(drawing)
@@ -47,7 +52,7 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
 
     // for sharing a drawing,
-    fun shareDrawing(fileName: String) {//ViewModel prepares the sharing intent (e.g., using a file URI) and posts it to the LiveData.
+    fun shareDrawingOutsideApp(fileName: String) {//ViewModel prepares the sharing intent (e.g., using a file URI) and posts it to the LiveData.
         val drawingUri = _drawRepository.getDrawingUri(fileName)
         drawingUri?.let {
             val intent = Intent(Intent.ACTION_SEND).apply {
@@ -56,6 +61,13 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             _shareIntent.postValue(Intent.createChooser(intent, "Share Drawing"))
+        }
+    }
+
+    // Method to add a shared drawing
+    fun shareWithinApp(drawing: Drawing) {
+        viewModelScope.launch {
+            _drawRepository.shareWithinApp(drawing)
         }
     }
 }

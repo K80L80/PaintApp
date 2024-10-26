@@ -81,6 +81,8 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
     implementation("androidx.compose.material3:material3:1.3.0")
     implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+    implementation ("androidx.compose.material:material-icons-extended:1.7.4") //for icons
+
 
     // Navigation
     implementation("androidx.navigation:navigation-ui-ktx:2.8.2")
