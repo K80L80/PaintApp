@@ -1,8 +1,9 @@
+//Module level gradle build file
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21" //to serialize kotlin class
+    id("org.jetbrains.kotlin.android") //Kotlin
+    id("com.google.devtools.ksp") //KSP
+    id("org.jetbrains.kotlin.plugin.serialization") //to serialize kotlin class
 }
 val ktor_version = "2.3.0"
 
@@ -74,12 +75,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
 
     // Jetpack Compose
-    implementation("androidx.compose.ui:ui:1.7.3")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.3")
-    implementation("androidx.compose.material:material:1.7.3")
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.3")
+    implementation("androidx.compose.ui:ui:1.7.4")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.4")
+    implementation("androidx.compose.material:material:1.7.4")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
     implementation("androidx.compose.material3:material3:1.3.0")
-    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
 
     // Navigation
     implementation("androidx.navigation:navigation-ui-ktx:2.8.2")

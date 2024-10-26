@@ -19,7 +19,7 @@ import java.io.File
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
 
     //TODO: use http client to send GET and POST requests to server
-    private val client = (context.applicationContext as DrawApp).client //No value passed for parameter 'content'
+    private val client = (context.applicationContext as DrawApp).httpClient //No value passed for parameter 'content'
 
     private val _allDrawings = MutableLiveData<List<Drawing>>()
     val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
