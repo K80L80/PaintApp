@@ -56,7 +56,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
     private var selectedDrawing: Drawing? = null
 
-    private var uId: String = ""
+    private var  uId: String = ""
 
     // Method to get the selected drawing
     fun getSelectedDrawing(): Drawing? {

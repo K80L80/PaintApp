@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.FileInputStream
 
+//defines a database with two tables User and SharedImage
 object DBSettings {
     val db by lazy { Database.connect("jdbc:h2:mem:test;MODE=MYSQL;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")}
 
@@ -22,13 +23,15 @@ object DBSettings {
     }
 }
 
+//sets up a server that listens on port 8080
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
+//Configures plugins and features such as routing and serialization
 fun Application.module() {
-    DBSettings.init()
+    DBSettings.init() //sets up the database defined
     configureSerialization()
     configureRouting()
 }

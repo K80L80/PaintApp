@@ -1,11 +1,19 @@
 package com.example
 
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 object User: Table(){
     val email = varchar("email", 100)
     val uID = varchar("uID",100)
     override val primaryKey = PrimaryKey(uID)
+}
+
+object Drawing: Table(){
+    val id = Long
+    val fileName = varchar("fileName", 250) // Full path of the file
+    val imageTitle = varchar("imageTitle", 250)// User-chosen name for display purposes
+    val ownerID = reference("uID", User.uID) // specify who owns the drawing
 }
 
 object SharedImage: Table(){
