@@ -6,6 +6,13 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -13,9 +20,40 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import java.io.File
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
+
+    val httpClient: HttpClient by lazy {
+        // sets up client which uses json objects
+        HttpClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+    }
+
+
+    @Serializable
+    data class DrawingTest(val id :Int)
+
+    //TODO: update so it sends real drawing (with all data) not test drawing
+    suspend fun shareWithinApp(drawing :Drawing){
+        //sends drawing to sever
+        val testDrawing = DrawingTest(id =1)
+        val response: HttpResponse = httpClient.post("http://10.0.2.2:8080/drawing") {
+            contentType(io.ktor.http.ContentType.Application.Json) //Sets the content type of the request to JSON.
+            setBody(testDrawing) //Serializes the Book object and sets it as the request body.
+        }
+    }
+
+    fun closeClient() {
+        httpClient.close()
+    }
+
+//    //TODO: use http client to send GET and POST requests to server
+//    private val client = (context.applicationContext as DrawApp).httpClient //No value passed for parameter 'content'
 
     private val _allDrawings = MutableLiveData<List<Drawing>>()
     val allDrawings: LiveData<List<Drawing>> get() = _allDrawings

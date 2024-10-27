@@ -42,13 +42,16 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.ActivityMainScreenBinding
 import android.app.AlertDialog
+import android.widget.Toast
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Share //share in app
+import androidx.compose.material.icons.filled.IosShare //share outside of app (ie text message
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -66,7 +69,8 @@ data class DrawingActions(
     val onDrawingSelect: (Drawing) -> Unit,
     val navigateToDrawScreen: (() -> Unit),
     val onClickNewDrawingBtn: (String) -> Unit, // Callback for creating a new drawing
-    val  onShareClick: (String) -> Unit
+    val  shareOutsideApp: (String) -> Unit,
+    val shareWithinApp: (Drawing) -> Unit
 )
 
 class MainScreen : Fragment() {
@@ -78,7 +82,8 @@ class MainScreen : Fragment() {
         onDrawingSelect = ::onDrawingSelect, //callback to let user user to 'select' a drawing to edit
         navigateToDrawScreen = ::navigateToDrawScreen, //callback to navigate from here gallary to draw screen
         onClickNewDrawingBtn = ::onClickNewDrawingBtn,// Callback for creating a new drawing
-        onShareClick = ::onShareClick
+        shareOutsideApp = ::shareOutsideApp,
+        shareWithinApp = ::shareWithinApp
     )
 
     override fun onCreateView(
@@ -151,8 +156,18 @@ class MainScreen : Fragment() {
         }
     }
 
-    private fun onShareClick(fileName: String){
-        menuVM.shareDrawing(fileName)
+    //Shares drawing to others outside of app (ie messages, ect)
+    private fun shareOutsideApp(fileName: String){
+        menuVM.shareDrawingOutsideApp(fileName)
+    }
+
+    //Handles sharing drawing with others paintApp users
+    private fun shareWithinApp(drawing: Drawing) {
+        // Example: Notify the view model or repository to update with this shared drawing
+        menuVM.shareWithinApp(drawing)
+
+        // For example, show a toast to confirm sharing within the app
+        Toast.makeText(context, "Drawing shared within the app!", Toast.LENGTH_SHORT).show()
     }
 
     // Method to show the dialog
@@ -176,6 +191,45 @@ class MainScreen : Fragment() {
             }
             .show()
     }
+
+//    @Composable
+//    fun SendPostButton() {
+//        val context = LocalContext.current
+//
+//        androidx.compose.material3.Button(onClick = {
+//            Log.d("SendPostButton", "Button clicked. Starting coroutine...")
+//            // Launching in a coroutine to avoid blocking the main thread
+//            CoroutineScope(Dispatchers.IO).launch {
+//                try {
+//                    // Sending a POST request
+//                    Log.d("SendPostButton", "Attempting to send POST request...")
+//                    val response: HttpResponse =
+//                        httpClient.post("http://10.0.2.2:8080/books") {
+//                            contentType(io.ktor.http.ContentType.Application.Json) //Sets the content type of the request to JSON.
+//                            setBody(book) //Serializes the Book object and sets it as the request body.
+//                        }
+//                    Log.d("SendPostButton", "POST request successful. Response: ${response.status}")
+//                    // Display result or success message if needed
+//                    withContext(Dispatchers.Main) {
+//                        Log.d("SendPostButton", "POST sent! Response: ${response.status}")
+//                        Toast.makeText(
+//                            context,
+//                            "POST sent! Response: ${response.status}",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
+//                } catch (e: Exception) {
+//                    Log.e("SendPostButton", "Error occurred during POST request: ${e.message}", e)
+//                    withContext(Dispatchers.Main) {
+//                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//            }
+//        }) {
+//            androidx.compose.material3.Text("Send POST Request")
+//        }
+//    }
+
 }
 // Composable function to display the file list using LazyColumn
 @Composable
@@ -230,14 +284,28 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
                 actions.onFileNameChange(drawing.id, newFileName)
             }
         )
-        ShareIconButton({
-            actions.onShareClick(drawing.fileName)
-        })
+        Row {
+            //share outside of app butto (ie messages)
+            ExportButton {
+                actions.shareOutsideApp(drawing.fileName)
+            }
+            //share within app button (ie to another user within paint app)
+            ShareButton {
+                actions.shareWithinApp(drawing)
+            }
+        }
     }
 }
 //universal looking share button
 @Composable
-fun ShareIconButton(onClick: () -> Unit) {
+fun ExportButton(onClick: () -> Unit) {
+    IconButton(onClick = { onClick() }) {
+        Icon(imageVector = Icons.Filled.IosShare, contentDescription = "Share")
+    }
+}
+
+@Composable
+fun ShareButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
         Icon(imageVector = Icons.Filled.Share, contentDescription = "Share")
     }

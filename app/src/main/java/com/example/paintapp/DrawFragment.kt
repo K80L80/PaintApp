@@ -22,7 +22,6 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.compose.ui.graphics.Path
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.slider.Slider
@@ -217,7 +216,7 @@ class DrawFragment : Fragment() {
         val shareButton: Button = view.findViewById(R.id.shareBtn)
         shareButton.setOnClickListener{
             //TODO: launch intent when button is clicked
-            drawViewModel.shareDrawing()
+            drawViewModel.exportDrawing()
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {

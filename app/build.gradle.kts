@@ -1,8 +1,11 @@
+//Module level gradle build file
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    id("org.jetbrains.kotlin.android") //Kotlin
+    id("com.google.devtools.ksp") //KSP
+    id("org.jetbrains.kotlin.plugin.serialization") //to serialize kotlin class
 }
+val ktor_version = "2.3.0"
 
 android {
     namespace = "com.example.paintapp"
@@ -72,12 +75,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
 
     // Jetpack Compose
-    implementation("androidx.compose.ui:ui:1.7.3")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.3")
-    implementation("androidx.compose.material:material:1.7.3")
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.3")
+    implementation("androidx.compose.ui:ui:1.7.4")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.4")
+    implementation("androidx.compose.material:material:1.7.4")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
     implementation("androidx.compose.material3:material3:1.3.0")
-    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+    implementation ("androidx.compose.material:material-icons-extended:1.7.4") //for icons
+
 
     // Navigation
     implementation("androidx.navigation:navigation-ui-ktx:2.8.2")
@@ -136,6 +141,18 @@ dependencies {
     implementation ("androidx.tracing:tracing:1.2.0")
 
     implementation ("com.google.android.material:material:1.12.0")
+
+    //Client Side (android studio) Ktor stuff (Network requests and serialization)
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version") //This enables Ktor to handle content negotiation and serialization (like JSON) on the client-side.
+    implementation("io.ktor:ktor-client-android:$ktor_version") //Use Android-Specific Ktor
+    implementation("io.ktor:ktor-client-core:$ktor_version") //Ktor client core
+    implementation("org.slf4j:slf4j-simple:2.0.7") // Adjust version as needed
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version") // //Integrates Kotlinx Serialization into Ktor.
+    implementation("io.ktor:ktor-client-plugins:$ktor_version") ////Ktor plugins
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0") // // Core Kotlinx Serialization library– provides the actual logic to serialize/deserialize Kotlin objects to and from JSON.
+
+    //adding support for firebase (handles the authentication)
+    implementation ("com.google.firebase:firebase-auth:23.1.0")
 }
 
 

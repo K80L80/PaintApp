@@ -4,10 +4,14 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+//import io.ktor.client.HttpClient
 
 //-----------Application (Singleton Pattern)----------------//
 //Application class is used to create a global instance of objects like a repository or database, ensuring that only one instance is created and shared across the entire app.
