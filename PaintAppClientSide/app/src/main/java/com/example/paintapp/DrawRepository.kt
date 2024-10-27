@@ -89,7 +89,8 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
                             id = entity.id,
                             bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
                             fileName = entity.fileName,
-                            imageTitle = entity.userChosenFileName
+                            imageTitle = entity.userChosenFileName,
+                            ownerID = 1L //TODO: Replace with real user ID
                         )
                     }
                 }.awaitAll()
@@ -119,7 +120,8 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             id = id,
             bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),//TODO: should I make this immutable?
             fileName = drawEntity.fileName,
-            imageTitle = drawEntity.userChosenFileName
+            imageTitle = drawEntity.userChosenFileName,
+            ownerID = 1L //TODO: Replace with real owner ID
         )
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
@@ -226,5 +228,20 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     }
 
     private val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
+
+    suspend fun getAllDrawingsThisUserOwns(): List<Drawing> {
+        try {
+            val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawing") {
+                contentType(io.ktor.http.ContentType.Application.Json)
+                setBody(uId)
+            }.body()
+
+            return drawings
+        }
+        catch (e: Exception) {
+            Log.e("DrawRepository", "Error fetching drawings from server", e)
+        }
+        return emptyList()
+    }
 }
 

@@ -22,6 +22,7 @@ import java.io.File
 
 fun Application.configureRouting() {
     install(Resources)
+    
     routing {
         //listen for when client types /drawing into browser and send back text "fetching all drawings"
         get("/drawing") {
@@ -50,7 +51,8 @@ fun Application.configureRouting() {
             val drawing = Drawing(
                 id = id,
                 fileName = "path/to/file_$id.png",
-                imageTitle = "My Artwork #$id"
+                imageTitle = "My Artwork #$id",
+                ownerID =  1L
             )
 
             // Send the drawing data back to the client
@@ -87,11 +89,11 @@ fun Application.configureRouting() {
 @Serializable
 data class Drawing(
     val id: Long?,
-
     val fileName: String?,  // Full path of the file
-
-    var imageTitle: String? // User-chosen name for display purposes
+    var imageTitle: String?, // User-chosen name for display purposes
+    val ownerID: Long//user that owner the drawing
 )
+
 
 @Serializable
 data class DrawingOut(

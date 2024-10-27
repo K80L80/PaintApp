@@ -16,6 +16,7 @@ object Drawing: Table(){
     val ownerID = reference("uID", User.uID) // specify who owns the drawing
 }
 
+
 object SharedImage: Table(){
     val uID = reference("uID", User.uID)
     val sharedDate = long("sharedDate")

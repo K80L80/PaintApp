@@ -13,5 +13,7 @@ data class Drawing(
 
     val fileName: String,  // Full path of the file
 
-    var imageTitle: String // User-chosen name for display purposes
+    var imageTitle: String, // User-chosen name for display purposes
+
+    var ownerID: Long //the user who owns this drawing
 )
