@@ -1,10 +1,8 @@
 package com.example.plugins
 
 import io.ktor.http.*
-import io.ktor.resources.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
-import io.ktor.server.resources.*
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -13,27 +11,38 @@ import kotlinx.serialization.Serializable
 fun Application.configureRouting() {
     install(Resources)
     routing {
-        //listen for when client types /books into browser and send back text "fetching all books"
+        //listen for when client types /drawing into browser and send back text "fetching all drawings"
         get("/drawing") {
             call.respondText("Fetching all drawings")
         }
 
         //client listens for when user types ie /drawing/8 into their browser and responds by sending complex object (drawing) back to client
-        get("/drawing/{id}") {
-            // Example book object
+        get("/drawings/{id}") {
+            val id = call.parameters["id"]?.toLongOrNull()
+            if (id == null) {
+                call.respondText("Invalid drawing ID", status = HttpStatusCode.BadRequest)
+                return@get
+            }
+
+            // Retrieve the drawing based on ID (mocking here with sample data)
             val drawing = Drawing(
-                id = call.parameters["id"]?.toIntOrNull() ?: 1,
+                id = id,
+                fileName = "path/to/file_$id.png",
+                imageTitle = "My Artwork #$id"
             )
-            // Respond with the book object serialized as JSON
+
+            // Send the drawing data back to the client
             call.respond(drawing)
         }
-        //client sends post request to add book to server resource
+
+
+        //client sends post request to add drawing to server resource
         post("/drawing") {
             // Receive the Book object from the request body
             val newDrawing = call.receive<Drawing>()
 
-            // Process the book (e.g., store it in a database)
-            println("Received drawing: ${newDrawing.id}!!!!")
+            // Process the drawing (e.g., store it in a database)
+            println("Received drawing: id: ${newDrawing.id}, fileName:${newDrawing.fileName} title: ${newDrawing.imageTitle}, ")
 
             // Respond with a success message
             call.respond(HttpStatusCode.Created, "creating new drawing")
@@ -41,6 +50,11 @@ fun Application.configureRouting() {
     }
 }
 
-
 @Serializable
-class Drawing(val id: Int? = null)
+data class Drawing(
+    val id: Long?,
+
+    val fileName: String?,  // Full path of the file
+
+    var imageTitle: String? // User-chosen name for display purposes
+)
