@@ -70,4 +70,12 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
             _drawRepository.shareWithinApp(drawing)
         }
     }
+
+    suspend fun importDrawImage(fileName: String){
+        _drawRepository.loadBitmapFromFile(fileName)
+    }
+
+    suspend fun getDrawingsList(): List<Drawing> {
+        return _drawRepository.getAllDrawingsFromServer()
+    }
 }

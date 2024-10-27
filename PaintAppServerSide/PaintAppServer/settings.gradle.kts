@@ -1,1 +1,1 @@
-rootProject.name = "ktortester"
+rootProject.name = "PaintAppServer"

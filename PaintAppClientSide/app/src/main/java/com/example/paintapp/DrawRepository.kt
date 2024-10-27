@@ -7,7 +7,9 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -53,6 +55,8 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
 
     private var selectedDrawing: Drawing? = null
+
+    private var uId: String = ""
 
     // Method to get the selected drawing
     fun getSelectedDrawing(): Drawing? {
@@ -177,7 +181,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         }
     }
 
-    private suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
+    suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
         return withContext(Dispatchers.IO) {
             try {
                 val file = File(fileName)
@@ -204,6 +208,21 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         } else {
             null
         }
+    }
+
+    suspend fun getAllDrawingsFromServer(): List<Drawing> {
+        try {
+            val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawing") {
+                contentType(io.ktor.http.ContentType.Application.Json)
+                setBody(uId)
+            }.body()
+
+            return drawings
+        }
+        catch (e: Exception) {
+            Log.e("DrawRepository", "Error fetching drawings from server", e)
+        }
+        return emptyList()
     }
 
     private val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
