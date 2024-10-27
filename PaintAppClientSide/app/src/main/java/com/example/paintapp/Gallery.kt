@@ -121,6 +121,16 @@ class MainScreen : Fragment() {
                 onClickNewDrawingBtn(enteredFileName)
             }
         }
+
+        binding.download.setOnClickListener {
+            val filesList = arrayOf("fileTest1.png", "FileTest2.png")
+            AlertDialog.Builder(requireContext())
+                .setTitle("Select file to download.")
+                .setItems(filesList) { _, which ->
+                    val selectedFile = filesList[which]
+                }
+                .show()
+        }
         return binding.root
     }
 
