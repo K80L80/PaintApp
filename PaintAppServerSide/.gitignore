@@ -1,0 +1,20 @@
+# Ignore macOS system files
+.DS_Store
+
+# Gradle build files
+/build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar # Keep the wrapper jar to allow easy setup
+
+# IDE and project-specific files
+.idea/
+*.iml
+*.swp
+
+# Logs and temporary files
+logs/
+*.log
+
+# Ktor and Kotlin specific files
+out/
+*.class
