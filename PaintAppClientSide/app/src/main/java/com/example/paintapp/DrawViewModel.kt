@@ -23,7 +23,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import com.example.paintapp.DrawRepository.DrawingTest
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
@@ -80,7 +79,8 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
         val drawing = _drawRepository.getSelectedDrawing()
         _selectedDrawing.value = drawing
         drawing?.let {
-            _backendCanvas = Canvas(it.bitmap) //hook up selected drawing to backend canvas used for modifying the bitmap
+            _backendCanvas =
+                it.bitmap?.let { it1 -> Canvas(it1) } //hook up selected drawing to backend canvas used for modifying the bitmap
         }
     }
 
@@ -413,10 +413,10 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     fun clearBitmap() {
         _selectedDrawing.value?.let {
             // Clear the existing bitmap by drawing a transparent background
-            val canvas = Canvas(it.bitmap)
-            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)  // Clear the bitmap
+            it.bitmap?.let { it1 -> Canvas(it1) }
+                ?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)  // Clear the bitmap
             _selectedDrawing.value = it  // Post the cleared bitmap
-            
+
         }
     }
 
@@ -518,7 +518,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             id = id,
             bitmap = bitmap,
             fileName = fileName,
-            userChosenFileName = "untitled"
+            imageTitle = "untitled"
         )
     }
     val defaultDrawing = createDefaultDrawing(

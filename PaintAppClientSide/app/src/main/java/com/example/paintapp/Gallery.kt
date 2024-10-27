@@ -266,19 +266,21 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
             .border(BorderStroke(2.dp, Color.Gray)) // Add a border with 2dp thickness and gray color
     ){
         //displays drawing
-        Drawing(
-            bitmap = drawing.bitmap,
-            aspectRatio = aspectRatio,
-            onBitmapClick = {
-                Log.d("GalleryOfDrawings", "Bitmap clicked for drawing: ${drawing.id}")
-                //Use jetpack navigation and load in picture into custom draw
-                actions.onDrawingSelect(drawing) //Need to refactor this doesn't have access to drawing just bitmap
-                actions.navigateToDrawScreen()
-            }
-        )
+        drawing.bitmap?.let {
+            Drawing(
+                bitmap = it,
+                aspectRatio = aspectRatio,
+                onBitmapClick = {
+                    Log.d("GalleryOfDrawings", "Bitmap clicked for drawing: ${drawing.id}")
+                    //Use jetpack navigation and load in picture into custom draw
+                    actions.onDrawingSelect(drawing) //Need to refactor this doesn't have access to drawing just bitmap
+                    actions.navigateToDrawScreen()
+                }
+            )
+        }
         //displays file name
         fileNameDisplay(
-            fileName = drawing.userChosenFileName,
+            fileName = drawing.imageTitle,
             onFileNameChange = { newFileName ->
                 Log.d("fileNameDisplay", "filename change for: ${drawing.id}")
                 actions.onFileNameChange(drawing.id, newFileName)

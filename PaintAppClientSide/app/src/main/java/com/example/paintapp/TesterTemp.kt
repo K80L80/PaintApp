@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.Path
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
 fun generateTestDrawings(): List<Drawing> {
     val drawings = mutableListOf<Drawing>()
@@ -55,7 +54,7 @@ fun generateTestDrawings(): List<Drawing> {
         val id = System.currentTimeMillis() // Use current time in milliseconds as the unique id
 
         // Add the Drawing object to the list
-        drawings.add(Drawing(id = id, bitmap = bitmap, fileName = fileName, userChosenFileName = "untitled" ))
+        drawings.add(Drawing(id = id, bitmap = bitmap, fileName = fileName, imageTitle = "untitled" ))
 
         // Optional: Add delay to ensure unique IDs
         Thread.sleep(1)

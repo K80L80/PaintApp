@@ -20,7 +20,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import java.io.File
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
@@ -34,17 +33,12 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         }
     }
 
-
-    @Serializable
-    data class DrawingTest(val id :Int)
-
     //TODO: update so it sends real drawing (with all data) not test drawing
     suspend fun shareWithinApp(drawing :Drawing){
         //sends drawing to sever
-        val testDrawing = DrawingTest(id =1)
         val response: HttpResponse = httpClient.post("http://10.0.2.2:8080/drawing") {
             contentType(io.ktor.http.ContentType.Application.Json) //Sets the content type of the request to JSON.
-            setBody(testDrawing) //Serializes the Book object and sets it as the request body.
+            setBody(drawing) //Serializes the Book object and sets it as the request body.
         }
     }
 
@@ -91,7 +85,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
                             id = entity.id,
                             bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
                             fileName = entity.fileName,
-                            userChosenFileName = entity.userChosenFileName
+                            imageTitle = entity.userChosenFileName
                         )
                     }
                 }.awaitAll()
@@ -121,7 +115,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             id = id,
             bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),//TODO: should I make this immutable?
             fileName = drawEntity.fileName,
-            userChosenFileName = drawEntity.userChosenFileName
+            imageTitle = drawEntity.userChosenFileName
         )
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
@@ -143,7 +137,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
 
             // Replace the old drawing with the updated one
-            val updatedBitmap = updatedDrawing.bitmap.copy(Bitmap.Config.ARGB_8888, true)
+            val updatedBitmap = updatedDrawing.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
             currentList[index] = updatedDrawing.copy(bitmap = updatedBitmap)
             _allDrawings.setValue(currentList)
         }
@@ -152,10 +146,12 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             val file = File(
                 updatedDrawing.fileName
             ) //create an empty file file in 'fileDir' special private folder only for the paint app files
-            saveBitmapToFile(
-                updatedDrawing.bitmap,
-                file
-            ) //gives updates to those tracking live data
+            updatedDrawing.bitmap?.let {
+                saveBitmapToFile(
+                    it,
+                    file
+                )
+            } //gives updates to those tracking live data
         }
     }
 
@@ -168,7 +164,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         //save to database in the background
         withContext(Dispatchers.IO) {
-            currentList[index].userChosenFileName = newFileName
+            currentList[index].imageTitle = newFileName
             dao.updateFileName(drawingId, newFileName) // Directly update the database record
         }
     }
