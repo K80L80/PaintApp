@@ -1,17 +1,34 @@
 package com.example
 
-import com.example.plugins.* //allowing the wildcard import (import com.example.plugins.*) to cover all the functions within that package.
+import com.example.plugins.*
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.FileInputStream
+
+object DBSettings {
+    val db by lazy { Database.connect("jdbc:h2:mem:test;MODE=MYSQL;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")}
+
+    fun init() {
+        transaction(db) {
+            SchemaUtils.create(User, SharedImage)
+        }
+    }
+}
 
 fun main() {
-    println("Server starting...")  // Should print when the server starts
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
 fun Application.module() {
-    configureRouting()
+    DBSettings.init()
     configureSerialization()
+    configureRouting()
 }
