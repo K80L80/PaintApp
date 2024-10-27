@@ -9,9 +9,9 @@ object User: Table(){
 }
 
 object SharedImage: Table(){
-    val email = reference("email", User.email)
+    val uID = reference("uID", User.uID)
     val sharedDate = long("sharedDate")
     val fileName = varchar("fileName", 250)
     val imageTitle = varchar("imageTitle", 250)
-    override val primaryKey = PrimaryKey(arrayOf(User.email,fileName))
+    override val primaryKey = PrimaryKey(arrayOf(User.uID,fileName))
 }

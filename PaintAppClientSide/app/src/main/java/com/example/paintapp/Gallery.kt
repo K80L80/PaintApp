@@ -128,6 +128,10 @@ class MainScreen : Fragment() {
                 .setTitle("Select file to download.")
                 .setItems(filesList) { _, which ->
                     val selectedFile = filesList[which]
+                    //PlaceHolder for files.
+//                    lifecycleScope.launch {
+//                        menuVM.importDrawImage(selectedFile)
+//                    }
                 }
                 .show()
         }

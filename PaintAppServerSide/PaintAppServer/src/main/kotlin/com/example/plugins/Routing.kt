@@ -1,5 +1,6 @@
 package com.example.plugins
 
+import com.example.SharedImage
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
@@ -14,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
 
@@ -23,7 +25,17 @@ fun Application.configureRouting() {
     routing {
         //listen for when client types /drawing into browser and send back text "fetching all drawings"
         get("/drawing") {
-            call.respondText("Fetching all drawings")
+            val checkuID = call.receive<DrawingIn>().uId
+            val drawings = transaction {
+                SharedImage.selectAll().where{SharedImage.uID eq checkuID}.map { row ->
+                    DrawingOut(
+                        sharedDate = row[SharedImage.sharedDate],
+                        fileName = row[SharedImage.fileName],
+                        imageTitle = row[SharedImage.imageTitle]
+                    )
+                }
+            }
+            call.respond(drawings)
         }
 
         //client listens for when user types ie /drawing/8 into their browser and responds by sending complex object (drawing) back to client
@@ -79,4 +91,19 @@ data class Drawing(
     val fileName: String?,  // Full path of the file
 
     var imageTitle: String? // User-chosen name for display purposes
+)
+
+@Serializable
+data class DrawingOut(
+    val sharedDate: Long,
+    val fileName: String,
+    val imageTitle: String
+)
+
+@Serializable
+data class DrawingIn(
+    val uId: String,
+    val sharedDate: Long,
+    val fileName: String,
+    val imageTitle: String
 )
