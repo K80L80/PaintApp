@@ -19,7 +19,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 
 //for sending drawing file
-import io.ktor.http.ContentType.MultiPart.FormData
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.bodyAsText
@@ -40,9 +39,7 @@ import java.io.File
 
 //import io.ktor.http.ContentType.Application.Json
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
 
@@ -119,62 +116,56 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     // When app starts up, transform filenames into Drawing objects with bitmaps
     private suspend fun loadAllDrawings() {
         withContext(Dispatchers.IO) {
-            // Using .first() instead of collect() in a Kotlin coroutine flow means that the flow will emit only the first value and then stop listening to further updates. This is useful when you only need a one-time retrieval of data rather than continuous updates.
-            val drawingEntities = dao.getAllDrawings().first()
-            //load in all bitmaps if there are any
+
+            //retrieve all rows from the room data base (drawing id, image title ect)
+            val drawingEntities = dao.getAllDrawings().first() // // Using .first() instead of collect() in a Kotlin coroutine flow means that the flow will emit only the first value and then stop listening to further updates. This is useful when you only need a one-time retrieval of data rather than continuous updates.
+
+            //use meta data stored in room to load in bitmap from file and set the bitmap field
             if (drawingEntities.isNotEmpty()) {
-                val drawings = drawingEntities.map { entity ->
+                val drawings = drawingEntities.map { drawing ->
                     async(Dispatchers.IO) {
-                        val bitmap = loadBitmapFromFile(entity.fileName) ?: defaultBitmap
-                        Drawing(
-                            id = entity.id,
-                            bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),
-                            fileName = entity.fileName,
-                            imageTitle = entity.userChosenFileName,
-                            ownerID = 1L //TODO: Replace with real user ID
-                        )
+                        val bitmap = loadBitmapFromFile(drawing.fileName) ?: defaultBitmap
+                        drawing.copy(bitmap = bitmap) //Val cannot be reassigned
                     }
-                }.awaitAll()
+                //Wait till all files are read in before posting it for the UI to display
+                }.awaitAll() //The parallel loading with async-await speeds up the bitmap loading process
                 _allDrawings.postValue(drawings)
             }
-            //else no drawings have been created yet (empty gallary)
+            //else no drawings have been created yet (empty gallery)
             else {
                 _allDrawings.postValue(emptyList())
             }
         }
     }
 
-    //Saves the bitmap data in a file to disk, and saves the path to it in the room database
-    suspend fun addDrawing(bitmap: Bitmap, userChosenFileName: String): Drawing {
+    //Inserting a new drawing into the database while also saving the bitmap as a PNG file on disk.
+    suspend fun addDrawing(bitmap: Bitmap, imageTitle: String): Drawing {
+
         //Save bitmap to disk
         val backendFileName = "${System.currentTimeMillis()}.png"
 
         val file = File(context.filesDir, backendFileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
         saveBitmapToFile(bitmap, file) //Add the bitmap data to this file
 
+        //TODO: change owner ID to actual owner ID
         //Save path in room database
-        val drawEntity = DrawEntity(fileName = file.absolutePath, userChosenFileName = userChosenFileName) //Create a record (ie drawing record), with the absolute path as its field
-        val id = dao.addDrawing(drawEntity) //insert into database
+        val drawing = Drawing(fileName = file.absolutePath, imageTitle = imageTitle, ownerID = 1L) //Create a record (ie drawing record), with the absolute path as its field
+        val id = dao.addDrawing(drawing) //insert into database
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
-        val newDrawing = Drawing(
-            id = id,
-            bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true),//TODO: should I make this immutable?
-            fileName = drawEntity.fileName,
-            imageTitle = drawEntity.userChosenFileName,
-            ownerID = 1L //TODO: Replace with real owner ID
-        )
+        val drawingWBitmap = drawing.copy(bitmap = bitmap)
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
-        currentList.add(newDrawing)
+        currentList.add(drawingWBitmap)
 
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
         _allDrawings.postValue(currentList)// uses post value to ensure thread safe if its called from background thread
 
-        return newDrawing
+        return drawingWBitmap
     }
 
+    //Updates the details of an existing drawing, including updating the bitmap on disk if it has changed.
     suspend fun updateExistingDrawing(updatedDrawing: Drawing) {
         //updates the list the viewer sees immediately on the main thread, this means that their modifications are immediately reflected in the list they see (ie giving the illusion of an instantaneous save even though it might take time to finish saving in the background)
         withContext(Dispatchers.Main) {
@@ -202,7 +193,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         }
     }
 
-    // Update only the file name of a specific drawing by its ID
+    // Specifically updating just the filename for a drawing in the database.
     suspend fun updateDrawingFileName(drawingId: Long, newFileName: String) {
         //Optimistically update UI with new name
         val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
