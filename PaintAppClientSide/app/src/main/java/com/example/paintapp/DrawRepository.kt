@@ -10,6 +10,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.onUpload
+import io.ktor.client.request.accept
 
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -21,9 +22,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.ContentType.MultiPart.FormData
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import io.ktor.client.statement.bodyAsText
 
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +40,7 @@ import java.io.File
 
 //import io.ktor.http.ContentType.Application.Json
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 
@@ -63,6 +67,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
                     append("DrawingID", "${drawing.id}")
                     append("ImageTitle", drawing.imageTitle)
                     append("fileName", drawing.fileName)
+                    append("ownerID", drawing.ownerID)
 
                     //attaches image file to be sent to server
                     append("image", File(drawing.fileName).readBytes(), Headers.build {
@@ -278,6 +283,37 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             Log.e("DrawRepository", "Error fetching drawings from server", e)
         }
         return emptyList()
+    }
+
+    suspend fun getDrawingsListFromServer(): List<Drawing>? {
+        return try {
+            // Send GET request to the server to fetch drawings
+            val response: HttpResponse = httpClient.get("/drawings") {
+                accept(ContentType.Application.Json)
+            }
+
+            // Check if the request was successful
+            if (response.status == HttpStatusCode.OK) {
+                // Parse the response JSON into a List of Drawings
+                val responseBody = response.bodyAsText()
+
+                //returns a list of drawings sent from the server
+                if (responseBody.isNotBlank()) {
+                    return Json.decodeFromString(responseBody)
+                }
+                //users has no drawings on the cloud
+                else {
+                    emptyList()
+                }
+            }
+            else {
+                println("Error: Received status ${response.status}")
+                null
+            }
+        } catch (e: Exception) {
+            println("Error fetching drawings: ${e.message}")
+            null
+        }
     }
 }
 
