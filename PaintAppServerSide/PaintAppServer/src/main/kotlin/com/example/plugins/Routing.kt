@@ -2,6 +2,8 @@ package com.example.plugins
 
 import com.example.SharedImage
 import io.ktor.http.*
+import io.ktor.http.ContentType.Application.Json
+import io.ktor.http.content.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -10,8 +12,13 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.routing
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.io.readByteArray
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -25,19 +32,9 @@ fun Application.configureRouting() {
     
     routing {
 
-        //listen for when client types /drawing into browser and send back text "fetching all drawings"
-        get("/drawing") {
-            val checkuID = call.receive<DrawingIn>().uId
-            val drawings = transaction {
-                SharedImage.selectAll().where{SharedImage.uID eq checkuID}.map { row ->
-                    DrawingOut(
-                        sharedDate = row[SharedImage.sharedDate],
-                        fileName = row[SharedImage.fileName],
-                        imageTitle = row[SharedImage.imageTitle]
-                    )
-                }
-            }
-            call.respond(drawings)
+        //listen for when client want to upload drawing to server
+        post("/upload") {
+            handleFileUpload(call)
         }
 
         //listen for when client types /drawing into browser and send back text "fetching all drawings"
@@ -101,6 +98,74 @@ fun Application.configureRouting() {
         }
     }
 }
+
+
+// Drawing is sent in two parts
+//1) The drawings id, fileName, imageTitle is sent as a JSON object in the body of the post request (calling it meta-data)
+//2) The file itself is sent as a file
+suspend fun handleFileUpload(call: ApplicationCall) {
+    println("Received drawing..........")
+    val uploadDir = File("uploads")
+    if (!uploadDir.exists()) {
+        println("creating a uploads directory.........")
+        uploadDir.mkdir()  // Create the directory if it doesn't exist
+    }
+
+    // Initialize variables to hold received parts
+    var drawingId: String? = null
+    var imageTitle: String? = null
+    var fileName: String? = null
+    var fileBytes: ByteArray? = null
+    println("receiving multipart.........")
+    // Process each part in the multipart request
+    val multipart = call.receiveMultipart()
+    multipart.forEachPart { part ->
+        when (part) {
+            // Text parts for metadata
+            is PartData.FormItem -> {
+                println("receiving meta data.........")
+                when (part.name) {
+                    "DrawingID" -> drawingId = part.value
+                    "ImageTitle" -> imageTitle = part.value
+                    "fileName" -> fileName = part.value
+                }
+            }
+            // File part for image
+            is PartData.FileItem -> {
+                println("receiving file Item.........")
+                fileName = part.originalFileName as String
+                fileBytes = part.provider().readRemaining().readByteArray()
+                File("uploads/$fileName").writeBytes(fileBytes!!)
+                println("Received drawing downloaded to: uploads/${fileName ?: "image.png"}\"")
+            }
+            else -> Unit // Ignore other parts
+        }
+        part.dispose() // Release resources for each part
+    }
+
+    // Check that the required data was received
+    if (drawingId == null || imageTitle == null || fileBytes == null) {
+        call.respond(HttpStatusCode.BadRequest, "Missing data in multipart form")
+        return
+    }
+
+//    // Save the file if needed
+//    val file = File("uploads/${fileName ?: "image.png"}")
+//    file.writeBytes(fileBytes!!)
+//    println("Received drawing downloaded to: uploads/${fileName ?: "image.png"}\"")
+
+    // Respond with confirmation
+    call.respond(HttpStatusCode.OK, "File uploaded successfully with DrawingID: $drawingId and title: $imageTitle")
+}
+
+
+// Define the metadata data class
+@Serializable
+data class DrawingMetadata(
+    val title: String,
+    val description: String,
+    val author: String
+)
 
 @Serializable
 data class Drawing(
