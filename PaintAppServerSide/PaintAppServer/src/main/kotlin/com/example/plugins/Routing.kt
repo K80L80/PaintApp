@@ -44,20 +44,20 @@ fun Application.configureRouting() {
             handleFileUpload(call)
         }
 
-        //listen for when client types /drawing into browser and send back text "fetching all drawings"
-        get("/drawing") {
-            val checkuID = call.receive<DrawingIn>().uId
-            val drawings = transaction {
-                SharedImage.selectAll().where{SharedImage.uID eq checkuID}.map { row ->
-                    DrawingOut(
-                        sharedDate = row[SharedImage.sharedDate],
-                        fileName = row[SharedImage.fileName],
-                        imageTitle = row[SharedImage.imageTitle]
-                    )
-                }
-            }
-            call.respond(drawings)
-        }
+//        //listen for when client types /drawing into browser and send back text "fetching all drawings"
+//        get("/drawing") {
+//            val checkuID = call.receive<DrawingIn>().uId
+//            val drawings = transaction {
+//                SharedImage.selectAll().where{SharedImage.uID eq checkuID}.map { row ->
+//                    DrawingOut(
+//                        sharedDate = row[SharedImage.sharedDate],
+//                        fileName = row[SharedImage.fileName],
+//                        imageTitle = row[SharedImage.imageTitle]
+//                    )
+//                }
+//            }
+//            call.respond(drawings)
+//        }
 
         //client listens for when user types ie /drawing/8 into their browser and responds by sending complex object (drawing) back to client
         get("/drawings/{id}") {
@@ -113,11 +113,11 @@ suspend fun handleFileUpload(call: ApplicationCall) {
     println("Received drawing..........")
 
     // Initialize variables to hold received parts
-    var drawingId: String? = null
+    var drawingId: Long? = null
     var imageTitle: String? = null
     var fileName: String? = null
     var fileBytes: ByteArray? = null
-    var ownerID: String? = null
+    var ownerID: Long? = null
     println("receiving multipart.........")
     // Process each part in the multipart request
     val multipart = call.receiveMultipart()
@@ -127,10 +127,10 @@ suspend fun handleFileUpload(call: ApplicationCall) {
             is PartData.FormItem -> {
                 println("receiving meta data.........")
                 when (part.name) {
-                    "DrawingID" -> drawingId = part.value
+                    "DrawingID" -> drawingId = part.value.toLong()
                     "ImageTitle" -> imageTitle = part.value
                     "fileName" -> fileName = part.value
-                    "ownerID" -> ownerID = part.value
+                    "ownerID" -> ownerID = part.value.toLong()
                 }
             }
             // File part for image
@@ -159,15 +159,6 @@ suspend fun handleFileUpload(call: ApplicationCall) {
     // Respond with confirmation
     call.respond(HttpStatusCode.OK, "File uploaded successfully with DrawingID: $drawingId and title: $imageTitle")
 }
-
-
-// Define the metadata data class
-@Serializable
-data class DrawingMetadata(
-    val title: String,
-    val description: String,
-    val author: String
-)
 
 @Serializable
 data class Drawing(
