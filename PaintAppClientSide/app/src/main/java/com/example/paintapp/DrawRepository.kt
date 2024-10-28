@@ -181,14 +181,8 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         }
         //saving of the file to disk continues on a background thread
         withContext(Dispatchers.IO) {
-            val file = File(
-                updatedDrawing.fileName
-            ) //create an empty file file in 'fileDir' special private folder only for the paint app files
-            updatedDrawing.bitmap?.let {
-                saveBitmapToFile(
-                    it,
-                    file
-                )
+            val file = File(updatedDrawing.fileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
+            updatedDrawing.bitmap?.let { saveBitmapToFile(it, file)
             } //gives updates to those tracking live data
         }
     }
