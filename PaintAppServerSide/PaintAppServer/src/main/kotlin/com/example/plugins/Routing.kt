@@ -24,6 +24,22 @@ fun Application.configureRouting() {
     install(Resources)
     
     routing {
+
+        //listen for when client types /drawing into browser and send back text "fetching all drawings"
+        get("/drawing") {
+            val checkuID = call.receive<DrawingIn>().uId
+            val drawings = transaction {
+                SharedImage.selectAll().where{SharedImage.uID eq checkuID}.map { row ->
+                    DrawingOut(
+                        sharedDate = row[SharedImage.sharedDate],
+                        fileName = row[SharedImage.fileName],
+                        imageTitle = row[SharedImage.imageTitle]
+                    )
+                }
+            }
+            call.respond(drawings)
+        }
+
         //listen for when client types /drawing into browser and send back text "fetching all drawings"
         get("/drawing") {
             val checkuID = call.receive<DrawingIn>().uId
