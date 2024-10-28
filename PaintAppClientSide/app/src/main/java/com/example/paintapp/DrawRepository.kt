@@ -9,13 +9,18 @@ import androidx.lifecycle.MutableLiveData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.forms.formData
-import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.plugins.onUpload
+
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+
+//for sending drawing file
+import io.ktor.http.ContentType.MultiPart.FormData
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -49,29 +54,30 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
     //TODO: update so it sends real drawing (with all data) not test drawing
     //To send file meta data as JSON with a file in a single request in Ktor using multipart/form-data request
     suspend fun shareWithinApp(drawing :Drawing){
-        //sends drawing to sever (meta data + bitmap data saved in file)
-        httpClient.submitFormWithBinaryData(
-            url = "http://yourserver.com/upload",
-            formData = formData {
-                // Add metadata as JSON (drawingID, fileName, imageTitle)
-                append("metadata", Json.encodeToString(drawing), Headers.build {
-                    append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                })
+        val response: HttpResponse = httpClient.post("http://10.0.2.2:8080/upload") {
+            //sends Drawing as two parts 1) JSON object containing id, imageTitle, fileName 2) file itself
 
-                // Add the file (ie bitmap.png)
-                append("file", File(drawing.fileName).readBytes(), Headers.build {
-                    append(HttpHeaders.ContentDisposition, "filename=\"${drawing.id}.png\"")
-                })
+            setBody(MultiPartFormDataContent(
+                formData {
+                    //adds meta-data to be sent to server
+                    append("DrawingID", "${drawing.id}")
+                    append("ImageTitle", drawing.imageTitle)
+                    append("fileName", drawing.fileName)
+
+                    //attaches image file to be sent to server
+                    append("image", File(drawing.fileName).readBytes(), Headers.build {
+                        append(HttpHeaders.ContentType, "image/png")
+                        append(HttpHeaders.ContentDisposition, "filename=image${drawing.id}.png") //how the server will label the file regardless of the name on disk
+                    })
+                },
+                boundary = "WebAppBoundary"
+            )
+            )
+            //Callback functions to monitor progress of upload in real time
+            onUpload { bytesSentTotal, contentLength ->
+                println("Sent $bytesSentTotal bytes from $contentLength")
             }
-        )
-
-        val response: HttpResponse = httpClient.post("http://10.0.2.2:8080/drawing") {
-            contentType(io.ktor.http.ContentType.Application.Json) //Sets the content type of the request to JSON.
-            setBody(drawing) //Serializes the Book object and sets it as the request body.
         }
-        // you can send a whole file (e.g., a drawing image) from the client to the server in a POST request, along with additional metadata. In Ktor, you can do this using Multipart data
-        //TODO: send file along with
-
     }
 
     fun closeClient() {
