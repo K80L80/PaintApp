@@ -29,6 +29,13 @@ import java.io.File
 
 fun Application.configureRouting() {
     install(Resources)
+
+    //creates a directory to store all uploads
+    val uploadDir = File("uploads")
+    if (!uploadDir.exists()) {
+        println("creating a uploads directory.........")
+        uploadDir.mkdir()  // Create the directory if it doesn't exist
+    }
     
     routing {
 
@@ -105,11 +112,6 @@ fun Application.configureRouting() {
 //2) The file itself is sent as a file
 suspend fun handleFileUpload(call: ApplicationCall) {
     println("Received drawing..........")
-    val uploadDir = File("uploads")
-    if (!uploadDir.exists()) {
-        println("creating a uploads directory.........")
-        uploadDir.mkdir()  // Create the directory if it doesn't exist
-    }
 
     // Initialize variables to hold received parts
     var drawingId: String? = null
