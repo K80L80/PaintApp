@@ -153,7 +153,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         val id = dao.addDrawing(drawing) //insert into database
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
-        val drawingWBitmap = drawing.copy(bitmap = bitmap)
+        val drawingWBitmap = drawing.copy(id = id, bitmap = bitmap)
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)

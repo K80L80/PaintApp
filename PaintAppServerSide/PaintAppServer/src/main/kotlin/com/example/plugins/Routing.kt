@@ -106,7 +106,6 @@ fun Application.configureRouting() {
     }
 }
 
-
 // Drawing is sent in two parts
 //1) The drawings id, fileName, imageTitle is sent as a JSON object in the body of the post request (calling it meta-data)
 //2) The file itself is sent as a file
@@ -118,6 +117,7 @@ suspend fun handleFileUpload(call: ApplicationCall) {
     var imageTitle: String? = null
     var fileName: String? = null
     var fileBytes: ByteArray? = null
+    var ownerID: String? = null
     println("receiving multipart.........")
     // Process each part in the multipart request
     val multipart = call.receiveMultipart()
@@ -130,6 +130,7 @@ suspend fun handleFileUpload(call: ApplicationCall) {
                     "DrawingID" -> drawingId = part.value
                     "ImageTitle" -> imageTitle = part.value
                     "fileName" -> fileName = part.value
+                    "ownerID" -> ownerID = part.value
                 }
             }
             // File part for image
@@ -137,24 +138,23 @@ suspend fun handleFileUpload(call: ApplicationCall) {
                 println("receiving file Item.........")
                 fileName = part.originalFileName as String
                 fileBytes = part.provider().readRemaining().readByteArray()
-                File("uploads/$fileName").writeBytes(fileBytes!!)
-                println("Received drawing downloaded to: uploads/${fileName ?: "image.png"}\"")
             }
             else -> Unit // Ignore other parts
         }
         part.dispose() // Release resources for each part
     }
 
+    //TODO: probably add a token check here?
     // Check that the required data was received
-    if (drawingId == null || imageTitle == null || fileBytes == null) {
+    if (drawingId == null || imageTitle == null || fileBytes == null || ownerID == null) {
         call.respond(HttpStatusCode.BadRequest, "Missing data in multipart form")
         return
     }
 
-//    // Save the file if needed
-//    val file = File("uploads/${fileName ?: "image.png"}")
-//    file.writeBytes(fileBytes!!)
-//    println("Received drawing downloaded to: uploads/${fileName ?: "image.png"}\"")
+    // Save the file
+    File("uploads/user-$ownerID-drawing-$drawingId.png").writeBytes(fileBytes!!)
+
+    println("Received drawing downloaded to: uploads/user-$ownerID-drawing-${drawingId.toString()}.png")
 
     // Respond with confirmation
     call.respond(HttpStatusCode.OK, "File uploaded successfully with DrawingID: $drawingId and title: $imageTitle")

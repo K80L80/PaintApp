@@ -9,8 +9,8 @@ object User: Table(){
     override val primaryKey = PrimaryKey(uID)
 }
 
-object Drawing: Table(){
-    val id = Long
+object Drawings: Table(){
+    val id = long("dID")
     val fileName = varchar("fileName", 250) // Full path of the file
     val imageTitle = varchar("imageTitle", 250)// User-chosen name for display purposes
     val ownerID = reference("uID", User.uID) // specify who owns the drawing
