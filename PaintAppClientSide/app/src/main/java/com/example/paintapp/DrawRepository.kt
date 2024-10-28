@@ -149,7 +149,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
         //TODO: change owner ID to actual owner ID
         //Save path in room database
-        val drawing = Drawing(fileName = file.absolutePath, imageTitle = imageTitle, ownerID = 1L) //Create a record (ie drawing record), with the absolute path as its field
+        val drawing = Drawing(fileName = file.absolutePath, imageTitle = imageTitle, ownerID = "spencer2@gmail.com") //Create a record (ie drawing record), with the absolute path as its field
         val id = dao.addDrawing(drawing) //insert into database
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
@@ -300,5 +300,39 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
             null
         }
     }
+
+//    // Function to download a drawing using its downloadUrl
+//    suspend fun downloadDrawing(drawing: Drawing) {
+//        val fileDirectory = context.filesDir //special folder dedicated to this app to store local files on
+//        drawing.downloadUrl?.let { url ->
+//            // Download the file bytes from the URL
+//            val fileBytes = httpClient.get<HttpResponse>(url).readBytes()
+//
+//            // Save the downloaded file locally with its fileName
+//            withContext(Dispatchers.IO) {
+//                val localFile = File(fileDirectory, drawing.fileName)
+//                localFile.writeBytes(fileBytes)
+//            }
+//        } ?: throw IllegalArgumentException("No download URL available for drawing ${drawing.id}")
+//    }
+
+//    // Method to download all drawings for the user
+//    suspend fun downloadAllDrawings(ownerID: Long) {
+//        // Step 1: Fetch the list of user's drawings from the server
+//        val drawings = fetchDrawingsList(ownerID)
+//
+//        // Step 2: Download each drawing file and save it locally
+//        for (drawing in drawings) {
+//            val fileBytes = downloadDrawingFile(drawing.downloadUrl)
+//            saveDrawingLocally(drawing.id, ownerID, fileBytes)
+//        }
+//    }
+
+//    // Helper function to fetch the drawings list from the server
+//    private suspend fun fetchDrawingsList(ownerID: Long): HttpResponse {
+//        val response = httpClient.get("http://10.0.2.2:8080/drawing/$ownerID")
+//
+//    }
+
 }
 
