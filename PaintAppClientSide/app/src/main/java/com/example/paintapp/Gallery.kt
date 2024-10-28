@@ -50,8 +50,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share //share in app
 import androidx.compose.material.icons.filled.IosShare //share outside of app (ie text message
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -302,28 +302,29 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
         )
         Row {
             //share outside of app butto (ie messages)
-            ExportButton {
+            ExportDrawingButton {
                 actions.shareOutsideApp(drawing.fileName)
             }
             //share within app button (ie to another user within paint app)
-            ShareButton {
+            UploadDrawingButton {
                 actions.shareWithinApp(drawing)
             }
         }
     }
 }
-//universal looking share button
+//Share this drawing with other apps (ie message, ect.)
 @Composable
-fun ExportButton(onClick: () -> Unit) {
+fun ExportDrawingButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
-        Icon(imageVector = Icons.Filled.IosShare, contentDescription = "Share")
+        Icon(imageVector = Icons.Filled.Share, contentDescription = "Share")
     }
 }
 
+//Upload drawing to app server (ie backup)
 @Composable
-fun ShareButton(onClick: () -> Unit) {
+fun UploadDrawingButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
-        Icon(imageVector = Icons.Filled.Share, contentDescription = "Share")
+        Icon(imageVector = Icons.Filled.IosShare, contentDescription = "Share")
     }
 }
 
