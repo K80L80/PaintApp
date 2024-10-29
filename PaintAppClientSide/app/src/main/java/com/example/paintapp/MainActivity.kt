@@ -53,6 +53,8 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.core.view.isVisible
+import androidx.fragment.app.FragmentContainerView
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -72,29 +74,47 @@ TODO: actual drawing stored on device (Dir folder -special folder for the applic
 class MainActivity : AppCompatActivity() {
 
     private lateinit var drawRepository: DrawRepository
-
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Log out is performed each time the application is started
+        Firebase.auth.signOut()
+
         FirebaseApp.initializeApp(this)
         val drawDao = DrawDatabase.getDatabase(this).drawDao()
-        drawRepository = DrawRepository(scope = CoroutineScope(Dispatchers.IO), dao = drawDao, context = this)
+        drawRepository =
+            DrawRepository(scope = CoroutineScope(Dispatchers.IO), dao = drawDao, context = this)
+
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        navController = navHostFragment.navController
 
         val composeView = findViewById<ComposeView>(R.id.compose_view)
         composeView.setContent {
+            var showAuthScreen by remember { mutableStateOf(true) }
+
             Surface(color = MaterialTheme.colors.background) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                if (showAuthScreen) {
                     FirebaseAuthScreen(onLoginSuccess = { uId, email ->
                         drawRepository.setUserData(uId, email)
+                        // After the login is successful, ComposeView is hidden and FragmentContainerView is displayed
+                        showAuthScreen = false
+                        runOnUiThread {
+                            composeView.isVisible = false
+                            findViewById<FragmentContainerView>(R.id.fragmentContainerView).isVisible =
+                                true
+                        }
                     })
                 }
             }
         }
     }
 }
+
 @Composable
 fun FirebaseAuthScreen(onLoginSuccess: (String, String) -> Unit) {
     var user by remember { mutableStateOf(Firebase.auth.currentUser) }
@@ -106,18 +126,16 @@ fun FirebaseAuthScreen(onLoginSuccess: (String, String) -> Unit) {
         if (user == null) {
             AuthScreen(
                 onLoginSuccess = { uId, email ->
+                    Log.d("FirebaseAuthScreen", "Login successful, UID: $uId")
                     onLoginSuccess(uId, email)
                     user = Firebase.auth.currentUser
                 }
             )
         } else {
-            WelcomeScreen(
-                userEmail = user?.email,
-                onSignOut = {
-                    Firebase.auth.signOut()
-                    user = null
-                }
-            )
+            Log.d("FirebaseAuthScreen", "User already logged in, UID: ${user?.uid}")
+            LaunchedEffect(user) {
+                onLoginSuccess(user!!.uid, user!!.email ?: "")
+            }
         }
     }
 }
@@ -185,33 +203,33 @@ fun AuthScreen(onLoginSuccess: (String, String) -> Unit) {
     }
 }
 
-@Composable
-fun WelcomeScreen(userEmail: String?, onSignOut: () -> Unit) {
-    var dataString by remember { mutableStateOf("") }
-    val db = Firebase.firestore
-    val collection = db.collection("demoCollection")
-
-    LaunchedEffect(Unit) {
-        collection.get()
-            .addOnSuccessListener { result ->
-                val doc = result.firstOrNull()
-                dataString = "${doc?.id} => ${doc?.data}"
-            }
-            .addOnFailureListener { exception ->
-                Log.w("Error", "Error getting documents.", exception)
-            }
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center // Center the content
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally,  modifier = Modifier.fillMaxSize()) {
-            Text("Welcome $userEmail")
-            Text("Data string: $dataString")
-            Button(onClick = onSignOut) {
-                Text("Sign Out")
-            }
-        }
-    }
-}
+//@Composable
+//fun WelcomeScreen(userEmail: String?, onSignOut: () -> Unit) {
+//    var dataString by remember { mutableStateOf("") }
+//    val db = Firebase.firestore
+//    val collection = db.collection("demoCollection")
+//
+//    LaunchedEffect(Unit) {
+//        collection.get()
+//            .addOnSuccessListener { result ->
+//                val doc = result.firstOrNull()
+//                dataString = "${doc?.id} => ${doc?.data}"
+//            }
+//            .addOnFailureListener { exception ->
+//                Log.w("Error", "Error getting documents.", exception)
+//            }
+//    }
+//
+//    Box(
+//        modifier = Modifier.fillMaxSize(),
+//        contentAlignment = Alignment.Center // Center the content
+//    ) {
+//        Column(horizontalAlignment = Alignment.CenterHorizontally,  modifier = Modifier.fillMaxSize()) {
+//            Text("Welcome $userEmail")
+//            Text("Data string: $dataString")
+//            Button(onClick = onSignOut) {
+//                Text("Sign Out")
+//            }
+//        }
+//    }
+//}
