@@ -26,6 +26,14 @@ import java.io.File
 
 class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
 
+    private var uId: String = ""
+    private var email: String = ""
+
+    fun setUserData(uId: String, email: String) {
+        this.uId = uId
+        this.email = email
+    }
+
     val httpClient: HttpClient by lazy {
         // sets up client which uses json objects
         HttpClient {
@@ -56,7 +64,7 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
     private var selectedDrawing: Drawing? = null
 
-    private var uId: String = ""
+
 
     // Method to get the selected drawing
     fun getSelectedDrawing(): Drawing? {
