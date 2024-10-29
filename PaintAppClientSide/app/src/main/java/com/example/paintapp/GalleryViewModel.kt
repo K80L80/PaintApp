@@ -69,10 +69,10 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
-    fun getDrawingList(userID: String) {
+    fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
         viewModelScope.launch {
             val drawings = _drawRepository.getDrawingList(userID)
-            _drawingList.value = drawings  // Update LiveData with the fetched list
+            callback(drawings)
         }
     }
 

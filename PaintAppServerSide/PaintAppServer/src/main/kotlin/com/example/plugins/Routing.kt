@@ -104,42 +104,92 @@ fun Application.configureRouting() {
 //            }
 //        }
 
-        get("/download/{ownerID}/{drawingId}") {
+        get("drawing/download/{ownerID}/{drawingId}") {
             val ownerID = call.parameters["ownerID"]
             val drawingId = call.parameters["drawingId"]?.toLong()
-            getDrawing(ownerID, drawingId, call) //Unresolved reference: getDrawing
+            //responds to client with JSON Drawing Object and the file
+            getDrawing(ownerID, drawingId, call)
         }
 
         get("/drawings/{ownerID}") {
+            println("Calling getlist")
             val ownerID = call.parameters["ownerID"]
             if (ownerID != null) {
-                val drawings = getDrawingsByOwner(ownerID) ?: emptyList<Drawing>() // Default to an empty list if null
-                call.respond(HttpStatusCode.OK, drawings)  // Respond with the list (empty if no drawings)
+                val drawings = getDrawingsByOwner(ownerID) ?: emptyList<Drawing>()
+
+                println("Owner ID: $ownerID")
+                println("Drawings: $drawings")
+
+                call.respond(HttpStatusCode.OK, drawings)
             } else {
+                println("Error: Owner ID is missing.")
                 call.respond(HttpStatusCode.BadRequest, "Owner ID is missing.")
             }
         }
     }
 }
-suspend fun getDrawing(ownerID: String?, drawingID: Long?, call: ApplicationCall){
-        // Endpoint to download a drawing file by ownerID and drawingId
-        if (ownerID == null || drawingID == null) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid owner ID or drawing ID")
-            return
-        }
 
-        // Construct the file path based on the naming convention
-        val filePath = "uploads/user-$ownerID-drawing-$drawingID.png"
-        val file = File(filePath)
+//suspend fun getDrawing(ownerID: String?, drawingID: Long?, call: ApplicationCall) {
+//
+//    // Endpoint to g a drawing file by ownerID and drawingId
+//    if (ownerID == null || drawingID == null) {
+//        println("Server Side –– ownerID and drawingID is null ")
+//        call.respond(HttpStatusCode.BadRequest, "Invalid owner ID or drawing ID")
+//        return
+//    }
+//
+//    //Get Drawing add it to the body  of response
+//    val drawing = getDrawingByOwnerAndId(ownerID,drawingID) // Default to an empty list if null
+//    if(drawing==null) {
+//        println("Server Side –– there is no drawing with that ID ")
+//        call.respond(HttpStatusCode.BadRequest, "no drawing for that user and drawing id")
+//        return
+//    }
+//
+//    //Drawing JSON
+//    call.respond(HttpStatusCode.OK, drawing)
+//    println("Server Side –– responding HttpStatusCode.OK $drawing" )
+//
+//    // Construct the file path based on the naming convention
+//    val filePath = "uploads/user-$ownerID-drawing-$drawingID.png"
+//    println("Server Side –– retrieving file....${filePath}")
+//
+//    val file = File(filePath)
+//    if (file.exists()) {
+//        // Serve the file as a response
+//        println("Server Side  –– Responding with file....${filePath}")
+//        call.respondFile(file)
+//    } else {
+//        // Return a 404 if the file doesn't exist
+//        println("Server Side  –– that file does not exist")
+//        call.respond(HttpStatusCode.NotFound, "File not found")
+//    }
+//}
 
-        if (file.exists()) {
-            // Serve the file as a response
-            call.respondFile(file)
-        } else {
-            // Return a 404 if the file doesn't exist
-            call.respond(HttpStatusCode.NotFound, "File not found")
-        }
+suspend fun getDrawing(ownerID: String?, drawingID: Long?, call: ApplicationCall) {
+    if (ownerID == null || drawingID == null) {
+        println("Server Side –– ownerID and drawingID is null ")
+        call.respond(HttpStatusCode.BadRequest, "Invalid owner ID or drawing ID")
+        return
     }
+
+    // Get the drawing metadata
+    val drawing = getDrawingByOwnerAndId(ownerID, drawingID)
+    if (drawing == null) {
+        println("Server Side –– there is no drawing with that ID ")
+        call.respond(HttpStatusCode.BadRequest, "No drawing for that user and drawing id")
+        return
+    }
+
+    // Construct the file path
+    val filePath = "uploads/user-$ownerID-drawing-$drawingID.png"
+    val file = File(filePath)
+    if (!file.exists()) {
+        println("Server Side –– that file does not exist")
+        call.respond(HttpStatusCode.NotFound, "File not found")
+        return
+    }
+}
 
 // Drawing is sent in two parts
 //1) The drawings id, fileName, imageTitle is sent as a JSON object in the body of the post request (calling it meta-data)
@@ -207,7 +257,7 @@ suspend fun handleFileUpload(call: ApplicationCall) {
 
 fun addDrawing(drawingID: Long, ownerID: String, fileName: String, imageTitle: String): Pair<Long, String> {
     transaction {
-        Drawings.insert { drawing ->
+        Drawings.upsert { drawing ->
             drawing[Drawings.dID] = drawingID
             drawing[Drawings.ownerID] = ownerID
             drawing[Drawings.fileName] = fileName
@@ -217,22 +267,21 @@ fun addDrawing(drawingID: Long, ownerID: String, fileName: String, imageTitle: S
     return Pair(drawingID, ownerID)
 }
 
-fun getDrawingsByOwner(ownerID: String): Drawing?  {
-   return transaction {
-       Drawings
-           .selectAll()
-           .where(Drawings.ownerID eq ownerID)
-           .map { row: ResultRow ->
-               Drawing(
-                   id = row[Drawings.dID],
-                   ownerID = row[Drawings.ownerID],
-                   fileName = row[Drawings.fileName],
-                   imageTitle = row[Drawings.imageTitle]
-               )
-       }.firstOrNull()
-   }
+fun getDrawingsByOwner(ownerID: String): List<Drawing>  {
+    return transaction {
+        Drawings
+            .selectAll()
+            .where(Drawings.ownerID eq ownerID)
+            .map { row: ResultRow ->
+                Drawing(
+                    id = row[Drawings.dID],
+                    ownerID = row[Drawings.ownerID],
+                    fileName = row[Drawings.fileName],
+                    imageTitle = row[Drawings.imageTitle]
+                )
+            }
+    }
 }
-
 
 fun getDrawingByOwnerAndId(ownerID: String, drawingID: Long): Drawing? {
     return transaction {
@@ -251,6 +300,12 @@ fun getDrawingByOwnerAndId(ownerID: String, drawingID: Long): Drawing? {
     }
 }
 
+fun onDuplicateKeyUpdate(ownerID: String, drawingID: Long){
+    transaction {
+        // Check if the record with the same dID and uID exists
+
+    }
+}
 @Serializable
 data class Drawing(
     val id: Long?,
