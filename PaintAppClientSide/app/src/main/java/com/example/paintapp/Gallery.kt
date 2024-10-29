@@ -50,6 +50,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.IosShare //share outside of app (ie text message
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.LaunchedEffect
@@ -70,7 +71,9 @@ data class DrawingActions(
     val navigateToDrawScreen: (() -> Unit),
     val onClickNewDrawingBtn: (String) -> Unit, // Callback for creating a new drawing
     val  shareOutsideApp: (String) -> Unit,
-    val shareWithinApp: (Drawing) -> Unit
+    val shareWithinApp: (Drawing) -> Unit,
+    val downLoadDrawing: (Drawing) -> Unit,
+    val getDrawingList: (String) -> Unit
 )
 
 class MainScreen : Fragment() {
@@ -83,7 +86,9 @@ class MainScreen : Fragment() {
         navigateToDrawScreen = ::navigateToDrawScreen, //callback to navigate from here gallary to draw screen
         onClickNewDrawingBtn = ::onClickNewDrawingBtn,// Callback for creating a new drawing
         shareOutsideApp = ::shareOutsideApp,
-        shareWithinApp = ::shareWithinApp
+        shareWithinApp = ::shareWithinApp,
+        downLoadDrawing = ::downLoadDrawing,
+        getDrawingList = ::getDrawingList
     )
 
     override fun onCreateView(
@@ -122,23 +127,20 @@ class MainScreen : Fragment() {
             }
         }
 
-        binding.download.setOnClickListener {
-            val filesList = arrayOf("fileTest1.png", "FileTest2.png")
-            AlertDialog.Builder(requireContext())
-                .setTitle("Select file to download.")
-                .setItems(filesList) { _, which ->
-                    val selectedFile = filesList[which]
-                    //PlaceHolder for files.
-//                    lifecycleScope.launch {
-//                        menuVM.importDrawImage(selectedFile)
-//                    }
-                }
-                .show()
-        }
+//TODO: Make this work
+//        binding.download.setOnClickListener {
+//            val filesList = menuVM.getDrawingList(userID = "spencer2@gmail.com")
+//            AlertDialog.Builder(requireContext())
+//                .setTitle("Select file to download.")
+//                .setItems(filesList) { _, which ->
+//                    val selectedFile = filesList[which]
+//                }
+//                .show()
+//        }
         return binding.root
     }
 
-    //callback to navigate from gallary to draw screen
+    //callback to navigate from gallery to draw screen
     private fun navigateToDrawScreen() {
         val navController = findNavController()
         navController.navigate(R.id.action_mainScreen_to_drawFragment)
@@ -184,6 +186,14 @@ class MainScreen : Fragment() {
         Toast.makeText(context, "Drawing shared within the app!", Toast.LENGTH_SHORT).show()
     }
 
+    private fun downLoadDrawing(drawing: Drawing){
+        menuVM.downloadDrawing(drawing)
+    }
+//TODO: callback for displaying list of available downloads
+    private fun getDrawingList(userID:String) {
+        return menuVM.getDrawingList(userID)
+    }
+
     // Method to show the dialog
     private fun showNewDrawingDialog(onFileNameEntered: (String?) -> Unit) {
         // Create an EditText for user input
@@ -205,45 +215,6 @@ class MainScreen : Fragment() {
             }
             .show()
     }
-
-//    @Composable
-//    fun SendPostButton() {
-//        val context = LocalContext.current
-//
-//        androidx.compose.material3.Button(onClick = {
-//            Log.d("SendPostButton", "Button clicked. Starting coroutine...")
-//            // Launching in a coroutine to avoid blocking the main thread
-//            CoroutineScope(Dispatchers.IO).launch {
-//                try {
-//                    // Sending a POST request
-//                    Log.d("SendPostButton", "Attempting to send POST request...")
-//                    val response: HttpResponse =
-//                        httpClient.post("http://10.0.2.2:8080/books") {
-//                            contentType(io.ktor.http.ContentType.Application.Json) //Sets the content type of the request to JSON.
-//                            setBody(book) //Serializes the Book object and sets it as the request body.
-//                        }
-//                    Log.d("SendPostButton", "POST request successful. Response: ${response.status}")
-//                    // Display result or success message if needed
-//                    withContext(Dispatchers.Main) {
-//                        Log.d("SendPostButton", "POST sent! Response: ${response.status}")
-//                        Toast.makeText(
-//                            context,
-//                            "POST sent! Response: ${response.status}",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                } catch (e: Exception) {
-//                    Log.e("SendPostButton", "Error occurred during POST request: ${e.message}", e)
-//                    withContext(Dispatchers.Main) {
-//                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-//                    }
-//                }
-//            }
-//        }) {
-//            androidx.compose.material3.Text("Send POST Request")
-//        }
-//    }
-
 }
 // Composable function to display the file list using LazyColumn
 @Composable
@@ -309,6 +280,10 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
             UploadDrawingButton {
                 actions.shareWithinApp(drawing)
             }
+            //Download drawing from server
+            DownloadButton{
+                actions.downLoadDrawing(drawing)
+            }
         }
     }
 }
@@ -327,6 +302,14 @@ fun UploadDrawingButton(onClick: () -> Unit) {
         Icon(imageVector = Icons.Filled.IosShare, contentDescription = "Share")
     }
 }
+//Share this drawing with other apps (ie message, ect.)
+@Composable
+fun DownloadButton(onClick: () -> Unit) {
+    IconButton(onClick = { onClick() }) {
+        Icon(imageVector = Icons.Filled.Download, contentDescription = "Share")
+    }
+}
+
 
 //Composable to display the file     name
 //The composable can manage local state for focus and edit mode, but the final updates should be propagated back to the ViewModel only when necessary (e.g., when the user completes editing).

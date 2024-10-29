@@ -9,6 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.FileInputStream
 
@@ -18,7 +19,9 @@ object DBSettings {
 
     fun init() {
         transaction(db) {
-            SchemaUtils.create(User, SharedImage)
+            SchemaUtils.create(User, SharedImage, Drawings)
+            //TODO: Remove test user once user sign up is done
+            addTestUser("spencer2@gmail.com")
         }
     }
 }
@@ -34,4 +37,13 @@ fun Application.module() {
     DBSettings.init() //sets up the database defined
     configureSerialization()
     configureRouting()
+}
+
+fun addTestUser(uID: String) {
+    transaction {
+        //TODO: remove test user after real user sign-up is done
+        User.insert {
+            it[User.uID] = uID
+        }
+    }
 }

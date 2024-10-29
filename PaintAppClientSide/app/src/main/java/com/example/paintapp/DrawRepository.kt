@@ -22,6 +22,7 @@ import io.ktor.http.ContentType
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readBytes
 
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -41,9 +42,9 @@ import java.io.File
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: android.content.Context) {
+class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO, val context: android.content.Context) {
 
-    val httpClient: HttpClient by lazy {
+    private val httpClient: HttpClient by lazy {
         // sets up client which uses json objects
         HttpClient {
             install(ContentNegotiation) {
@@ -255,9 +256,9 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
 
     private val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
 
-    suspend fun getAllDrawingsThisUserOwns(): List<Drawing> {
+    suspend fun getDrawingList(ownerID: String): List<Drawing> {
         try {
-            val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawing") {
+            val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawing/${ownerID}") {
                 contentType(io.ktor.http.ContentType.Application.Json)
                 setBody(uId)
             }.body()
@@ -301,38 +302,25 @@ class DrawRepository(val scope: CoroutineScope, val dao: DrawDAO, val context: a
         }
     }
 
-//    // Function to download a drawing using its downloadUrl
-//    suspend fun downloadDrawing(drawing: Drawing) {
-//        val fileDirectory = context.filesDir //special folder dedicated to this app to store local files on
-//        drawing.downloadUrl?.let { url ->
-//            // Download the file bytes from the URL
-//            val fileBytes = httpClient.get<HttpResponse>(url).readBytes()
-//
-//            // Save the downloaded file locally with its fileName
-//            withContext(Dispatchers.IO) {
-//                val localFile = File(fileDirectory, drawing.fileName)
-//                localFile.writeBytes(fileBytes)
-//            }
-//        } ?: throw IllegalArgumentException("No download URL available for drawing ${drawing.id}")
-//    }
+    suspend fun downloadDrawing(drawing: Drawing) {
+        // Construct the download URL based on your file-saving convention
+        val downloadUrl = "http://10.0.2.2:8080/drawing/download/user-${drawing.ownerID}-drawing-${drawing.id}.png"
 
-//    // Method to download all drawings for the user
-//    suspend fun downloadAllDrawings(ownerID: Long) {
-//        // Step 1: Fetch the list of user's drawings from the server
-//        val drawings = fetchDrawingsList(ownerID)
-//
-//        // Step 2: Download each drawing file and save it locally
-//        for (drawing in drawings) {
-//            val fileBytes = downloadDrawingFile(drawing.downloadUrl)
-//            saveDrawingLocally(drawing.id, ownerID, fileBytes)
-//        }
-//    }
+        try {
+            // Download the file bytes from the URL
+            val fileBytes = httpClient.get(downloadUrl){
+            }.readBytes()
 
-//    // Helper function to fetch the drawings list from the server
-//    private suspend fun fetchDrawingsList(ownerID: Long): HttpResponse {
-//        val response = httpClient.get("http://10.0.2.2:8080/drawing/$ownerID")
-//
-//    }
-
+            // Save the downloaded file locally with its fileName
+            withContext(Dispatchers.IO) {
+                val localFile = File(drawing.fileName)
+                localFile.writeBytes(fileBytes)
+            }
+        } catch (e: Exception) {
+            // Handle any exceptions, like network issues
+            println("Failed to download drawing ${drawing.id}: ${e.message}")
+            throw e
+        }
+    }
 }
 

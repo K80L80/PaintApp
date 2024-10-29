@@ -2,16 +2,16 @@ package com.example.Repository
 
 import com.example.plugins.Drawing
 
-object DrawingRepository {
-    val drawings = mutableListOf<Drawing>()
-
-    fun getDrawingsForUser(userId: Long): List<Drawing> {
-        return drawings.filter { it.ownerID == userId }
-    }
-
-    fun getDrawingById(drawingId: Long): Drawing? {
-        return drawings.find { it.id == drawingId }
-    }
+//object DrawingRepository {
+//    val drawings = mutableListOf<Drawing>()
+//
+//    fun getDrawingsForUser(userId: Long): List<Drawing> {
+//        return drawings.filter { it.ownerID == userId }
+//    }
+//
+//    fun getDrawingById(drawingId: Long): Drawing? {
+//        return drawings.find { it.id == drawingId }
+//    }
 
 //    fun updateDrawing(drawingId: String, newTitle: String, newContentUrl: String): Drawing? {
 //        val drawing = drawings.find { it.drawingId == drawingId } ?: return null
@@ -24,4 +24,4 @@ object DrawingRepository {
 //        drawings[drawings.indexOf(drawing)] = updatedDrawing
 //        return updatedDrawing
 //    }
-}
+//}
