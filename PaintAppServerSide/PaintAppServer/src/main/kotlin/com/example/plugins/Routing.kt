@@ -79,18 +79,18 @@ fun Application.configureRouting() {
 //            call.respond(drawing)
 //        }
 
-
-        //client sends post request to add drawing to server resource
-        post("/drawing") {
-            // Receive the Book object from the request body
-            val newDrawing = call.receive<Drawing>()
-
-            // Process the drawing (e.g., store it in a database)
-            println("Received drawing: id: ${newDrawing.id}, fileName:${newDrawing.fileName} title: ${newDrawing.imageTitle}, ")
-
-            // Respond with a success message
-            call.respond(HttpStatusCode.Created, "creating new drawing")
-        }
+//
+//        //client sends post request to add drawing to server resource
+//        post("/drawing") {
+//            // Receive the Book object from the request body
+//            val newDrawing = call.receive<Drawing>()
+//
+//            // Process the drawing (e.g., store it in a database)
+//            println("Received drawing: id: ${newDrawing.id}, fileName:${newDrawing.fileName} title: ${newDrawing.imageTitle}, ")
+//
+//            // Respond with a success message
+//            call.respond(HttpStatusCode.Created, "creating new drawing")
+//        }
 
 //        get("/download/{fileURI}") {
 //            val fileName = call.parameters["fileName"]
