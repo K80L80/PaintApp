@@ -63,6 +63,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.reflect.KFunction2
 
 //Welcome screen, should display a list of files already created, for new drawings have user enter text for the filename
 data class DrawingActions(
@@ -70,10 +71,10 @@ data class DrawingActions(
     val onDrawingSelect: (Drawing) -> Unit,
     val navigateToDrawScreen: (() -> Unit),
     val onClickNewDrawingBtn: (String) -> Unit, // Callback for creating a new drawing
-    val  shareOutsideApp: (String) -> Unit,
+    val shareOutsideApp: (String) -> Unit,
     val shareWithinApp: (Drawing) -> Unit,
     val downLoadDrawing: (Drawing) -> Unit,
-    val getDrawingList: (String) -> Unit
+    val getDrawingList: KFunction2<String, (List<Drawing>) -> Unit, Unit>
 )
 
 class MainScreen : Fragment() {
@@ -128,15 +129,22 @@ class MainScreen : Fragment() {
         }
 
 //TODO: Make this work
-//        binding.download.setOnClickListener {
-//            val filesList = menuVM.getDrawingList(userID = "spencer2@gmail.com")
-//            AlertDialog.Builder(requireContext())
-//                .setTitle("Select file to download.")
-//                .setItems(filesList) { _, which ->
-//                    val selectedFile = filesList[which]
-//                }
-//                .show()
-//        }
+        binding.download.setOnClickListener {
+            menuVM.getDrawingList(userID = "spencer2@gmail.com") { filesList ->
+                // This block is executed once the drawings are retrieved
+                println(filesList)
+                val fileNames = filesList.map { it.imageTitle }.toTypedArray()
+
+                // Show the alert dialog with the retrieved file names
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Select file to download.")
+                    .setItems(fileNames) { _, which ->
+                        val selectedFile = fileNames[which]
+                        // Handle the selected file here
+                    }
+                    .show()
+            }
+        }
         return binding.root
     }
 
@@ -190,9 +198,11 @@ class MainScreen : Fragment() {
         menuVM.downloadDrawing(drawing)
     }
 //TODO: callback for displaying list of available downloads
-    private fun getDrawingList(userID:String) {
-        return menuVM.getDrawingList(userID)
+private fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
+    menuVM.getDrawingList(userID) { drawings ->
+        callback(drawings)
     }
+}
 
     // Method to show the dialog
     private fun showNewDrawingDialog(onFileNameEntered: (String?) -> Unit) {

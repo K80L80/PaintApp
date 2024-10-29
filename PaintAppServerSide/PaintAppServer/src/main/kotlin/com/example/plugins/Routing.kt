@@ -60,24 +60,24 @@ fun Application.configureRouting() {
 //        }
 
         //client listens for when user types ie /drawing/8 into their browser and responds by sending complex object (drawing) back to client
-        get("/drawings/{id}") {
-            val id = call.parameters["id"]?.toLongOrNull()
-            if (id == null) {
-                call.respondText("Invalid drawing ID", status = HttpStatusCode.BadRequest)
-                return@get
-            }
-
-            // Retrieve the drawing based on ID (mocking here with sample data)
-            val drawing = Drawing(
-                id = id,
-                fileName = "path/to/file_$id.png",
-                imageTitle = "My Artwork #$id",
-                ownerID = "spencer2@gmail.com"
-            )
-
-            // Send the drawing data back to the client
-            call.respond(drawing)
-        }
+//        get("/drawings/{id}") {
+//            val id = call.parameters["id"]?.toLongOrNull()
+//            if (id == null) {
+//                call.respondText("Invalid drawing ID", status = HttpStatusCode.BadRequest)
+//                return@get
+//            }
+//
+//            // Retrieve the drawing based on ID (mocking here with sample data)
+//            val drawing = Drawing(
+//                id = id,
+//                fileName = "path/to/file_$id.png",
+//                imageTitle = "My Artwork #$id",
+//                ownerID = "spencer2@gmail.com"
+//            )
+//
+//            // Send the drawing data back to the client
+//            call.respond(drawing)
+//        }
 
 
         //client sends post request to add drawing to server resource
@@ -111,11 +111,17 @@ fun Application.configureRouting() {
         }
 
         get("/drawings/{ownerID}") {
+            println("Calling getlist")
             val ownerID = call.parameters["ownerID"]
             if (ownerID != null) {
-                val drawings = getDrawingsByOwner(ownerID) ?: emptyList<Drawing>() // Default to an empty list if null
-                call.respond(HttpStatusCode.OK, drawings)  // Respond with the list (empty if no drawings)
+                val drawings = getDrawingsByOwner(ownerID) ?: emptyList<Drawing>()
+
+                println("Owner ID: $ownerID")
+                println("Drawings: $drawings")
+
+                call.respond(HttpStatusCode.OK, drawings)
             } else {
+                println("Error: Owner ID is missing.")
                 call.respond(HttpStatusCode.BadRequest, "Owner ID is missing.")
             }
         }
@@ -217,7 +223,7 @@ fun addDrawing(drawingID: Long, ownerID: String, fileName: String, imageTitle: S
     return Pair(drawingID, ownerID)
 }
 
-fun getDrawingsByOwner(ownerID: String): Drawing?  {
+fun getDrawingsByOwner(ownerID: String): List<Drawing>  {
    return transaction {
        Drawings
            .selectAll()
@@ -229,7 +235,7 @@ fun getDrawingsByOwner(ownerID: String): Drawing?  {
                    fileName = row[Drawings.fileName],
                    imageTitle = row[Drawings.imageTitle]
                )
-       }.firstOrNull()
+       }
    }
 }
 

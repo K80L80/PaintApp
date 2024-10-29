@@ -241,9 +241,9 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
 
     suspend fun getAllDrawingsFromServer(): List<Drawing> {
         try {
-            val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawing") {
+            val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawing/$uId") {
                 contentType(io.ktor.http.ContentType.Application.Json)
-                setBody(uId)
+//                setBody(uId)
             }.body()
 
             return drawings
@@ -258,10 +258,10 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
 
     suspend fun getDrawingList(ownerID: String): List<Drawing> {
         try {
-            val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawing/${ownerID}") {
-                contentType(io.ktor.http.ContentType.Application.Json)
-                setBody(uId)
+                val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawings/$ownerID") {
+                contentType(ContentType.Application.Json)
             }.body()
+
 
             return drawings
         }
@@ -311,11 +311,15 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
             val fileBytes = httpClient.get(downloadUrl){
             }.readBytes()
 
+            println("received File")
+
             // Save the downloaded file locally with its fileName
             withContext(Dispatchers.IO) {
                 val localFile = File(drawing.fileName)
                 localFile.writeBytes(fileBytes)
             }
+
+            println("finished processing")
         } catch (e: Exception) {
             // Handle any exceptions, like network issues
             println("Failed to download drawing ${drawing.id}: ${e.message}")

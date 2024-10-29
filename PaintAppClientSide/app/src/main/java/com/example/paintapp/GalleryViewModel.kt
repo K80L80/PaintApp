@@ -14,6 +14,7 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     // Method to add a new drawing
     private val _drawRepository = drawRepository
 
+
     val drawings: LiveData<List<Drawing>> = drawRepository.allDrawings
     // Load all drawings once when the app starts or the menu is displayed
 
@@ -69,10 +70,10 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
-    fun getDrawingList(userID: String) {
+    fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
         viewModelScope.launch {
             val drawings = _drawRepository.getDrawingList(userID)
-            _drawingList.value = drawings  // Update LiveData with the fetched list
+            callback(drawings)
         }
     }
 
