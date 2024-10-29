@@ -59,25 +59,25 @@ fun Application.configureRouting() {
 //            call.respond(drawings)
 //        }
 
-        //client listens for when user types ie /drawing/8 into their browser and responds by sending complex object (drawing) back to client
-        get("/drawings/{id}") {
-            val id = call.parameters["id"]?.toLongOrNull()
-            if (id == null) {
-                call.respondText("Invalid drawing ID", status = HttpStatusCode.BadRequest)
-                return@get
-            }
-
-            // Retrieve the drawing based on ID (mocking here with sample data)
-            val drawing = Drawing(
-                id = id,
-                fileName = "path/to/file_$id.png",
-                imageTitle = "My Artwork #$id",
-                ownerID = "spencer2@gmail.com"
-            )
-
-            // Send the drawing data back to the client
-            call.respond(drawing)
-        }
+//        //client listens for when user types ie /drawing/8 into their browser and responds by sending complex object (drawing) back to client
+//        get("/drawings/{id}") {
+//            val id = call.parameters["id"]?.toLongOrNull()
+//            if (id == null) {
+//                call.respondText("Invalid drawing ID", status = HttpStatusCode.BadRequest)
+//                return@get
+//            }
+//
+//            // Retrieve the drawing based on ID (mocking here with sample data)
+//            val drawing = Drawing(
+//                id = id,
+//                fileName = "path/to/file_$id.png",
+//                imageTitle = "My Artwork #$id",
+//                ownerID = "spencer2@gmail.com"
+//            )
+//
+//            // Send the drawing data back to the client
+//            call.respond(drawing)
+//        }
 
 
         //client sends post request to add drawing to server resource

@@ -131,13 +131,14 @@ class MainScreen : Fragment() {
         binding.download.setOnClickListener {
             menuVM.getDrawingList(userID = "spencer2@gmail.com") { filesList ->
                 // This block is executed once the drawings are retrieved
-                println(filesList)
+                Log.e("Gallery", "download button clicked${filesList}")
                 val fileNames = filesList.map { it.imageTitle }.toTypedArray()
-
+                Log.e("Gallery", "$fileNames")
                 // Show the alert dialog with the retrieved file names
                 AlertDialog.Builder(requireContext())
                     .setTitle("Select file to download.")
                     .setItems(fileNames) { _, which ->
+                        Log.e("Gallery", "file item to download${fileNames[which]}")
                         val selectedFile = fileNames[which]
                         // Handle the selected file here
                     }

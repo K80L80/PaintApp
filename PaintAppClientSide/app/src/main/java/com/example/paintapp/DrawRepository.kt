@@ -272,11 +272,17 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     private val defaultBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888)
 
     suspend fun getDrawingList(ownerID: String): List<Drawing> {
+        Log.e("DrawRepository", "entering get drawing list method")
+
         try {
             val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawings/$ownerID") {
+
                 contentType(ContentType.Application.Json)
+
             }.body()
 
+
+            Log.e("DrawRepository", "${drawings}")
 
             return drawings
         }
@@ -349,7 +355,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
 
             // Download the file bytes from the URL
             val response =
-                httpClient.get("http://10.0.2.2:8080/drawing/download/${drawing.ownerID}/${drawing.id}")
+                httpClient.get("http://10.0.2.2:8080/drawings/download/${drawing.ownerID}/${drawing.id}")
             Log.e("DrawRepo", "status ${response.status}")
             when (response.status) {
                 HttpStatusCode.OK -> {
