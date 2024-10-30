@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "705666717942",
+    "project_id": "phase4-887c2",
+    "storage_bucket": "phase4-887c2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:705666717942:android:f6e8552bea0d8cc134f4d7",
+        "android_client_info": {
+          "package_name": "com.example.paintapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1zi567ON4mSbiFhyV35D3LE5sy2AEg6Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
