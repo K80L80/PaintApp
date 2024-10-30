@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.paintapp.databinding.FragmentSplashScreenBinding
 import kotlinx.coroutines.delay
@@ -37,6 +38,7 @@ import kotlinx.coroutines.delay
 class SplashScreenFragment : Fragment() {
 
     private var _binding: FragmentSplashScreenBinding? = null
+    private val viewModel: MainViewModel by activityViewModels()
 
     private val binding get() = _binding!!
     private val navigationCallback: (() -> Unit) = {
@@ -48,10 +50,15 @@ class SplashScreenFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.composeView.setContent {
-            ShowSplashScreenAnimation{
-                //after splash screen finishes uses nav graph action to navigate from splash screen to mainscren2
-              navigationCallback.invoke()
+
+        viewModel.isLoggedIn.observe(viewLifecycleOwner) { isLoggedIn ->
+            if (isLoggedIn) {
+                binding.composeView.setContent {
+                    ShowSplashScreenAnimation{
+                        //after splash screen finishes uses nav graph action to navigate from splash screen to mainscren2
+                        navigationCallback.invoke()
+                    }
+                }
             }
         }
     }

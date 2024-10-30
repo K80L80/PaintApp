@@ -41,7 +41,16 @@ import io.ktor.serialization.kotlinx.json.json
 
 class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO, val context: android.content.Context) {
 
+    private var uId: String = ""
+    private var email: String = ""
+
+    fun setUserData(uId: String, email: String) {
+        this.uId = uId
+        this.email = email
+    }
+
     private val httpClient: HttpClient by lazy {
+
         // sets up client which uses json objects
         HttpClient {
             install(ContentNegotiation) {
@@ -96,7 +105,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
 
     private var selectedDrawing: Drawing? = null
 
-    private var uId: String = ""
+
 
     // Method to get the selected drawing
     fun getSelectedDrawing(): Drawing? {
