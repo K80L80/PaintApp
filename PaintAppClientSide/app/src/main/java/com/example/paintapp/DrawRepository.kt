@@ -79,7 +79,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
                             append(HttpHeaders.ContentType, "image/png")
                             append(
                                 HttpHeaders.ContentDisposition,
-                                "filename=image${drawing.id}.png"
+                                "user-${drawing.ownerID}-drawing-${drawing.id}.png"
                             ) //how the server will label the file regardless of the name on disk
                         })
                     },
@@ -152,38 +152,29 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     }
 
     //Inserting a new drawing into the database while also saving the bitmap as a PNG file on disk.
-    suspend fun addDrawing(bitmap: Bitmap, imageTitle: String): Drawing {
+    suspend fun addDrawing(drawing: Drawing): Drawing {
 
-        //Save bitmap to disk
-        val backendFileName = "${System.currentTimeMillis()}.png"
+        //Create a record (ie drawing record), with the absolute path as its field
+        val generatedId = dao.addDrawing(drawing) //insert into database
 
-        val file = File(
-            context.filesDir,
-            backendFileName
-        ) //create an empty file file in 'fileDir' special private folder only for the paint app files
-        saveBitmapToFile(bitmap, file) //Add the bitmap data to this file
-
-        //TODO: change owner ID to actual owner ID
-        //Save path in room database
-        val drawing = Drawing(
-            fileName = file.absolutePath,
-            imageTitle = imageTitle,
-            ownerID = "spencer2@gmail.com"
-        ) //Create a record (ie drawing record), with the absolute path as its field
-        val id = dao.addDrawing(drawing) //insert into database
+        //create a file in the special directory for when you save the bitmap
+        val backendFileName = "user-${drawing.ownerID}-drawing-${generatedId}.png.png"
+        val file = File(context.filesDir, backendFileName)
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
-        val drawingWBitmap = drawing.copy(id = id, bitmap = bitmap)
+        val withBackendFileNameAndDrawingID = drawing.copy(id = generatedId, fileName = backendFileName)
+
+        //Update the database record with the new file path
+        dao.updateFileName(generatedId,backendFileName)
 
         //Get the current list, adds the new drawing to the end of the list, updates the live data
-        val currentList = _allDrawings.value.orEmpty()
-            .toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
-        currentList.add(drawingWBitmap)
+        val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
+        currentList.add(withBackendFileNameAndDrawingID)
 
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
         _allDrawings.postValue(currentList)// uses post value to ensure thread safe if its called from background thread
 
-        return drawingWBitmap
+        return withBackendFileNameAndDrawingID
     }
 
     //Updates the details of an existing drawing, including updating the bitmap on disk if it has changed.
@@ -202,8 +193,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
         }
         //saving of the file to disk continues on a background thread
         withContext(Dispatchers.IO) {
-            val file =
-                File(updatedDrawing.fileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
+            val file = File(context.filesDir, updatedDrawing.fileName) //create an empty file file in 'fileDir' special private folder only for the paint app files
             updatedDrawing.bitmap?.let {
                 saveBitmapToFile(it, file)
             } //gives updates to those tracking live data
@@ -211,7 +201,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     }
 
     // Specifically updating just the filename for a drawing in the database.
-    suspend fun updateDrawingFileName(drawingId: Long, newFileName: String) {
+    suspend fun updateImageTitle(drawingId: Long, newFileName: String) {
         //Optimistically update UI with new name
         val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
         //Find the drawing in the list that matches this index
@@ -220,7 +210,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
         //save to database in the background
         withContext(Dispatchers.IO) {
             currentList[index].imageTitle = newFileName
-            dao.updateFileName(drawingId, newFileName) // Directly update the database record
+            dao.updateImageTitle(drawingId, newFileName) // Directly update the database record
         }
     }
 
@@ -327,8 +317,10 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     }
 
     suspend fun saveBytesToFile(bytes: ByteArray, fileName: String) = withContext(Dispatchers.IO) {
+        println("saving bytes to the following file name ${fileName}")
         try {
-            val localFile = File(fileName)
+
+            val localFile = File(context.filesDir,fileName)
             localFile.writeBytes(bytes)
             println("File saved successfully to ${localFile.absolutePath}")
         } catch (e: Exception) {

@@ -127,22 +127,41 @@ class MainScreen : Fragment() {
                 onClickNewDrawingBtn(enteredFileName)
             }
         }
-
+//test@email.com
+        //test123
         binding.download.setOnClickListener {
-            menuVM.getDrawingList(userID = "spencer2@gmail.com") { filesList ->
-                // This block is executed once the drawings are retrieved
-                Log.e("Gallery", "download button clicked${filesList}")
-                val fileNames = filesList.map { it.imageTitle }.toTypedArray()
-                Log.e("Gallery", "$fileNames")
+            Log.e("Gallery", "View Downloadable Drawings Button clicked")
+
+            //Get the drawing list for this user
+            menuVM.getDrawingListFromServer(userID = "spencer2@gmail.com") { drawingList ->
+                Log.e("Gallery", "Download button clicked. Drawing list: $drawingList")
+
+                val drawingsArray = drawingList.toTypedArray()
+
                 // Show the alert dialog with the retrieved file names
                 AlertDialog.Builder(requireContext())
+                    //sets the title of the pop-up
                     .setTitle("Select file to download.")
-                    .setItems(fileNames) { _, which ->
-                        Log.e("Gallery", "file item to download${fileNames[which]}")
-                        val selectedFile = fileNames[which]
-                        // Handle the selected file here
+
+                    //displays the file names out of the drawings
+                    .setItems(drawingsArray.map { it.imageTitle }.toTypedArray()) { _, which ->
+
+                        //Get the one the user selected
+                        val selectedDrawing = drawingsArray[which]
+                        Log.e("Gallery", "file item user selected${drawingsArray[which]}")
+
+                        //Drawing selected does not have a local copy yet (Drawing only on server)
+                        if(selectedDrawing.bitmap == null){
+                            // get the bitmap data from the server (ie server will send file)
+                            // Add that new drawing locally (save file to disk)
+                            downLoadDrawing(selectedDrawing)
+                        }
+                        //A local copy already exists so just override the local version with the server version
+                        else{
+                            //Find the matching drawing
+                        }
                     }
-                    .show()
+                .show()
             }
         }
 
@@ -200,12 +219,12 @@ class MainScreen : Fragment() {
     }
 
     private fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
-        menuVM.getDrawingList(userID) { drawings ->
+        menuVM.getDrawingListFromServer(userID) { drawings ->
             callback(drawings)
         }
     }
 
-    // Method to show the dialog
+        // Method to show the dialog
     private fun showNewDrawingDialog(onFileNameEntered: (String?) -> Unit) {
         // Create an EditText for user input
         val input = EditText(requireContext())
@@ -344,14 +363,14 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
                 onFileNameChange(localFileName) // Save the new name
                 isVisible = false
             }),
-            modifier = Modifier.focusRequester(focusRequester)
+            modifier = Modifier
+                .focusRequester(focusRequester)
                 .onFocusChanged { focusState ->
                     if (!focusState.isFocused) {
                         Log.d("MainScreen", "turing off edit mode")
                         isVisible = false // Exit edit mode when focus is lost
                         onFileNameChange(localFileName)
-                    }
-                    else if(focusState.isFocused){
+                    } else if (focusState.isFocused) {
                         isVisible = true
                     }
                 }
