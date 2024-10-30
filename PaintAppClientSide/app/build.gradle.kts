@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.android") //Kotlin
     id("com.google.devtools.ksp") //KSP
     id("org.jetbrains.kotlin.plugin.serialization") //to serialize kotlin class
+    id("com.google.gms.google-services")
 }
 val ktor_version = "2.3.0"
 
@@ -153,6 +154,18 @@ dependencies {
 
     //adding support for firebase (handles the authentication)
     implementation ("com.google.firebase:firebase-auth:23.1.0")
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 }
 
 
