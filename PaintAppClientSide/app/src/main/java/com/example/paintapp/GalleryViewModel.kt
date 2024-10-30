@@ -25,6 +25,11 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     private val _sharedDrawing = MutableLiveData<Drawing>()
     val sharedDrawing: LiveData<Drawing> get() = _sharedDrawing
 
+    // To display a list of drawing available for download
+    private val _drawingList = MutableLiveData<List<Drawing>>()
+    val drawingList: LiveData<List<Drawing>> get() = _drawingList
+
+
     fun selectDrawing(drawing: Drawing) {
         _drawRepository.setSelectedDrawing(drawing)
     }
@@ -64,10 +69,23 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
+    fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
+        viewModelScope.launch {
+            val drawings = _drawRepository.getDrawingList(userID)
+            callback(drawings)
+        }
+    }
+
     // Method to add a shared drawing
     fun shareWithinApp(drawing: Drawing) {
         viewModelScope.launch {
             _drawRepository.shareWithinApp(drawing)
+        }
+    }
+
+    fun downloadDrawing(drawing: Drawing){
+        viewModelScope.launch {
+            _drawRepository.downloadDrawing(drawing)
         }
     }
 

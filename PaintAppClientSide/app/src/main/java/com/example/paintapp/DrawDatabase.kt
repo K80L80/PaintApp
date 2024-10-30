@@ -5,7 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 
-@Database(entities = [DrawEntity::class], version = 2, exportSchema = false)
+@Database(entities = [Drawing::class], version = 3, exportSchema = false)
 abstract class DrawDatabase : RoomDatabase() {
     abstract fun drawDao(): DrawDAO
 
