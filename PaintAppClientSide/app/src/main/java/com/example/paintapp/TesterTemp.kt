@@ -54,7 +54,8 @@ fun generateTestDrawings(): List<Drawing> {
         val id = System.currentTimeMillis() // Use current time in milliseconds as the unique id
 
         // Add the Drawing object to the list
-        drawings.add(Drawing(id = id, bitmap = bitmap, fileName = fileName, imageTitle = "untitled" ))
+        //TODO: Replace with real owner ID)
+        drawings.add(Drawing(id = id, bitmap = bitmap, fileName = fileName, imageTitle = "untitled" ,   ownerID = "spencer2@gmail.com"))
 
         // Optional: Add delay to ensure unique IDs
         Thread.sleep(1)

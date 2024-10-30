@@ -16,22 +16,22 @@ import java.util.Locale
 @Dao
 interface DrawDAO {
     @Insert
-    suspend fun addDrawing(drawingEntity: DrawEntity) : Long //returns the id of the newly inserted record
+    suspend fun addDrawing(drawingEntity: Drawing) : Long //returns the id of the newly inserted record
 
     @Update
-    suspend fun updateDrawing(drawingEntity: DrawEntity)
+    suspend fun updateDrawing(drawingEntity: Drawing)
 
     @Delete
-    suspend fun deleteDrawing(drawingEntity: DrawEntity)
+    suspend fun deleteDrawing(drawingEntity: Drawing)
 
     @Query("SELECT * FROM drawings ORDER BY fileName ASC")
-    fun getAllDrawings(): Flow<List<DrawEntity>>
+    fun getAllDrawings(): Flow<List<Drawing>>
 
     @Query("SELECT * FROM drawings WHERE fileName = :fileName LIMIT 1")
-    suspend fun getDrawingByFileName(fileName: String): DrawEntity?
+    suspend fun getDrawingByFileName(fileName: String): Drawing?
 
     // Update only the userChosenFileName for a specific drawing by its ID
-    @Query("UPDATE drawings SET userChosenFileName = :newFileName WHERE id = :drawingId")
+    @Query("UPDATE drawings SET imageTitle = :newFileName WHERE id = :drawingId")
     suspend fun updateFileName(drawingId: Long, newFileName: String)
 }
 
