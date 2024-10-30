@@ -10,7 +10,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.onUpload
-import io.ktor.client.request.accept
 
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -21,7 +20,6 @@ import io.ktor.http.ContentType
 //for sending drawing file
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
-import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 
 import io.ktor.http.Headers
@@ -40,7 +38,6 @@ import java.io.File
 
 //import io.ktor.http.ContentType.Application.Json
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 
 class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO, val context: android.content.Context) {
 
@@ -276,142 +273,80 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
 
         try {
             val drawings: List<Drawing> = httpClient.get("http://10.0.2.2:8080/drawings/$ownerID") {
-
                 contentType(ContentType.Application.Json)
-
             }.body()
-
 
             Log.e("DrawRepository", "${drawings}")
 
             return drawings
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             Log.e("DrawRepository", "Error fetching drawings from server", e)
         }
         return emptyList()
     }
-//
-//    suspend fun getDrawingsListFromServer(): List<Drawing>? {
-//        return try {
-//            // Send GET request to the server to fetch drawings
-//            val response: HttpResponse = httpClient.get("/drawings") {
-//                accept(ContentType.Application.Json)
-//            }
-//
-//            // Check if the request was successful
-//            if (response.status == HttpStatusCode.OK) {
-//                // Parse the response JSON into a List of Drawings
-//                val responseBody = response.bodyAsText()
-//
-//                //returns a list of drawings sent from the server
-//                if (responseBody.isNotBlank()) {
-//                    return Json.decodeFromString(responseBody)
-//                }
-//                //users has no drawings on the cloud
-//                else {
-//                    emptyList()
-//                }
-//            } else {
-//                println("Error: Received status ${response.status}")
-//                null
-//            }
-//        } catch (e: Exception) {
-//            println("Error fetching drawings: ${e.message}")
-//            null
-//        }
-//    }
 
-//    suspend fun downloadDrawing(drawing: Drawing) {
-//        // Construct the download URL based on your file-saving convention
-//        val downloadUrl =
-//            "http://10.0.2.2:8080/drawing/download/user-${drawing.ownerID}-drawing-${drawing.id}.png"
-//
-//        try {
-//            // Download the file bytes from the URL
-//            val fileBytes = httpClient.get(downloadUrl) {
-//            }.readBytes()
-//
-//            Log.e("DrawRepository", "Replacing Drawing....${fileBytes}")
-//            // Save the downloaded file locally with its fileName
-//            withContext(Dispatchers.IO) {
-//                Log.e("DrawRepository", "Replacing Drawing....${drawing.fileName}")
-//                val localFile = File(drawing.fileName)
-//                localFile.writeBytes(fileBytes)
-//            }
-//        } catch (e: Exception) {
-//            // Handle any exceptions, like network issues
-//            println("Failed to download drawing ${drawing.id}: ${e.message}")
-//            throw e
-//        }
-////    }
 
-        suspend fun downloadDrawing(drawing: Drawing) {
-            // Construct the download URL based on your file-saving convention
-            var drawingJSOn: Drawing? = null
-            var fileData: ByteArray? = null
+    suspend fun downloadDrawing(oldDrawing: Drawing) {
 
-            Log.e("DrawRepository", "entering download drawing method")
+        // Download the file bytes from the URL
+        val response = httpClient.get("http://10.0.2.2:8080/drawing/download/${oldDrawing.ownerID}/${oldDrawing.id}.png")
 
-            // Download the file bytes from the URL
-            val response =
-                httpClient.get("http://10.0.2.2:8080/drawings/download/${drawing.ownerID}/${drawing.id}")
-            Log.e("DrawRepo", "status ${response.status}")
-            when (response.status) {
-                HttpStatusCode.OK -> {
-                    Log.e("DrawRepo", "status ${response.headers}")
-                    if (response.headers["content-type"] == "application/json; charset=UTF-8") {
-                        // Case 1: Response contains metadata
-                        drawingJSOn = response.body()
-                        Log.e("DrawRepository", "drawingJSOn $drawingJSOn")
-                    } else if (response.headers["content-type"] == "image/png") {
-                        // Case 2: Response contains image file
-                        fileData = response.body()
-                        Log.e("DrawRepository", "file received $fileData")
-                    }
+        //if file exists on server override data locally
+        if (response.status == HttpStatusCode.OK) {
+           //Takes drawing from server overrides it locally
+            val bytes = response.readBytes()
+            val newDrawingBytes = bytesToBitmap(bytes)
 
-                    if (fileData != null) {
-                        //Find the drawing in the list that matches this index
-                        val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
-                        val index =
-                            currentList.indexOfFirst { it.id == drawingJSOn?.id } //says drawing must be initalized
+            //updates the old Drawing object with the new bitmap data from server
+            val newDrawing = oldDrawing.copy(bitmap = newDrawingBytes) //How to make this work
 
-                        withContext(Dispatchers.IO) {
-                            Log.e("DrawRepository", "Replacing Drawing....${drawing.fileName}")
-                            val localFile = File(drawing.fileName)
-                            localFile.writeBytes(fileData) //Variable 'fileData' must be initialized
-                        }
-                        if (index != -1) {
-                            // Replace the old drawing with the updated one
+            //update in-memory version that UI uses
+            updateDrawingInList(newDrawing)
 
-                            val updatedDrawing = drawing.copy(
-                                bitmap = BitmapFactory.decodeByteArray(
-                                    fileData,
-                                    0,
-                                    fileData.size
-                                )
-                            )
-                            currentList[index] = updatedDrawing
-                            _allDrawings.setValue(currentList)
-                        }
-                    }
-                }
-
-                HttpStatusCode.NotFound -> {
-                    Log.e("DrawRepository", "file not found")
-                }
-
-                HttpStatusCode.BadRequest -> {
-                    Log.e("DrawRepository", "bad request")
-                }
-
-                else -> {
-                    Log.e("DrawRepository", "Unexpected response")
-                }
-            }
+            // Save the downloaded file locally
+            saveBytesToFile(bytes, oldDrawing.fileName) //overide the previous drawing with data from server
+        }
+        //file only exists locally
+        else if(response.status == HttpStatusCode.NotFound){
+            Log.e("DrawRepository", "file not on server, local copy only")
+            //TODO: what should I do maybe tell user this drawing is not on the cloud?
         }
     }
 
+    fun bytesToBitmap(bytes: ByteArray): Bitmap? {
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    suspend fun saveBytesToFile(bytes: ByteArray, fileName: String) = withContext(Dispatchers.IO) {
+        try {
+            val localFile = File(fileName)
+            localFile.writeBytes(bytes)
+            println("File saved successfully to ${localFile.absolutePath}")
+        } catch (e: Exception) {
+            println("Error saving file: ${e.message}")
+        }
+    }
+
+    suspend fun updateDrawingInList(updatedDrawing: Drawing) = withContext(Dispatchers.Main) {
+        // Access or initialize the current list of drawings
+        val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf()
+
+        // Find the index of the drawing to update
+        val index = currentList.indexOfFirst { it.id == updatedDrawing.id }
+
+        // Check if the drawing was found and update it
+        if (index >= 0) {
+            // Create a mutable copy of the bitmap, if available
+            val updatedBitmap = updatedDrawing.bitmap?.copy(Bitmap.Config.ARGB_8888, true)
+
+            // Replace the old drawing with the updated one
+            currentList[index] = updatedDrawing.copy(bitmap = updatedBitmap)
+
+            // Update _allDrawings with the modified list
+            _allDrawings.setValue(currentList)
+        }
+    }
+}
 
 //    val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
 //
