@@ -55,6 +55,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentContainerView
+import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -75,11 +76,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var drawRepository: DrawRepository
     private lateinit var navController: NavController
+    private lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         // Log out is performed each time the application is started
         Firebase.auth.signOut()
@@ -101,6 +104,8 @@ class MainActivity : AppCompatActivity() {
                 if (showAuthScreen) {
                     FirebaseAuthScreen(onLoginSuccess = { uId, email ->
                         drawRepository.setUserData(uId, email)
+                        viewModel.onLoginComplete()
+                        showAuthScreen = false
                         // After the login is successful, ComposeView is hidden and FragmentContainerView is displayed
                         showAuthScreen = false
                         runOnUiThread {
