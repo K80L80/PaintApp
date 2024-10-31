@@ -141,17 +141,15 @@ class MainScreen : Fragment() {
         binding.download.setOnClickListener {
             Log.e("Gallery", "View Downloadable Drawings Button clicked")
 
-            //Get the drawing list for this user
+            //Get the drawing list for from server
             menuVM.getDrawingListFromServer(app.drawRepository.getuID()) { drawingList ->
-                Log.e("Gallery", "Download button clicked. Drawing list: $drawingList")
-
                 val drawingsArray = drawingList.toTypedArray()
+                Log.e("Gallery", "Download button clicked. Drawing list: $drawingList")
 
                 // Show the alert dialog with the retrieved file names
                 AlertDialog.Builder(requireContext())
                     //sets the title of the pop-up
                     .setTitle("Select file to download.")
-
                     //displays the file names out of the drawings
                     .setItems(drawingsArray.map { it.imageTitle }.toTypedArray()) { _, which ->
 
@@ -159,20 +157,23 @@ class MainScreen : Fragment() {
                         val selectedDrawing = drawingsArray[which]
                         Log.e("Gallery", "file item user selected${drawingsArray[which]}")
 
+                        // Check if the selected drawing already exists locally
+                        val existingDrawing = menuVM.isThisDrawingLocal(selectedDrawing.id.toLong())
+
                         //Drawing selected does not have a local copy yet (Drawing only on server)
-                        if(selectedDrawing.bitmap == null){
-                            // get the bitmap data from the server (ie server will send file)
-                            // Add that new drawing locally (save file to disk)
-                            Log.e("Gallery", "bitmap was null need to download")
-                            downLoadDrawing(selectedDrawing)
+                        if (existingDrawing== -1) {
+                            // Get drawing from server and save a local copy
+                            Log.e("Gallery", "selected drawing not local")
+                            menuVM.creteNewLocalAddItToList(selectedDrawing)
                         }
                         //A local copy already exists so just override the local version with the server version
                         else{
-                            //Find the matching drawing
-
+                            //Find the matching drawing, override it with server drawing
+                            Log.e("Gallery", "selected drawing is local")
+                            menuVM.updateLocalWithServerData(selectedDrawing)
                         }
-                    }
-                .show()
+
+                    }.show()
             }
         }
 
@@ -227,7 +228,7 @@ class MainScreen : Fragment() {
 
     private fun downLoadDrawing(drawing: Drawing){
         Log.e("Gallery", "")
-        menuVM.downloadDrawing(drawing)
+        menuVM.updateLocalWithServerData(drawing)
     }
 
     private fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {

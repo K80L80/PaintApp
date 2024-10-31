@@ -55,6 +55,17 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
+    fun creteNewLocalAddItToList(selectedDrawing: Drawing){
+        viewModelScope.launch {
+            // Call the repository method to download and save the drawing
+            _drawRepository.createNewLocalAddItToList(selectedDrawing)
+        }
+    }
+
+    fun isThisDrawingLocal(drawingId: Long): Int {
+        return _drawRepository.isThisDrawingLocal(drawingId)
+    }
+
     // Update the file name and refresh the UI
     fun updateDrawingFileName(drawingId: Long, newFileName: String) {
         viewModelScope.launch {
@@ -90,10 +101,10 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
-    fun downloadDrawing(drawing: Drawing){
+    fun updateLocalWithServerData(drawing: Drawing){
         Log.e("GalleryViewModel", "download from view model ${drawing}")
         viewModelScope.launch {
-            _drawRepository.downloadDrawing(drawing)
+            _drawRepository.updateLocalWithServerData(drawing)
         }
     }
     suspend fun unshareDrawing(drawing: Drawing) : Boolean {
@@ -113,4 +124,6 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
             _drawRepository.loginUser()
         }
     }
+
+
 }

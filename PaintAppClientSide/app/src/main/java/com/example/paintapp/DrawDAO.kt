@@ -14,7 +14,8 @@ import java.util.Locale
 
 @Dao
 interface DrawDAO {
-    @Insert
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addDrawing(drawingEntity: Drawing) : Long //returns the id of the newly inserted record
 
     @Update

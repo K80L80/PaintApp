@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -41,7 +40,6 @@ import java.io.File
 
 //import io.ktor.http.ContentType.Application.Json
 import io.ktor.serialization.kotlinx.json.json
-import java.io.IOException
 
 class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO, val context: android.content.Context) {
 
@@ -317,8 +315,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     }
 
 
-    suspend fun downloadDrawing(oldDrawing: Drawing) {
-
+    suspend fun updateLocalWithServerData(oldDrawing: Drawing) {
 
         Log.e("DrawRepository", "taking old drawing overwriting with server data")
         // Download the file bytes from the URL
@@ -348,6 +345,53 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
             // Save the downloaded file locally
             saveBytesToFile(bytes, oldDrawing.fileName) //overide the previous drawing with data from server
         }
+        //file only exists locally
+        else if(response.status == HttpStatusCode.NotFound){
+            Log.e("DrawRepository", "file not on server, local copy only")
+            //TODO: what should I do maybe tell user this drawing is not on the cloud?
+        }
+    }
+
+    //Can follow the same vibe as downloadDrawing because that is working, just need it to be able to work if there is no local copy of it and need to get it from server and create a new drawing based on the selected drawing
+    suspend fun createNewLocalAddItToList(selectedDrawing: Drawing) {
+        Log.e("DrawRepository", "downloading selected drawing from SERVER to GET LOCAL COPY")
+        //Takes the selected drawing and makes a request for the actual bitmap data to put it in the drawing and then add this drawing to the list exposed to the view model
+        Log.e("DrawRepository", "taking old drawing overwriting with server data")
+        // Download the file bytes from the URL
+        val response = httpClient.get("http://10.0.2.2:8080/drawing/download/${selectedDrawing.ownerID}/${selectedDrawing.id}.png")
+
+        Log.e("DrawRepository", "Downloading................")
+
+        //if file exists on server override data locally
+        if (response.status == HttpStatusCode.OK) {
+            //Takes drawing from server overrides it locally
+            val bytes = response.readBytes()
+
+            Log.e("DrawRepository", "reading bytes................")
+
+            val newDrawingBytes = bytesToBitmap(bytes)
+
+            Log.e("DrawRepository", "converting bytes to bitmap")
+
+            //Add the drawing to the database
+            val id = dao.addDrawing(selectedDrawing)
+            Log.e("DrawRepository", "INSERTED DRAWING INTO Database${id}")
+
+            //Take the selected drawing with the bitmap data and add to to the in-memory list
+            val newDrawing = selectedDrawing.copy(id = id, bitmap = newDrawingBytes) //How to make this work
+
+            //Add new drawing to the list
+            val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
+            currentList.add(newDrawing)
+
+            //Send refresh out because list was modified with new drawing
+            _allDrawings.postValue(currentList)// uses post value to ensure thread safe if its called from background thread
+
+            Log.e("DrawRepository", "saving new bytes to old name${selectedDrawing.fileName}")
+            // Save the downloaded file locally
+            saveBytesToFile(bytes, selectedDrawing.fileName) //overide the previous drawing with data from server
+        }
+
         //file only exists locally
         else if(response.status == HttpStatusCode.NotFound){
             Log.e("DrawRepository", "file not on server, local copy only")
@@ -420,6 +464,14 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
             return false
         }
     }
+
+    fun isThisDrawingLocal(drawingId: Long): Int {
+        // Check if the drawing exists in the current list
+        val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf()
+        return currentList.indexOfFirst { it.id == drawingId }
+    }
+
+
 }
 
 //    val currentList = _allDrawings.value?.toMutableList() ?: mutableListOf() //
