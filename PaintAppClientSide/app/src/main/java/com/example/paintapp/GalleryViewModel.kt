@@ -2,6 +2,7 @@ package com.example.paintapp
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -35,16 +36,22 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
 
     //Method called when user clicks 'new drawing' on main menu and taken to blank screen to draw some new stuff (this method creates a drawing object and updates the repository and local references ('_selectedDrawing' and '_backendCanvas') needed to modify underlying bitmap
-    fun createNewDrawing(fileName: String?) {
-        val newBitmap =
-            Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
+    fun createNewDrawing(imageTitle: String?) {
+        val newBitmap = Bitmap.createBitmap(1080, 2209, Bitmap.Config.ARGB_8888) // Create a blank bitmap
+
+        // Create a new Drawing object
+        val newDrawing = Drawing(
+            fileName = "", // Placeholder; file path will be set by database
+            imageTitle = imageTitle ?: "untitled",
+            ownerID = _drawRepository.getuID(),
+            bitmap = newBitmap
+        )
 
         //adds new drawing to list backed by repo
         viewModelScope.launch {
-            val userChosenFileName = fileName ?: "untitled"
-            val newDrawing = async { _drawRepository.addDrawing(newBitmap, userChosenFileName) }
+            val newDrawingWithFileNameAdded = async { _drawRepository.addDrawing(newDrawing)}
             // Set the 'new drawing' as the selected drawing (local reference to the draw the user picked to draw on)
-            selectDrawing(newDrawing.await()) //hooks up
+            selectDrawing(newDrawingWithFileNameAdded.await()) //hooks up
         }
     }
 
@@ -52,7 +59,7 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     fun updateDrawingFileName(drawingId: Long, newFileName: String) {
         viewModelScope.launch {
             // Update the database in the background
-            _drawRepository.updateDrawingFileName(drawingId, newFileName)
+            _drawRepository.updateImageTitle(drawingId, newFileName)
         }
     }
 
@@ -69,7 +76,7 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
         }
     }
 
-    fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
+    fun getDrawingListFromServer(userID: String, callback: (List<Drawing>) -> Unit) {
         viewModelScope.launch {
             val drawings = _drawRepository.getDrawingList(userID)
             callback(drawings)
@@ -84,9 +91,13 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
 
     fun downloadDrawing(drawing: Drawing){
+        Log.e("GalleryViewModel", "download from view model ${drawing}")
         viewModelScope.launch {
             _drawRepository.downloadDrawing(drawing)
         }
+    }
+    suspend fun unshareDrawing(drawing: Drawing) : Boolean {
+        return _drawRepository.unshareDrawing(drawing)
     }
 
     suspend fun importDrawImage(fileName: String){
@@ -95,5 +106,11 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
 
     suspend fun getDrawingsList(): List<Drawing> {
         return _drawRepository.getAllDrawingsFromServer()
+    }
+
+    fun sendUserInfo() {
+        viewModelScope.launch {
+            _drawRepository.loginUser()
+        }
     }
 }

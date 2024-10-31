@@ -50,6 +50,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.IosShare //share outside of app (ie text message
 import androidx.compose.material.icons.filled.Share
@@ -74,6 +75,7 @@ data class DrawingActions(
     val shareOutsideApp: (String) -> Unit,
     val shareWithinApp: (Drawing) -> Unit,
     val downLoadDrawing: (Drawing) -> Unit,
+    val unshareDrawing:(Drawing) -> Unit,
     val getDrawingList: KFunction2<String, (List<Drawing>) -> Unit, Unit>
 )
 
@@ -89,7 +91,8 @@ class MainScreen : Fragment() {
         shareOutsideApp = ::shareOutsideApp,
         shareWithinApp = ::shareWithinApp,
         downLoadDrawing = ::downLoadDrawing,
-        getDrawingList = ::getDrawingList
+        getDrawingList = ::getDrawingList,
+        unshareDrawing = ::unshareDrawing
     )
 
     override fun onCreateView(
@@ -105,6 +108,7 @@ class MainScreen : Fragment() {
 
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
+
             //load in all drawings from the view model and display is gallary
             val drawings by menuVM.drawings.observeAsState(emptyList())
 
@@ -118,31 +122,57 @@ class MainScreen : Fragment() {
 
             //setup all the callbacks to handle user interactinon
             TitleGallary(drawings, actions)
+//            menuVM.sendUserInfo()
         }
 
         //create new drawing button
         binding.button2.setOnClickListener {
             // Show the dialog and handle the file name entered by the user
+            Log.i("Gallery", "New Drawing Button Clicked")
+
             showNewDrawingDialog{ enteredFileName ->
+                Log.i("Gallery", "Show new drawing dialogue")
+
                 onClickNewDrawingBtn(enteredFileName)
             }
         }
-
+        //test@email.com
+        //test123
         binding.download.setOnClickListener {
-            menuVM.getDrawingList(userID = "spencer2@gmail.com") { filesList ->
-                // This block is executed once the drawings are retrieved
-                Log.e("Gallery", "download button clicked${filesList}")
-                val fileNames = filesList.map { it.imageTitle }.toTypedArray()
-                Log.e("Gallery", "$fileNames")
+            Log.e("Gallery", "View Downloadable Drawings Button clicked")
+
+            //Get the drawing list for this user
+            menuVM.getDrawingListFromServer(app.drawRepository.getuID()) { drawingList ->
+                Log.e("Gallery", "Download button clicked. Drawing list: $drawingList")
+
+                val drawingsArray = drawingList.toTypedArray()
+
                 // Show the alert dialog with the retrieved file names
                 AlertDialog.Builder(requireContext())
+                    //sets the title of the pop-up
                     .setTitle("Select file to download.")
-                    .setItems(fileNames) { _, which ->
-                        Log.e("Gallery", "file item to download${fileNames[which]}")
-                        val selectedFile = fileNames[which]
-                        // Handle the selected file here
+
+                    //displays the file names out of the drawings
+                    .setItems(drawingsArray.map { it.imageTitle }.toTypedArray()) { _, which ->
+
+                        //Get the one the user selected
+                        val selectedDrawing = drawingsArray[which]
+                        Log.e("Gallery", "file item user selected${drawingsArray[which]}")
+
+                        //Drawing selected does not have a local copy yet (Drawing only on server)
+                        if(selectedDrawing.bitmap == null){
+                            // get the bitmap data from the server (ie server will send file)
+                            // Add that new drawing locally (save file to disk)
+                            Log.e("Gallery", "bitmap was null need to download")
+                            downLoadDrawing(selectedDrawing)
+                        }
+                        //A local copy already exists so just override the local version with the server version
+                        else{
+                            //Find the matching drawing
+
+                        }
                     }
-                    .show()
+                .show()
             }
         }
 
@@ -196,12 +226,25 @@ class MainScreen : Fragment() {
     }
 
     private fun downLoadDrawing(drawing: Drawing){
+        Log.e("Gallery", "")
         menuVM.downloadDrawing(drawing)
     }
 
     private fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
-        menuVM.getDrawingList(userID) { drawings ->
+        menuVM.getDrawingListFromServer(userID) { drawings ->
             callback(drawings)
+        }
+    }
+
+
+    private fun unshareDrawing(drawing: Drawing) {
+        lifecycleScope.launch {
+            val result = menuVM.unshareDrawing(drawing)
+            if (result) {
+                Toast.makeText(context, "Successfully canceled sharing", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Unshare failed", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -295,6 +338,9 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
             DownloadButton{
                 actions.downLoadDrawing(drawing)
             }
+            IconButton(onClick = { actions.unshareDrawing(drawing) }) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = "Unshare")
+            }
         }
     }
 }
@@ -316,6 +362,13 @@ fun UploadDrawingButton(onClick: () -> Unit) {
 //Share this drawing with other apps (ie message, ect.)
 @Composable
 fun DownloadButton(onClick: () -> Unit) {
+    IconButton(onClick = { onClick() }) {
+        Icon(imageVector = Icons.Filled.Download, contentDescription = "Share")
+    }
+}
+
+@Composable
+fun unShareButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
         Icon(imageVector = Icons.Filled.Download, contentDescription = "Share")
     }
@@ -344,14 +397,14 @@ fun fileNameDisplay(fileName: String, onFileNameChange: (String) -> Unit) {
                 onFileNameChange(localFileName) // Save the new name
                 isVisible = false
             }),
-            modifier = Modifier.focusRequester(focusRequester)
+            modifier = Modifier
+                .focusRequester(focusRequester)
                 .onFocusChanged { focusState ->
                     if (!focusState.isFocused) {
                         Log.d("MainScreen", "turing off edit mode")
                         isVisible = false // Exit edit mode when focus is lost
                         onFileNameChange(localFileName)
-                    }
-                    else if(focusState.isFocused){
+                    } else if (focusState.isFocused) {
                         isVisible = true
                     }
                 }

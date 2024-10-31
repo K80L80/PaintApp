@@ -38,7 +38,7 @@ import kotlinx.coroutines.delay
 class SplashScreenFragment : Fragment() {
 
     private var _binding: FragmentSplashScreenBinding? = null
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel: LoginViewModel by activityViewModels()
 
     private val binding get() = _binding!!
     private val navigationCallback: (() -> Unit) = {

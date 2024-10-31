@@ -2,6 +2,7 @@ package com.example.plugins
 
 import com.example.Drawings
 import com.example.SharedImage
+import com.example.User
 import io.ktor.http.*
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.content.*
@@ -41,7 +42,21 @@ fun Application.configureRouting() {
 
         //listen for when client want to upload drawing to server
         post("/upload") {
+            // Process the drawing (e.g., store it in a database)
+            println("client making post request to upload route")
+
             handleFileUpload(call)
+        }
+
+        post("/login/{ownerID}") {
+            println("Calling getlist")
+            val ownerID = call.parameters["ownerID"] ?: error("Missing ownerID parameter")
+
+            transaction {
+                User.insert { user ->
+                    user[uID] = ownerID
+                }
+            }
         }
 
         //client sends post request to add drawing to server resource
@@ -56,22 +71,57 @@ fun Application.configureRouting() {
             call.respond(HttpStatusCode.Created, "creating new drawing")
         }
 
+        post("/unshare/{ownerID}/{drawingId}") {
+//            val parameters = call.receiveParameters()
+//            println(parameters);
+            val ownerID = call.parameters["ownerID"]
+            val drawingID = call.parameters["drawingId"]?.toLongOrNull()
+
+            println("ownerID: $ownerID, drawingID: $drawingID");
+            if (ownerID == null || drawingID == null) {
+                call.respond(HttpStatusCode.BadRequest, "missing")
+                return@post
+            }
+
+            // Delete from the database and file system
+            val success = deleteDrawingAndFile(ownerID, drawingID)
+            if (success) {
+                call.respond(HttpStatusCode.OK, "Successfully unshare\n")
+            } else {
+                call.respond(HttpStatusCode.InternalServerError, "Unshare failure\n")
+            }
+        }
+
+
+
+
+
+
+
         get("drawing/download/{ownerID}/{drawingID}.png") {
+            println("..........hitting the download route..............")
             val ownerID = call.parameters["ownerID"]
             val drawingID = call.parameters["drawingID"]
 
-            val fileName = "/user-$ownerID-drawing-$drawingID.png"
 
+            val fileName = "user-$ownerID-drawing-$drawingID.png"
+
+            println("getting file from : uploads/$fileName")
             val file = File("uploads/$fileName")
             if (file.exists()) {
+                println("the file does exist")
                 call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=$fileName")
+                println("set content disposition:  attachment; filename=$fileName")
+                println("...........sending file")
                 call.respondFile(file)
+
             } else {
                 call.respond(HttpStatusCode.NotFound, "File not on cloud")
             }
         }
 
         get("drawing/download/{ownerID}/{drawingId}") {
+            println("..........hitting the download route DIFFERENT ONE THOUGH..............")
             val ownerID = call.parameters["ownerID"]
             val drawingId = call.parameters["drawingId"]?.toLong()
             //responds to client with JSON Drawing Object and the file
@@ -133,6 +183,32 @@ fun Application.configureRouting() {
 //    }
 //}
 
+suspend fun deleteDrawingAndFile(ownerID: String, drawingID: Long): Boolean {
+    return try {
+        // Deletes a drawing entry from the database
+        newSuspendedTransaction {
+            Drawings.deleteWhere {
+                (Drawings.ownerID eq ownerID) and (Drawings.dID eq drawingID)
+            }
+        }
+
+        // Construct the file path and delete the file
+        val filePath = "uploads/user-$ownerID-drawing-$drawingID.png"
+        val file = File(filePath)
+        if (file.exists()) {
+            val fileDeleted = file.delete()
+            if (!fileDeleted) {
+                println("Error deleting file at $filePath")
+                return false
+            }
+        }
+        true // Return true if both operations succeed
+    } catch (e: Exception) {
+        println("Error deleting drawing or file: ${e.message}")
+        false // If an error occurs, false is returned
+    }
+}
+
 suspend fun getDrawing(ownerID: String?, drawingID: Long?, call: ApplicationCall) {
     if (ownerID == null || drawingID == null) {
         println("Server Side –– ownerID and drawingID is null ")
@@ -179,26 +255,47 @@ suspend fun handleFileUpload(call: ApplicationCall) {
             is PartData.FormItem -> {
                 println("receiving meta data.........")
                 when (part.name) {
-                    "DrawingID" -> drawingId = part.value.toLong()
-                    "ImageTitle" -> imageTitle = part.value
-                    "fileName" -> fileName = part.value
-                    "ownerID" -> ownerID = part.value
+                    "DrawingID" -> {
+                        drawingId = part.value.toLong()
+                        println("receiving meta data........DrawingID: ${drawingId}")
+                    }
+                    "ImageTitle" -> {
+                        imageTitle = part.value
+                        println("receiving meta data........imageTitle: ${imageTitle}")
+                    }
+                    "fileName" -> {
+                        fileName = part.value
+                        println("receiving meta data.......fileName: ${fileName}")
+                    }
+
+                    "ownerID" ->{
+                        ownerID = part.value
+                        println("receiving meta data........ownerID: ${ownerID}")
+                    }
                 }
             }
             // File part for image
             is PartData.FileItem -> {
-                println("receiving file Item.........")
                 fileName = part.originalFileName as String
+                println("receiving file Item.........fileName: $fileName")
                 fileBytes = part.provider().readRemaining().readByteArray()
+
             }
             else -> Unit // Ignore other parts
         }
         part.dispose() // Release resources for each part
     }
 
+    val userExists = transaction {
+        ownerID?.let {
+            User.selectAll().where { User.uID eq it }.count() > 0
+        } ?: false
+    }
+
     //TODO: probably add a token check here?
     // Check that the required data was received
-    if (drawingId == null || imageTitle == null || fileBytes == null || ownerID == null) {
+
+    if (drawingId == null || imageTitle == null || fileBytes == null || ownerID == null || !userExists) {
         call.respond(HttpStatusCode.BadRequest, "Missing data in multipart form")
         return
     }
@@ -206,8 +303,14 @@ suspend fun handleFileUpload(call: ApplicationCall) {
     //Save file and add metadata info to database
     try {
         //if saving file sucessed add it to the database
-        File("uploads/user-$ownerID-drawing-$drawingId.png").writeBytes(fileBytes!!)
-        addDrawing(drawingId!!, ownerID!!, fileName!!, imageTitle!!)
+        println(".......UPLOADING...............")
+        println(".......UPLOADING...............")
+        val fileName1 = "user-$ownerID-drawing-$drawingId.png"
+        val dir = "uploads/"
+        println("writing file do $fileName1 in director $dir")
+        File(dir+fileName1).writeBytes(fileBytes!!)
+        println("DATABASE(drawingID = ${drawingId}, ownerID = $ownerID, fileName = $fileName1, imageTitle= $imageTitle")
+        addDrawing(drawingId!!, ownerID!!, fileName1!!, imageTitle!!)
     }
     catch (e: Exception) {
         // Handle any other unexpected exceptions and respond with a general error
