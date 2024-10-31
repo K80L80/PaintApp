@@ -6,10 +6,12 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.onUpload
+import io.ktor.client.request.accept
 
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -20,6 +22,7 @@ import io.ktor.http.ContentType
 //for sending drawing file
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import io.ktor.client.request.parameter
 import io.ktor.client.statement.readBytes
 
 import io.ktor.http.Headers
@@ -47,6 +50,14 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     fun setUserData(uId: String, email: String) {
         this.uId = uId
         this.email = email
+        Log.e("DrawRepository", "Set uId to $uId and email to $email")
+        scope.launch {
+            loginUser()
+        }
+    }
+
+    fun getuID(): String{
+        return this.uId
     }
 
     private val httpClient: HttpClient by lazy {
@@ -168,7 +179,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
         val drawing = Drawing(
             fileName = file.absolutePath,
             imageTitle = imageTitle,
-            ownerID = "spencer2@gmail.com"
+            ownerID = uId
         ) //Create a record (ie drawing record), with the absolute path as its field
         val id = dao.addDrawing(drawing) //insert into database
 
@@ -353,6 +364,36 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
 
             // Update _allDrawings with the modified list
             _allDrawings.setValue(currentList)
+        }
+    }
+
+     suspend fun loginUser() {
+        try {
+            Log.e("uID",  "$uId")
+            val response: HttpResponse = httpClient.post("http://10.0.2.2:8080/login/$uId") {
+                accept(ContentType.Application.Json)
+            }
+
+            if (response.status == HttpStatusCode.OK) {
+                println("User $uId successfully logged in.")
+            } else {
+                println("Failed to log in user $uId: ${response.status}")
+            }
+        } catch (e: Exception) {
+            Log.e("DrawRepository", "Error logging in user $uId", e)
+        }
+    }
+
+    suspend fun unshareDrawing(drawing: Drawing): Boolean {
+        try {
+            val response = httpClient.post("http://10.0.2.2:8080/unshare/${drawing.ownerID}/${drawing.id}") {
+                parameter("ownerID", drawing.ownerID)
+                parameter("drawingID", drawing.id)
+            }
+            return response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            Log.e("DrawRepository", "Error unsharing drawing", e)
+            return false
         }
     }
 }

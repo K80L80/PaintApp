@@ -88,6 +88,9 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
             _drawRepository.downloadDrawing(drawing)
         }
     }
+    suspend fun unshareDrawing(drawing: Drawing) : Boolean {
+        return _drawRepository.unshareDrawing(drawing)
+    }
 
     suspend fun importDrawImage(fileName: String){
         _drawRepository.loadBitmapFromFile(fileName)
@@ -95,5 +98,11 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
 
     suspend fun getDrawingsList(): List<Drawing> {
         return _drawRepository.getAllDrawingsFromServer()
+    }
+
+    fun sendUserInfo() {
+        viewModelScope.launch {
+            _drawRepository.loginUser()
+        }
     }
 }

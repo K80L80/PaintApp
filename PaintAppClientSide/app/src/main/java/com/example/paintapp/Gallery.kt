@@ -50,6 +50,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.IosShare //share outside of app (ie text message
 import androidx.compose.material.icons.filled.Share
@@ -74,6 +75,7 @@ data class DrawingActions(
     val shareOutsideApp: (String) -> Unit,
     val shareWithinApp: (Drawing) -> Unit,
     val downLoadDrawing: (Drawing) -> Unit,
+    val unshareDrawing:(Drawing) -> Unit,
     val getDrawingList: KFunction2<String, (List<Drawing>) -> Unit, Unit>
 )
 
@@ -89,7 +91,8 @@ class MainScreen : Fragment() {
         shareOutsideApp = ::shareOutsideApp,
         shareWithinApp = ::shareWithinApp,
         downLoadDrawing = ::downLoadDrawing,
-        getDrawingList = ::getDrawingList
+        getDrawingList = ::getDrawingList,
+        unshareDrawing = ::unshareDrawing
     )
 
     override fun onCreateView(
@@ -105,6 +108,7 @@ class MainScreen : Fragment() {
 
         // Add ComposeView to show a LazyColumn
         binding.composeView.setContent {
+
             //load in all drawings from the view model and display is gallary
             val drawings by menuVM.drawings.observeAsState(emptyList())
 
@@ -118,6 +122,7 @@ class MainScreen : Fragment() {
 
             //setup all the callbacks to handle user interactinon
             TitleGallary(drawings, actions)
+//            menuVM.sendUserInfo()
         }
 
         //create new drawing button
@@ -202,6 +207,17 @@ class MainScreen : Fragment() {
     private fun getDrawingList(userID: String, callback: (List<Drawing>) -> Unit) {
         menuVM.getDrawingList(userID) { drawings ->
             callback(drawings)
+        }
+    }
+
+    private fun unshareDrawing(drawing: Drawing) {
+        lifecycleScope.launch {
+            val result = menuVM.unshareDrawing(drawing)
+            if (result) {
+                Toast.makeText(context, "Successfully canceled sharing", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Unshare failed", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -295,6 +311,9 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
             DownloadButton{
                 actions.downLoadDrawing(drawing)
             }
+            IconButton(onClick = { actions.unshareDrawing(drawing) }) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = "Unshare")
+            }
         }
     }
 }
@@ -316,6 +335,13 @@ fun UploadDrawingButton(onClick: () -> Unit) {
 //Share this drawing with other apps (ie message, ect.)
 @Composable
 fun DownloadButton(onClick: () -> Unit) {
+    IconButton(onClick = { onClick() }) {
+        Icon(imageVector = Icons.Filled.Download, contentDescription = "Share")
+    }
+}
+
+@Composable
+fun unShareButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
         Icon(imageVector = Icons.Filled.Download, contentDescription = "Share")
     }

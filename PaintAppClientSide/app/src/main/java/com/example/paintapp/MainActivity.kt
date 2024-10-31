@@ -89,8 +89,7 @@ class MainActivity : AppCompatActivity() {
 
         FirebaseApp.initializeApp(this)
         val drawDao = DrawDatabase.getDatabase(this).drawDao()
-        drawRepository =
-            DrawRepository(scope = CoroutineScope(Dispatchers.IO), dao = drawDao, context = this)
+        drawRepository = (application as DrawApp).drawRepository
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
@@ -103,6 +102,7 @@ class MainActivity : AppCompatActivity() {
             Surface(color = MaterialTheme.colors.background) {
                 if (showAuthScreen) {
                     FirebaseAuthScreen(onLoginSuccess = { uId, email ->
+                        Log.e("uIDMain", "$uId")
                         drawRepository.setUserData(uId, email)
                         viewModel.onLoginComplete()
                         showAuthScreen = false
