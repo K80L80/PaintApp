@@ -533,6 +533,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             fileName = fileName,
             imageTitle = "untitled",
             ownerID = _drawRepository.getuID()
+
         )
     }
 

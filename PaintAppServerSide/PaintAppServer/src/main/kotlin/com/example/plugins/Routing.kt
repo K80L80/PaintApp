@@ -42,6 +42,9 @@ fun Application.configureRouting() {
 
         //listen for when client want to upload drawing to server
         post("/upload") {
+            // Process the drawing (e.g., store it in a database)
+            println("client making post request to upload route")
+
             handleFileUpload(call)
         }
 
@@ -96,21 +99,29 @@ fun Application.configureRouting() {
 
 
         get("drawing/download/{ownerID}/{drawingID}.png") {
+            println("..........hitting the download route..............")
             val ownerID = call.parameters["ownerID"]
             val drawingID = call.parameters["drawingID"]
 
-            val fileName = "/user-$ownerID-drawing-$drawingID.png"
 
+            val fileName = "user-$ownerID-drawing-$drawingID.png"
+
+            println("getting file from : uploads/$fileName")
             val file = File("uploads/$fileName")
             if (file.exists()) {
+                println("the file does exist")
                 call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=$fileName")
+                println("set content disposition:  attachment; filename=$fileName")
+                println("...........sending file")
                 call.respondFile(file)
+
             } else {
                 call.respond(HttpStatusCode.NotFound, "File not on cloud")
             }
         }
 
         get("drawing/download/{ownerID}/{drawingId}") {
+            println("..........hitting the download route DIFFERENT ONE THOUGH..............")
             val ownerID = call.parameters["ownerID"]
             val drawingId = call.parameters["drawingId"]?.toLong()
             //responds to client with JSON Drawing Object and the file
@@ -244,17 +255,31 @@ suspend fun handleFileUpload(call: ApplicationCall) {
             is PartData.FormItem -> {
                 println("receiving meta data.........")
                 when (part.name) {
-                    "DrawingID" -> drawingId = part.value.toLong()
-                    "ImageTitle" -> imageTitle = part.value
-                    "fileName" -> fileName = part.value
-                    "ownerID" -> ownerID = part.value
+                    "DrawingID" -> {
+                        drawingId = part.value.toLong()
+                        println("receiving meta data........DrawingID: ${drawingId}")
+                    }
+                    "ImageTitle" -> {
+                        imageTitle = part.value
+                        println("receiving meta data........imageTitle: ${imageTitle}")
+                    }
+                    "fileName" -> {
+                        fileName = part.value
+                        println("receiving meta data.......fileName: ${fileName}")
+                    }
+
+                    "ownerID" ->{
+                        ownerID = part.value
+                        println("receiving meta data........ownerID: ${ownerID}")
+                    }
                 }
             }
             // File part for image
             is PartData.FileItem -> {
-                println("receiving file Item.........")
                 fileName = part.originalFileName as String
+                println("receiving file Item.........fileName: $fileName")
                 fileBytes = part.provider().readRemaining().readByteArray()
+
             }
             else -> Unit // Ignore other parts
         }
@@ -269,6 +294,7 @@ suspend fun handleFileUpload(call: ApplicationCall) {
 
     //TODO: probably add a token check here?
     // Check that the required data was received
+
     if (drawingId == null || imageTitle == null || fileBytes == null || ownerID == null || !userExists) {
         call.respond(HttpStatusCode.BadRequest, "Missing data in multipart form")
         return
@@ -277,8 +303,14 @@ suspend fun handleFileUpload(call: ApplicationCall) {
     //Save file and add metadata info to database
     try {
         //if saving file sucessed add it to the database
-        File("uploads/user-$ownerID-drawing-$drawingId.png").writeBytes(fileBytes!!)
-        addDrawing(drawingId!!, ownerID!!, fileName!!, imageTitle!!)
+        println(".......UPLOADING...............")
+        println(".......UPLOADING...............")
+        val fileName1 = "user-$ownerID-drawing-$drawingId.png"
+        val dir = "uploads/"
+        println("writing file do $fileName1 in director $dir")
+        File(dir+fileName1).writeBytes(fileBytes!!)
+        println("DATABASE(drawingID = ${drawingId}, ownerID = $ownerID, fileName = $fileName1, imageTitle= $imageTitle")
+        addDrawing(drawingId!!, ownerID!!, fileName1!!, imageTitle!!)
     }
     catch (e: Exception) {
         // Handle any other unexpected exceptions and respond with a general error

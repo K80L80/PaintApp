@@ -1,7 +1,6 @@
 package com.example.paintapp
 
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import androidx.room.Dao
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +31,11 @@ interface DrawDAO {
 
     // Update only the userChosenFileName for a specific drawing by its ID
     @Query("UPDATE drawings SET imageTitle = :newFileName WHERE id = :drawingId")
-    suspend fun updateFileName(drawingId: Long, newFileName: String)
+    suspend fun updateImageTitle(drawingId: Long, newFileName: String)
+
+    @Query("UPDATE drawings SET fileName = :fileName WHERE id = :id")
+    suspend fun updateFileName(id: Long, fileName: String)
+
 }
 
 // Function to print the contents of the Drawing table
