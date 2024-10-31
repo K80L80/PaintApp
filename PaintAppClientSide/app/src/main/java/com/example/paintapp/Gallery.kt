@@ -142,7 +142,7 @@ class MainScreen : Fragment() {
             Log.e("Gallery", "View Downloadable Drawings Button clicked")
 
             //Get the drawing list for this user
-            menuVM.getDrawingListFromServer(userID = "AAA") { drawingList ->
+            menuVM.getDrawingListFromServer(app.drawRepository.getuID()) { drawingList ->
                 Log.e("Gallery", "Download button clicked. Drawing list: $drawingList")
 
                 val drawingsArray = drawingList.toTypedArray()

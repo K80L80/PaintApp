@@ -43,7 +43,7 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
         val newDrawing = Drawing(
             fileName = "", // Placeholder; file path will be set by database
             imageTitle = imageTitle ?: "untitled",
-            ownerID = "AAA",
+            ownerID = _drawRepository.getuID(),
             bitmap = newBitmap
         )
 
