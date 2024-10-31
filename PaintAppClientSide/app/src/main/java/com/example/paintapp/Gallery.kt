@@ -50,6 +50,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.IosShare //share outside of app (ie text message
@@ -340,7 +343,7 @@ fun Tile(drawing: Drawing, actions: DrawingActions){
                 actions.downLoadDrawing(drawing)
             }
             IconButton(onClick = { actions.unshareDrawing(drawing) }) {
-                Icon(imageVector = Icons.Default.Delete, contentDescription = "Unshare")
+                Icon(imageVector = Icons.Default.CloudOff, contentDescription = "Unshare")
             }
         }
     }
@@ -357,21 +360,21 @@ fun ExportDrawingButton(onClick: () -> Unit) {
 @Composable
 fun UploadDrawingButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
-        Icon(imageVector = Icons.Filled.IosShare, contentDescription = "Share")
+        Icon(imageVector = Icons.Filled.CloudUpload, contentDescription = "Share")
     }
 }
 //Share this drawing with other apps (ie message, ect.)
 @Composable
 fun DownloadButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
-        Icon(imageVector = Icons.Filled.Download, contentDescription = "Share")
+        Icon(imageVector = Icons.Filled.CloudDownload, contentDescription = "Share")
     }
 }
 
 @Composable
 fun unShareButton(onClick: () -> Unit) {
     IconButton(onClick = { onClick() }) {
-        Icon(imageVector = Icons.Filled.Download, contentDescription = "Share")
+        Icon(imageVector = Icons.Filled.CloudOff, contentDescription = "Share")
     }
 }
 
