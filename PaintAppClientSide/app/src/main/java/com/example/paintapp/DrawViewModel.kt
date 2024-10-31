@@ -49,7 +49,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     private lateinit var sensorManager: SensorManager
     private lateinit var accelerometer: Sensor
 
-    val drawings : LiveData<List<Drawing>> = drawRepository.allDrawings
+    val drawings: LiveData<List<Drawing>> = drawRepository.allDrawings
     // Load all drawings once when the app starts or the menu is displayed
 
     //selected Drawing is session based (ie selected drawing does not need to be tracked in database since you always have to pick you drawing through main app and that is a decision relative to the current instance not across app instances)
@@ -96,10 +96,11 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             }
         }
     }
+
     fun respondToResizeEvent(newWidth: Int, newHeight: Int) {
         Log.i("ViewModel", "respond to resize event${_selectedDrawing.value?.bitmap}")
 
-        val currentBitmap =  _selectedDrawing.value?.bitmap ?: return
+        val currentBitmap = _selectedDrawing.value?.bitmap ?: return
 
         if (currentBitmap.width != newWidth || currentBitmap.height != newHeight) {
             val scaledBitmap = Bitmap.createScaledBitmap(currentBitmap, newWidth, newHeight, true)
@@ -311,7 +312,10 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
                 MotionEvent.ACTION_MOVE -> {
                     // (Optional) Preview the line while dragging
                     // Redraw the view without committing it to the bitmap
-                    _backendCanvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR) // Clear the preview
+                    _backendCanvas?.drawColor(
+                        Color.TRANSPARENT,
+                        PorterDuff.Mode.CLEAR
+                    ) // Clear the preview
                     _backendCanvas?.drawLine(startX, startY, x, y, copiedPaint)
                     _selectedDrawing.value?.bitmap?.let { bitmap ->
                         _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
@@ -325,6 +329,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
                         _selectedDrawing.value = _selectedDrawing.value?.copy(bitmap = bitmap)
                     }
                 }
+
                 else -> {
                     // Handle any other unexpected motion events, or just ignore them
                     Log.w("DrawViewModel", "Unhandled MotionEvent action: ${event.action}")
@@ -402,6 +407,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
                     // Reset the path for the next freehand stroke
                     freeDrawPath.reset()
                 }
+
                 else -> {
                     // Handle any other unexpected motion events, or just ignore them
                     Log.w("DrawViewModel", "Unhandled MotionEvent action: ${event.action}")
@@ -447,7 +453,10 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
     /**Method to check for changes in positionals for shaking
      *
      */
-    private fun shakeDetectorFlow(accelerometer: Sensor, sensorManager: SensorManager): Flow<Boolean> {
+    private fun shakeDetectorFlow(
+        accelerometer: Sensor,
+        sensorManager: SensorManager
+    ): Flow<Boolean> {
         return channelFlow {
             val listener = object : SensorEventListener {
                 val history = mutableListOf<FloatArray>()
@@ -471,7 +480,11 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
             }
 
-            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(
+                listener,
+                accelerometer,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
 
             awaitClose {
                 sensorManager.unregisterListener(listener)
@@ -485,11 +498,11 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
      */
     fun increaseSize() {
         val currentSize = getSize() ?: 10f
-        if(currentSize < 45f) {
+        if (currentSize < 45f) {
             setSize(currentSize + 5f)
         }
     }
-}
+
 
     fun createDefaultDrawing(id: Long, width: Int, height: Int, fileName: String): Drawing {
         // Create an empty bitmap
@@ -519,12 +532,15 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             bitmap = bitmap,
             fileName = fileName,
             imageTitle = "untitled",
-            ownerID = "AAA" //TODO: Replace with real owner ID
+            ownerID = _drawRepository.getuID()
+
         )
     }
+
     val defaultDrawing = createDefaultDrawing(
         id = -1L, // Assign an invalid id or one that represents the default
         width = 800, // Specify a default width
         height = 600, // Specify a default height
         fileName = "error_drawing.png"
     )
+}
