@@ -60,21 +60,29 @@ fun Application.configureRouting() {
         }
 
         get("drawing/download/{ownerID}/{drawingID}.png") {
+            println("..........hitting the download route..............")
             val ownerID = call.parameters["ownerID"]
             val drawingID = call.parameters["drawingID"]
 
-            val fileName = "/user-$ownerID-drawing-$drawingID.png"
 
+            val fileName = "user-$ownerID-drawing-$drawingID.png"
+
+            println("getting file from : uploads/$fileName")
             val file = File("uploads/$fileName")
             if (file.exists()) {
+                println("the file does exist")
                 call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=$fileName")
+                println("set content disposition:  attachment; filename=$fileName")
+                println("...........sending file")
                 call.respondFile(file)
+
             } else {
                 call.respond(HttpStatusCode.NotFound, "File not on cloud")
             }
         }
 
         get("drawing/download/{ownerID}/{drawingId}") {
+            println("..........hitting the download route DIFFERENT ONE THOUGH..............")
             val ownerID = call.parameters["ownerID"]
             val drawingId = call.parameters["drawingId"]?.toLong()
             //responds to client with JSON Drawing Object and the file
@@ -227,12 +235,12 @@ suspend fun handleFileUpload(call: ApplicationCall) {
         //if saving file sucessed add it to the database
         println(".......UPLOADING...............")
         println(".......UPLOADING...............")
-
-        val fileNameServerSide = "uploads/user-$ownerID-drawing-$drawingId.png"
-        println("writing file do $fileNameServerSide")
-        File(fileNameServerSide).writeBytes(fileBytes!!)
-        println("DATABASE(drawingID = ${drawingId}, ownerID = $ownerID, fileName = $fileNameServerSide, imageTitle= $imageTitle")
-        addDrawing(drawingId!!, ownerID!!, fileNameServerSide!!, imageTitle!!)
+        val fileName1 = "user-$ownerID-drawing-$drawingId.png"
+        val dir = "uploads/"
+        println("writing file do $fileName1 in director $dir")
+        File(dir+fileName1).writeBytes(fileBytes!!)
+        println("DATABASE(drawingID = ${drawingId}, ownerID = $ownerID, fileName = $fileName1, imageTitle= $imageTitle")
+        addDrawing(drawingId!!, ownerID!!, fileName1!!, imageTitle!!)
     }
     catch (e: Exception) {
         // Handle any other unexpected exceptions and respond with a general error

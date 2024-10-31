@@ -158,11 +158,13 @@ class MainScreen : Fragment() {
                         if(selectedDrawing.bitmap == null){
                             // get the bitmap data from the server (ie server will send file)
                             // Add that new drawing locally (save file to disk)
+                            Log.e("Gallery", "bitmap was null need to download")
                             downLoadDrawing(selectedDrawing)
                         }
                         //A local copy already exists so just override the local version with the server version
                         else{
                             //Find the matching drawing
+
                         }
                     }
                 .show()
@@ -219,6 +221,7 @@ class MainScreen : Fragment() {
     }
 
     private fun downLoadDrawing(drawing: Drawing){
+        Log.e("Gallery", "")
         menuVM.downloadDrawing(drawing)
     }
 

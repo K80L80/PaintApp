@@ -308,21 +308,32 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
 
     suspend fun downloadDrawing(oldDrawing: Drawing) {
 
+
+        Log.e("DrawRepository", "taking old drawing overwriting with server data")
         // Download the file bytes from the URL
         val response = httpClient.get("http://10.0.2.2:8080/drawing/download/${oldDrawing.ownerID}/${oldDrawing.id}.png")
+
+        Log.e("DrawRepository", "Downloading................")
 
         //if file exists on server override data locally
         if (response.status == HttpStatusCode.OK) {
            //Takes drawing from server overrides it locally
             val bytes = response.readBytes()
+
+            Log.e("DrawRepository", "reading bytes................")
+
             val newDrawingBytes = bytesToBitmap(bytes)
+
+            Log.e("DrawRepository", "converting bytes to bitmap")
 
             //updates the old Drawing object with the new bitmap data from server
             val newDrawing = oldDrawing.copy(bitmap = newDrawingBytes) //How to make this work
 
+            Log.e("DrawRepository", "overriding local drawing with server drawing data ")
             //update in-memory version that UI uses
             updateDrawingInList(newDrawing)
 
+            Log.e("DrawRepository", "saving new bytes to old name${oldDrawing.fileName}")
             // Save the downloaded file locally
             saveBytesToFile(bytes, oldDrawing.fileName) //overide the previous drawing with data from server
         }

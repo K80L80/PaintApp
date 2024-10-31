@@ -2,6 +2,7 @@ package com.example.paintapp
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -90,6 +91,7 @@ class GalleryViewModel(drawRepository: DrawRepository) : ViewModel() {
     }
 
     fun downloadDrawing(drawing: Drawing){
+        Log.e("GalleryViewModel", "download from view model ${drawing}")
         viewModelScope.launch {
             _drawRepository.downloadDrawing(drawing)
         }
