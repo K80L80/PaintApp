@@ -123,17 +123,21 @@ class MainScreen : Fragment() {
         //create new drawing button
         binding.button2.setOnClickListener {
             // Show the dialog and handle the file name entered by the user
+            Log.i("Gallery", "New Drawing Button Clicked")
+
             showNewDrawingDialog{ enteredFileName ->
+                Log.i("Gallery", "Show new drawing dialogue")
+
                 onClickNewDrawingBtn(enteredFileName)
             }
         }
-//test@email.com
+        //test@email.com
         //test123
         binding.download.setOnClickListener {
             Log.e("Gallery", "View Downloadable Drawings Button clicked")
 
             //Get the drawing list for this user
-            menuVM.getDrawingListFromServer(userID = "spencer2@gmail.com") { drawingList ->
+            menuVM.getDrawingListFromServer(userID = "AAA") { drawingList ->
                 Log.e("Gallery", "Download button clicked. Drawing list: $drawingList")
 
                 val drawingsArray = drawingList.toTypedArray()

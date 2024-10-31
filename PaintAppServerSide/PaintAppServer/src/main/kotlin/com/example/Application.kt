@@ -21,7 +21,7 @@ object DBSettings {
         transaction(db) {
             SchemaUtils.create(User, SharedImage, Drawings)
             //TODO: Remove test user once user sign up is done
-            addTestUser("spencer2@gmail.com")
+            addTestUser("AAA")
         }
     }
 }

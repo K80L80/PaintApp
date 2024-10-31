@@ -41,6 +41,9 @@ fun Application.configureRouting() {
 
         //listen for when client want to upload drawing to server
         post("/upload") {
+            // Process the drawing (e.g., store it in a database)
+            println("client making post request to upload route")
+
             handleFileUpload(call)
         }
 
@@ -179,17 +182,31 @@ suspend fun handleFileUpload(call: ApplicationCall) {
             is PartData.FormItem -> {
                 println("receiving meta data.........")
                 when (part.name) {
-                    "DrawingID" -> drawingId = part.value.toLong()
-                    "ImageTitle" -> imageTitle = part.value
-                    "fileName" -> fileName = part.value
-                    "ownerID" -> ownerID = part.value
+                    "DrawingID" -> {
+                        drawingId = part.value.toLong()
+                        println("receiving meta data........DrawingID: ${drawingId}")
+                    }
+                    "ImageTitle" -> {
+                        imageTitle = part.value
+                        println("receiving meta data........imageTitle: ${imageTitle}")
+                    }
+                    "fileName" -> {
+                        fileName = part.value
+                        println("receiving meta data.......fileName: ${fileName}")
+                    }
+
+                    "ownerID" ->{
+                        ownerID = part.value
+                        println("receiving meta data........ownerID: ${ownerID}")
+                    }
                 }
             }
             // File part for image
             is PartData.FileItem -> {
-                println("receiving file Item.........")
                 fileName = part.originalFileName as String
+                println("receiving file Item.........fileName: $fileName")
                 fileBytes = part.provider().readRemaining().readByteArray()
+
             }
             else -> Unit // Ignore other parts
         }
@@ -199,6 +216,8 @@ suspend fun handleFileUpload(call: ApplicationCall) {
     //TODO: probably add a token check here?
     // Check that the required data was received
     if (drawingId == null || imageTitle == null || fileBytes == null || ownerID == null) {
+        println("at least one part of meta data was null")
+        println("were file bytes null? ${fileBytes == null}")
         call.respond(HttpStatusCode.BadRequest, "Missing data in multipart form")
         return
     }
@@ -206,8 +225,14 @@ suspend fun handleFileUpload(call: ApplicationCall) {
     //Save file and add metadata info to database
     try {
         //if saving file sucessed add it to the database
-        File("uploads/user-$ownerID-drawing-$drawingId.png").writeBytes(fileBytes!!)
-        addDrawing(drawingId!!, ownerID!!, fileName!!, imageTitle!!)
+        println(".......UPLOADING...............")
+        println(".......UPLOADING...............")
+
+        val fileNameServerSide = "uploads/user-$ownerID-drawing-$drawingId.png"
+        println("writing file do $fileNameServerSide")
+        File(fileNameServerSide).writeBytes(fileBytes!!)
+        println("DATABASE(drawingID = ${drawingId}, ownerID = $ownerID, fileName = $fileNameServerSide, imageTitle= $imageTitle")
+        addDrawing(drawingId!!, ownerID!!, fileNameServerSide!!, imageTitle!!)
     }
     catch (e: Exception) {
         // Handle any other unexpected exceptions and respond with a general error

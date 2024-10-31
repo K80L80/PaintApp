@@ -55,7 +55,7 @@ fun generateTestDrawings(): List<Drawing> {
 
         // Add the Drawing object to the list
         //TODO: Replace with real owner ID)
-        drawings.add(Drawing(id = id, bitmap = bitmap, fileName = fileName, imageTitle = "untitled" ,   ownerID = "spencer2@gmail.com"))
+        drawings.add(Drawing(id = id, bitmap = bitmap, fileName = fileName, imageTitle = "untitled" ,   ownerID = "AAA"))
 
         // Optional: Add delay to ensure unique IDs
         Thread.sleep(1)

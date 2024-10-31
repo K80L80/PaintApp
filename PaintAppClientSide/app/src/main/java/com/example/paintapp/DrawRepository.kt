@@ -38,6 +38,7 @@ import java.io.File
 
 //import io.ktor.http.ContentType.Application.Json
 import io.ktor.serialization.kotlinx.json.json
+import java.io.IOException
 
 class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO, val context: android.content.Context) {
 
@@ -69,21 +70,38 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
                 MultiPartFormDataContent(
                     formData {
                         //adds meta-data to be sent to server
+                        println("sending meta data........DrawingID: ${drawing.id}")
                         append("DrawingID", "${drawing.id}")
+
+                        println("sending meta data........ImageTitle: ${drawing.imageTitle}")
                         append("ImageTitle", drawing.imageTitle)
+
+                        println("sending meta data........fileName: ${drawing.fileName}")
                         append("fileName", drawing.fileName)
+
+                        println("sending meta data........ownerID: ${drawing.ownerID}")
                         append("ownerID", drawing.ownerID)
 
+
                         //attaches image file to be sent to server
-                        append("image", File(drawing.fileName).readBytes(), Headers.build {
+
+                        val imageFile = File(context.filesDir, drawing.fileName)
+                        if (imageFile.exists()) {
+                            println("File exists at: ${imageFile.absolutePath}")
+                        } else {
+                            println("Error: File not found at ${imageFile.absolutePath}")
+                        }
+
+                        append("image", File(context.filesDir,drawing.fileName).readBytes(), Headers.build {
+                            println("Appending file with name: ${drawing.fileName}")
                             append(HttpHeaders.ContentType, "image/png")
-                            append(
-                                HttpHeaders.ContentDisposition,
-                                "user-${drawing.ownerID}-drawing-${drawing.id}.png"
+                            println("Appending content type ")
+                            append(HttpHeaders.ContentDisposition, "filename=${drawing.fileName}"
                             ) //how the server will label the file regardless of the name on disk
+                            println("Appending content type with content disposition: filename=${drawing.fileName}")
                         })
                     },
-                    boundary = "WebAppBoundary"
+//                    boundary = "WebAppBoundary"
                 )
             )
             //Callback functions to monitor progress of upload in real time
@@ -104,7 +122,6 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     val allDrawings: LiveData<List<Drawing>> get() = _allDrawings
 
     private var selectedDrawing: Drawing? = null
-
 
 
     // Method to get the selected drawing
@@ -158,15 +175,17 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
         val generatedId = dao.addDrawing(drawing) //insert into database
 
         //create a file in the special directory for when you save the bitmap
-        val backendFileName = "user-${drawing.ownerID}-drawing-${generatedId}.png.png"
-        val file = File(context.filesDir, backendFileName)
+        val backendFileName = "user-${drawing.ownerID}-drawing-${generatedId}.png"
+        Log.i("DrawRepository","file name $backendFileName")
 
         //Create a Drawing object, now including the generated ID, file path, and bitmap
         val withBackendFileNameAndDrawingID = drawing.copy(id = generatedId, fileName = backendFileName)
 
+        Log.i("DrawRepository","withBackendFileNameAndDrawingID: ${withBackendFileNameAndDrawingID}")
         //Update the database record with the new file path
         dao.updateFileName(generatedId,backendFileName)
 
+        Log.i("DrawRepository","update it in the database: id = ${generatedId}, bachendFileName = $backendFileName")
         //Get the current list, adds the new drawing to the end of the list, updates the live data
         val currentList = _allDrawings.value.orEmpty().toMutableList()  //takes the immutable list of drawing and converts it to mutable (ie can edit)
         currentList.add(withBackendFileNameAndDrawingID)
@@ -174,6 +193,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
         //UI won't freeze waiting for this operation to take place, just will update the main thread when ready
         _allDrawings.postValue(currentList)// uses post value to ensure thread safe if its called from background thread
 
+        Log.i("DrawRepository","returning Drawing w/ backendFileName and Drawing ID")
         return withBackendFileNameAndDrawingID
     }
 
@@ -200,6 +220,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
         }
     }
 
+
     // Specifically updating just the filename for a drawing in the database.
     suspend fun updateImageTitle(drawingId: Long, newFileName: String) {
         //Optimistically update UI with new name
@@ -225,7 +246,7 @@ class DrawRepository(private val scope: CoroutineScope, private val dao: DrawDAO
     suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
         return withContext(Dispatchers.IO) {
             try {
-                val file = File(fileName)
+                val file = File(context.filesDir,fileName)
 
                 if (file.exists()) {
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)

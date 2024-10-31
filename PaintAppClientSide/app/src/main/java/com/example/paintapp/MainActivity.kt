@@ -122,8 +122,8 @@ fun FirebaseAuthScreen(onLoginSuccess: (String, String) -> Unit) {
 
 @Composable
 fun AuthScreen(onLoginSuccess: (String, String) -> Unit) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("test@email.com") }
+    var password by remember { mutableStateOf("test123") }
 
     Box(
         modifier = Modifier.fillMaxSize(),

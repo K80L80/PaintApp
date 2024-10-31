@@ -519,7 +519,7 @@ class DrawViewModel(drawRepository: DrawRepository) : ViewModel() {
             bitmap = bitmap,
             fileName = fileName,
             imageTitle = "untitled",
-            ownerID = "spencer2@gmail.com" //TODO: Replace with real owner ID
+            ownerID = "AAA" //TODO: Replace with real owner ID
         )
     }
     val defaultDrawing = createDefaultDrawing(
